@@ -20,14 +20,17 @@ const imagekit = new ImageKit({
 const allowedOrigins = [
   "https://capstone-thesis-library.vercel.app", // production
   "http://localhost:3000",                      // local dev
-  // you may add more here if needed
+  // You can add more fixed domains here if needed
 ];
 
-function createCorsResponse(body: any, origin: string | null) {
+// Regex to allow any Vercel preview deployment
+const vercelPreviewRegex = /\.vercel\.app$/;
+
+function createCorsResponse(body: unknown, origin: string | null) {
   return new NextResponse(JSON.stringify(body), {
     status: 200,
     headers: {
-      "Access-Control-Allow-Origin": origin ? origin : "",
+      "Access-Control-Allow-Origin": origin ?? "",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
@@ -38,9 +41,9 @@ function createCorsResponse(body: any, origin: string | null) {
 // OPTIONS (CORS Preflight)
 // --------------------------
 export async function OPTIONS(request: Request) {
-  const origin = request.headers.get("origin");
+  const origin = request.headers.get("origin") || "";
 
-  if (origin && allowedOrigins.includes(origin)) {
+  if (allowedOrigins.includes(origin) || vercelPreviewRegex.test(origin)) {
     return new Response(null, {
       status: 200,
       headers: {
@@ -58,9 +61,9 @@ export async function OPTIONS(request: Request) {
 // GET Handler
 // --------------------------
 export async function GET(request: Request) {
-  const origin = request.headers.get("origin");
+  const origin = request.headers.get("origin") || "";
 
-  if (!origin || !allowedOrigins.includes(origin)) {
+  if (!allowedOrigins.includes(origin) && !vercelPreviewRegex.test(origin)) {
     return new Response("Origin not allowed", { status: 403 });
   }
 
