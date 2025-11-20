@@ -19,7 +19,7 @@ export const sendEmail = async({email, subject, message}: {email: string; subjec
       provider: resend({ token: config.env.resendToken }),
     },
     body: {
-      from: "Lemor <hello.lemoroquias.online>",
+      from: "Smart Library <contact@lemoroquias.online>",
       to: [email],
       subject,
       html: message,
