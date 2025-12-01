@@ -66,7 +66,7 @@ function AuthForm<T extends FieldValues>({
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold text-white">
         {isSignIn
-          ? "Welcome back to Smart Library"
+          ? "Welcome back to MNHS Library"
           : "Create your library account"}
       </h1>
 
@@ -118,7 +118,7 @@ function AuthForm<T extends FieldValues>({
 
       <p className="text-center text-base font-medium">
         {isSignIn
-          ? "New to Smart Library? "
+          ? "New to Our Library? "
           : "Already have an account? "}
         <Link
           href={isSignIn ? "/sign-up" : "/sign-in"}
