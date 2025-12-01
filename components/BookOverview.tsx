@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import BookCover from "@/components/BookCover";
 import BorrowBook from "@/components/BorrowBook";
 import { db } from "@/database/drizzle";
@@ -38,16 +39,29 @@ const BookOverview = async ({
   return (
     <section className="book-overview">
       <div className="flex flex-1 flex-col gap-5">
-        <h1>{title}</h1>
+        <Link href={`/books/${id}`} className="hover:opacity-80 transition-opacity">
+          <h1 className="text-3xl font-bold text-white hover:underline">{title}</h1>
+        </Link>
 
         <div className="book-info">
           <p>
-            By <span className="font-semibold text-light-200">{author}</span>
+            By{" "}
+            <Link 
+              href={`/library?author=${encodeURIComponent(author)}`}
+              className="font-semibold text-light-200 hover:underline hover:opacity-90 transition-opacity"
+            >
+              {author}
+            </Link>
           </p>
 
           <p>
             Category{" "}
-            <span className="font-semibold text-light-200">{genre}</span>
+            <Link 
+              href={`/library?genre=${encodeURIComponent(genre)}`}
+              className="font-semibold text-light-200 hover:underline hover:opacity-90 transition-opacity"
+            >
+              {genre}
+            </Link>
           </p>
 
           <div className="flex flex-row gap-1">
@@ -79,19 +93,24 @@ const BookOverview = async ({
 
       <div className="relative flex flex-1 justify-center">
         <div className="relative">
-          <BookCover
-            variant="wide"
-            className="z-10"
-            coverColor={coverColor}
-            coverImage={coverUrl}
-          />
-
-          <div className="absolute left-16 top-10 rotate-12 opacity-40 max-sm:hidden">
+          <Link href={`/books/${id}`} className="block hover:opacity-90 transition-opacity">
             <BookCover
               variant="wide"
+              className="z-10"
               coverColor={coverColor}
               coverImage={coverUrl}
             />
+          </Link>
+
+          <div className="absolute left-16 top-10 rotate-12 opacity-40 max-sm:hidden">
+            <Link href={`/books/${id}`} className="block">
+              <BookCover
+                variant="wide"
+                coverColor={coverColor}
+                coverImage={coverUrl}
+                className=""
+              />
+            </Link>
           </div>
         </div>
       </div>

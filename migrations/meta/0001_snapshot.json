@@ -1,6 +1,6 @@
 {
-  "id": "32c8138b-364c-4a4e-9fcc-6ea46395001a",
-  "prevId": "c74fe2ac-622e-4dc7-ae3a-7283205bb79c",
+  "id": "4eae0d66-5509-4b3e-ac7e-915775f30f1f",
+  "prevId": "f9706051-47fd-4cc0-8379-1ed4adfe5f1a",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -79,7 +79,7 @@
         },
         "summary": {
           "name": "summary",
-          "type": "varchar",
+          "type": "varchar(1000)",
           "primaryKey": false,
           "notNull": true
         },
@@ -198,6 +198,109 @@
       "uniqueConstraints": {
         "borrow_records_id_unique": {
           "name": "borrow_records_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.saved_books": {
+      "name": "saved_books",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "book_id": {
+          "name": "book_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "saved_at": {
+          "name": "saved_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "saved_books_user_book_idx": {
+          "name": "saved_books_user_book_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "book_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "saved_books_user_id_users_id_fk": {
+          "name": "saved_books_user_id_users_id_fk",
+          "tableFrom": "saved_books",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "saved_books_book_id_books_id_fk": {
+          "name": "saved_books_book_id_books_id_fk",
+          "tableFrom": "saved_books",
+          "tableTo": "books",
+          "columnsFrom": [
+            "book_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "saved_books_id_unique": {
+          "name": "saved_books_id_unique",
           "nullsNotDistinct": false,
           "columns": [
             "id"

@@ -1,9 +1,9 @@
 
-import { integer, text, boolean, pgTable, uuid, varchar, pgEnum, date, timestamp } from "drizzle-orm/pg-core";
+import { integer, text, boolean, pgTable, uuid, varchar, pgEnum, date, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 export const STATUS_ENUM = pgEnum("status", ["PENDING", "APPROVED", "REJECTED"]);
 export const ROLE_ENUM = pgEnum("role", ["USER", "ADMIN"]);
-export const BORROW_STATUS_ENUM = pgEnum("borrow_status", ["BORROWED", "STATUS"]);
+export const BORROW_STATUS_ENUM = pgEnum("borrow_status", [ "BORROWED", "STATUS"]);
 
 export const users = pgTable("users", {
   id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
@@ -32,7 +32,7 @@ export const books = pgTable("books", {
   totalCopies: integer("total_copies").notNull().default(1),
   availableCopies: integer("available_copies").notNull().default(0),
   videoUrl: text("video_url").notNull(),
-  summary: varchar("summary").notNull(),
+  summary: varchar("summary", { length: 1000 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
@@ -52,3 +52,32 @@ export const borrowRecords = pgTable("borrow_records", {
   status: BORROW_STATUS_ENUM("status").default("BORROWED").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
+
+export const savedBooks = pgTable(
+  "saved_books",
+  {
+    id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
+
+    userId: uuid("user_id")
+      .references(() => users.id)
+      .notNull(),
+
+    bookId: uuid("book_id")
+      .references(() => books.id)
+      .notNull(),
+
+    savedAt: timestamp("saved_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    savedBooksUnique: uniqueIndex("saved_books_user_book_idx").on(
+      table.userId,
+      table.bookId
+    ),
+  })
+);

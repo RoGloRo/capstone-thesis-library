@@ -21,7 +21,19 @@ const daysBetween = (from: Date, to: Date) => {
   return Math.ceil((to.getTime() - from.getTime()) / msPerDay);
 };
 
-const BookCard = ({ id, title, genre, coverColor, coverUrl, isLoanedBook = false, borrowDate, dueDate, returnDate }: Book) => {
+const BookCard = ({ 
+  id, 
+  title, 
+  genre, 
+  coverColor, 
+  coverUrl, 
+  isLoanedBook = false, 
+  borrowDate, 
+  dueDate, 
+  returnDate, 
+  availableCopies, 
+  totalCopies 
+}: Book) => {
   const [showDetails, setShowDetails] = useState(false);
   let dueText = "";
   if (returnDate) {
@@ -44,6 +56,9 @@ const BookCard = ({ id, title, genre, coverColor, coverUrl, isLoanedBook = false
         <div className={cn("mt-4", !isLoanedBook && "xs:max-w-40 max-w-28")}>
           <p className="book-title">{title}</p>
           <p className="book-genre">{genre}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {availableCopies} of {totalCopies} available
+          </p>
         </div>
 
         {isLoanedBook && (
