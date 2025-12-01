@@ -12,6 +12,9 @@ interface Book {
   videoUrl: string;
   summary: string;
   isLoanedBook?: boolean;
+  borrowDate?: string; // ISO timestamp
+  dueDate?: string; // ISO date
+  returnDate?: string | null; // ISO date or null
 }
 
 interface AuthCredentials {
