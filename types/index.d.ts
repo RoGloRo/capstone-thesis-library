@@ -22,6 +22,7 @@ type User = {
   fullName: string;
   email: string;
   universityId: number;
+  universityCard: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   role: 'USER' | 'ADMIN';
   lastActivityDate: Date;

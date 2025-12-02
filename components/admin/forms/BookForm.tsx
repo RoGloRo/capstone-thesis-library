@@ -13,6 +13,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { bookSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -45,22 +47,25 @@ const BookForm = ({ type, ...book }: Props) => {
     },
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onSubmit = async (values: z.infer<typeof bookSchema>) => {
-    const result = await createBook(values);
+    try {
+      setIsSubmitting(true);
+      const result = await createBook(values);
 
-    if (result.success) {
-      toast({
-        title: "Success",
-        description: "Book created successfully",
-      });
-
-      router.push(`/admin/books/${result.data.id}`);
-    } else {
-      toast({
-        title: "Error",
-        description: result.message,
-        variant: "destructive",
-      });
+      if (result.success) {
+        toast.success("Book added successfully!");
+        router.push('/admin/books');
+        router.refresh(); // Refresh the page to show the new book
+      } else {
+        toast.error(result.message || "Failed to add book");
+      }
+    } catch (error) {
+      console.error("Error creating book:", error);
+      toast.error("An error occurred while adding the book");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -282,8 +287,19 @@ const BookForm = ({ type, ...book }: Props) => {
           )}
         />
 
-        <Button type="submit" className="book-form_btn text-white">
-          Add Book to Library
+        <Button 
+          type="submit" 
+          className="book-form_btn text-white"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Adding...
+            </>
+          ) : (
+            'Add Book to Library'
+          )}
         </Button>
       </form>
     </Form>
