@@ -41,8 +41,9 @@ export const { POST } = serve<InitialData>(async (context) => {
   await context.run("new-signup", async () => {
     await sendEmail({
       email,
-      subject: "Welcome to the platform",
-      message: `Welcome ${fullName}`
+      subject: "Welcome aboard! 👋",
+      message: `Hi ${fullName}$,
+      We’re excited to have you join us. Make yourself at home — your journey starts now!`
     })
   })
 
@@ -57,16 +58,18 @@ export const { POST } = serve<InitialData>(async (context) => {
       await context.run("send-email-non-active", async () => {
         await sendEmail({
           email,
-          subject: "Are you still there?",
-          message: `Hey ${fullName}, we miss you!`,
+          subject: "We miss you!",
+          message: `Hey ${fullName},
+          It’s been a while since we last saw you. Come back anytime — we’re here to support you.`,
         })
       })
     } else if (state === "active") {
       await context.run("send-email-active", async () => {
         await sendEmail({
           email,
-          subject: "Welcome back Homie!",
-          message: `Welcome back ${fullName}`
+          subject: "You’re back! 🔥",
+          message: `Hey ${fullName},
+          Nice! You're back in action. Let’s keep things rolling.`
         })
       })
     }

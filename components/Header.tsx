@@ -4,13 +4,22 @@ import { cn, getInitials } from "@/lib/utils";
 import { Session } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import React, { FormEvent, useState } from "react";
 
 const Header = ({session}: {session: Session}) => {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      const query = encodeURIComponent(searchQuery.trim());
+      router.push(`/library?search=${query}`);
+    }
+  };
 
   return <header className="my-10 flex items-center justify-between gap-5">
     <Link href="/" className="flex-shrink-0">
@@ -18,7 +27,7 @@ const Header = ({session}: {session: Session}) => {
     </Link>
 
     {/* Search Bar */}
-    <div className="flex-1 max-w-2xl mx-6">
+    <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-6">
       <div className="relative">
         <input
           type="text"
@@ -26,16 +35,22 @@ const Header = ({session}: {session: Session}) => {
           className="w-full py-2 pl-10 pr-4 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Search books, authors, or categories"
         />
-        <Image
-          src="/icons/search-fill.svg"
-          alt="Search"
-          width={20}
-          height={20}
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-        />
+        <button 
+          type="submit"
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-amber-500 transition-colors"
+          aria-label="Search"
+        >
+          <Image
+            src="/icons/search-fill.svg"
+            alt="Search"
+            width={20}
+            height={20}
+          />
+        </button>
       </div>
-    </div>
+    </form>
 
     <div className="flex items-center gap-6">
       <Link href="/" className={cn("text-base cursor-pointer capitalize hover:text-amber-500 transition-colors", 

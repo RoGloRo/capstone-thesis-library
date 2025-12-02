@@ -1,37 +1,53 @@
 import { db } from "@/database/drizzle";
 import { books } from "@/database/schema";
-import { ilike } from "drizzle-orm";
+import { and, ilike, or } from "drizzle-orm";
 import BookCard from "@/components/BookCard";
+import { Book } from "@/types";
 
 interface SearchParams {
   searchParams: {
     author?: string;
     genre?: string;
+    search?: string;
   };
 }
 
 export default async function LibraryPage({ searchParams }: SearchParams) {
   // Get search parameters
-  const { author, genre } = searchParams;
+  const { author, genre, search } = searchParams;
   
   // Build the query based on search parameters
   let query = db.select().from(books);
   
-  if (author) {
-    const authorSearch = `%${decodeURIComponent(author)}%`;
-    query = query.where(ilike(books.author, authorSearch));
-  }
-  
-  if (genre) {
-    const genreSearch = `%${decodeURIComponent(genre)}%`;
-    query = query.where(ilike(books.genre, genreSearch));
+  if (search) {
+    const searchTerm = `%${decodeURIComponent(search)}%`;
+    query = query.where(
+      or(
+        ilike(books.title, searchTerm),
+        ilike(books.author, searchTerm),
+        ilike(books.genre, searchTerm)
+      )
+    );
+  } else {
+    if (author) {
+      const authorSearch = `%${decodeURIComponent(author)}%`;
+      query = query.where(ilike(books.author, authorSearch));
+    }
+    
+    if (genre) {
+      const genreSearch = `%${decodeURIComponent(genre)}%`;
+      query = query.where(ilike(books.genre, genreSearch));
+    }
   }
   
   // Execute the query with ordering
-  const filteredBooks = await query.orderBy(books.title);
+  const filteredBooks = (await query.orderBy(books.title)) as unknown as Book[];
   
   // Function to get filter message
   const getFilterMessage = () => {
+    if (search) {
+      return `Search results for "${decodeURIComponent(search)}"`;
+    }
     if (author && genre) {
       return `Showing books by ${decodeURIComponent(author)} in ${decodeURIComponent(genre)}`;
     }
@@ -49,7 +65,7 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-white">Library</h1>
-          {(author || genre) && (
+          {(search || author || genre) && (
             <p className="text-muted-foreground mt-1">
               {getFilterMessage()}
               <a 
