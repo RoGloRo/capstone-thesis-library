@@ -103,41 +103,41 @@ export function BooksTable({ data }: BooksTableProps) {
       accessorKey: "availableCopies",
       header: "Available",
     },
-    {
-      accessorKey: "createdAt",
-      header: "Added On",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("createdAt"));
-        return date.toLocaleDateString();
-      },
+     {
+    accessorKey: "createdAt",
+    header: "Added On",
+    cell: ({ row }) => {
+      const date = new Date(row.getValue("createdAt"));
+      return date.toLocaleDateString();
     },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="h-8 w-8 p-0 hover:bg-blue-100"
-          >
-            <Link href={`/admin/books/edit/${row.original.id}`}>
-              <Pencil className="h-4 w-4 text-blue-600" />
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 p-0 hover:bg-red-100"
-            onClick={() => handleDeleteClick(row.original.id)}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4 text-red-600" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => (
+      <div className="flex gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          asChild
+          className="h-8 w-8 p-0 hover:bg-blue-100"
+        >
+          <Link href={`/admin/books/edit/${row.original.id}`}>
+            <Pencil className="h-4 w-4 text-blue-600" />
+          </Link>
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 p-0 hover:bg-red-100"
+          onClick={() => handleDeleteClick(row.original.id)}
+          disabled={isDeleting}
+        >
+          <Trash2 className="h-4 w-4 text-red-600" />
+        </Button>
+      </div>
+    ),
+  },
+];
 
   const table = useReactTable({
     data,

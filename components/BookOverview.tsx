@@ -65,7 +65,14 @@ const BookOverview = async ({
           </p>
 
           <div className="flex flex-row gap-1">
-            <Image src="/icons/star.svg" alt="star" width={22} height={22} />
+            <Image
+            src="/icons/star.svg"
+            alt="Star"
+            width={24}  // Set both width and height
+            height={24}
+            // OR use style to maintain aspect ratio
+            // style={{ width: 'auto', height: 'auto' }}
+          />
             <p>{rating}</p>
           </div>
         </div>

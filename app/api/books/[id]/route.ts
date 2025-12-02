@@ -1,43 +1,56 @@
+// app/api/books/[id]/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { updateBook } from "@/lib/admin/actions/book";
+import { bookSchema } from "@/lib/validations";
 import { db } from "@/database/drizzle";
-import { books } from "@/database/schema";
 import { eq } from "drizzle-orm";
-import { NextResponse } from "next/server";
+import { books } from "@/database/schema";
 
-export async function DELETE(
-  request: Request,
+export async function PUT(
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const bookId = params.id;
+    const body = await request.json();
+    const validation = bookSchema.safeParse(body);
 
-    if (!bookId) {
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Book ID is required" },
+        { message: "Invalid book data", errors: validation.error.errors },
         { status: 400 }
       );
     }
 
-    // Delete the book from the database
-    const [deletedBook] = await db
-      .delete(books)
-      .where(eq(books.id, bookId))
-      .returning();
+    const result = await updateBook(params.id, validation.data);
 
-    if (!deletedBook) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: "Book not found" },
-        { status: 404 }
+        { message: result.message || "Failed to update book" },
+        { status: 500 }
       );
     }
 
+    return NextResponse.json(result.data);
+  } catch (error) {
+    console.error("Error updating book:", error);
     return NextResponse.json(
-      { message: "Book deleted successfully" },
-      { status: 200 }
+      { message: "Internal server error" },
+      { status: 500 }
     );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await db.delete(books).where(eq(books.id, params.id));
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting book:", error);
     return NextResponse.json(
-      { error: "Failed to delete book" },
+      { message: "Failed to delete book" },
       { status: 500 }
     );
   }
