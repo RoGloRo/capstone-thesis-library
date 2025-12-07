@@ -4,7 +4,6 @@
 import { books } from "@/database/schema";
 import { db } from "@/database/drizzle";
 import { eq } from "drizzle-orm";
-// import { BookParams } from "@/types";
 
 export const getBookById = async (id: string) => {
   try {

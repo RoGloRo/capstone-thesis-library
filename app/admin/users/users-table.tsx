@@ -56,6 +56,7 @@ interface UsersTableProps {
 export function UsersTable({ data }: UsersTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
@@ -234,15 +235,27 @@ export function UsersTable({ data }: UsersTableProps) {
   const table = useReactTable({
     data,
     columns,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const search = filterValue.toLowerCase();
+      
+      // Search in fullName, email, and universityId
+      return (
+        String(row.original.fullName).toLowerCase().includes(search) ||
+        String(row.original.email).toLowerCase().includes(search) ||
+        String(row.original.universityId).toLowerCase().includes(search)
+      );
+    },
     state: {
       sorting,
       columnFilters,
+      globalFilter,
     },
   });
 
@@ -250,11 +263,11 @@ export function UsersTable({ data }: UsersTableProps) {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Filter by name..."
-          value={(table.getColumn("fullName")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("fullName")?.setFilterValue(event.target.value)
-          }
+          placeholder="Search by name, email, or ID..."
+          value={(table.getState().globalFilter as string) ?? ""}
+          onChange={(event) => {
+            table.setGlobalFilter(event.target.value);
+          }}
           className="max-w-sm"
         />
       </div>
