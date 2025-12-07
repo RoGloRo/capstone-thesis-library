@@ -8,12 +8,18 @@ import { revalidatePath } from "next/cache";
 
 export const getAccountRequests = async (): Promise<AccountRequest[]> => {
   try {
-    const pendingUsers = await db
+    const accountRequests = await db
       .select()
       .from(users)
-      .where(eq(users.status, "PENDING"));
+      .where(
+        or(
+          eq(users.status, "PENDING"),
+          eq(users.status, "REJECTED")
+        )
+      )
+      .orderBy(users.createdAt);
 
-    return pendingUsers.map(user => ({
+    return accountRequests.map(user => ({
       id: user.id,
       fullName: user.fullName || "",
       email: user.email || "",
