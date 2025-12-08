@@ -14,7 +14,9 @@ interface SearchParams {
 
 export default async function LibraryPage({ searchParams }: SearchParams) {
   // Get search parameters
-  const { author, genre, search } = searchParams;
+  const author = searchParams?.author;
+  const genre = searchParams?.genre;
+  const search = searchParams?.search;
   
   // Build the query based on search parameters
   let query = db.select().from(books);

@@ -25,29 +25,32 @@ const BorrowBook = ({
   const [borrowing, setBorrowing] = useState(false);
 
   const handleBorrowBook = async () => {
-    if (!isEligible) {
-      toast("Error", { description: message });
+  if (!isEligible) {
+    toast("Error", { description: message });
+    return; // Add return to prevent further execution
+  }
+
+  setBorrowing(true);
+
+  try {
+    const result = await borrowBook({ bookId, userId });
+
+    if (result.success) {
+      toast("Success", { description: "Book borrowed successfully" });
+      router.push("/my-profile");
+    } else {
+      toast("Already Borrowed", { 
+        description: "You already have an active borrowing for this book" 
+      });
     }
-
-    setBorrowing(true);
-
-    try {
-      const result = await borrowBook({ bookId, userId });
-
-      if (result.success) {
-        toast("Success", { description: "Book borrowed successfully" });
-
-        router.push("/my-profile");
-      } else {
-        toast("Error", { description: String(result.error) });
-      }
-    } catch {
-      toast("Error", { description: "An error occurred while borrowing the book" });
-    } finally {
-      setBorrowing(false);
-    }
-  };
-
+  } catch {
+    toast("Error", { 
+      description: "An error occurred while borrowing the book" 
+    });
+  } finally {
+    setBorrowing(false);
+  }
+};
   return (
     <Button
       className="book-overview_btn"

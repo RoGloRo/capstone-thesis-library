@@ -4,8 +4,10 @@ import Link from "next/link";
 import BookCover from "@/components/BookCover";
 import BorrowBook from "@/components/BorrowBook";
 import { db } from "@/database/drizzle";
-import { users } from "@/database/schema";
+import { users, borrowRecords } from "@/database/schema";
 import { eq } from "drizzle-orm";
+import { ReturnBookButton } from "./ReturnBookButton";
+import { and } from "drizzle-orm";
 
 interface Props extends Book {
   userId: string;
@@ -36,6 +38,29 @@ const BookOverview = async ({
         ? "Book is not available. Out of copies"
         : "You are not eligible to borrow this book. Wait for the admin to approve your account",
   };
+  // Add this function before the return statement
+const checkIfUserHasBorrowedBook = async (userId: string, bookId: string) => {
+  try {
+    const [record] = await db
+      .select()
+      .from(borrowRecords)
+      .where(
+        and(
+          eq(borrowRecords.userId, userId),
+          eq(borrowRecords.bookId, bookId),
+          eq(borrowRecords.status, "BORROWED")
+        )
+      )
+      .limit(1);
+    return !!record;
+  } catch (error) {
+    console.error("Error checking if user has borrowed book:", error);
+    return false;
+  }
+};
+
+// Then call it in the component
+const hasBorrowedBook = await checkIfUserHasBorrowedBook(userId, id);
   return (
     <section className="book-overview">
       <div className="flex flex-1 flex-col gap-5">
@@ -90,11 +115,19 @@ const BookOverview = async ({
         <p className="book-description">{description}</p>
 
         {user && (
-          <BorrowBook
-            bookId={id}
-            userId={userId}
-            borrowingEligibility={borrowingEligibility}
-          />
+          <div className="flex gap-3">
+            <BorrowBook
+              bookId={id}
+              userId={userId}
+              borrowingEligibility={borrowingEligibility}
+            />
+            {hasBorrowedBook && (
+              <ReturnBookButton 
+                bookId={id}
+                userId={userId}
+              />
+            )}
+          </div>
         )}
       </div>
 

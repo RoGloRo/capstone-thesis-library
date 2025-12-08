@@ -26,17 +26,23 @@ export const getBorrowRecords = async (): Promise<BorrowRecordsResponse> => {
       .leftJoin(books, eq(borrowRecords.bookId, books.id))
       .orderBy(borrowRecords.borrowDate);
 
-    const recordsWithImageUrl = records.map(record => ({
-  ...record,
-  // If universityCard starts with /ids/, it's already in the correct format
-  // Otherwise, prepend /ids/ to the filename
-  universityCard: record.universityCard 
-    ? record.universityCard.startsWith('http') || record.universityCard.startsWith('/ids/')
-      ? record.universityCard
-      : `/ids/${record.universityCard}`
-    : null
-}));
-    return { success: true, data: recordsWithImageUrl };
+    const now = new Date();
+    const recordsWithStatus = records.map(record => {
+      const isOverdue = !record.returnDate && new Date(record.dueDate) < now;
+      const status = isOverdue ? "OVERDUE" : record.status;
+
+      return {
+        ...record,
+        status,
+        universityCard: record.universityCard 
+          ? record.universityCard.startsWith('http') || record.universityCard.startsWith('/ids/')
+            ? record.universityCard
+            : `/ids/${record.universityCard}`
+          : null
+      };
+    });
+
+    return { success: true, data: recordsWithStatus };
   } catch (error) {
     console.error("Error fetching borrow records:", error);
     return { 

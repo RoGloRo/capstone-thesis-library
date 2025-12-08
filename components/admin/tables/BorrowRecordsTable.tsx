@@ -23,6 +23,7 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { BorrowRecord } from "@/types/borrow";
+import { ReturnBookButton } from "@/components/ReturnBookButton";
 
 export default function BorrowRecordsTable() {
   // Remove the duplicate state declaration
@@ -51,13 +52,14 @@ const getImageUrl = (url: string | null) => {
 // Add this effect for data fetching
 useEffect(() => {
   const fetchRecords = async () => {
+    setLoading(true);
     try {
       const result = await getBorrowRecords();
-      if (result.success) {
-        setRecords(result.data || []);
-        setFilteredRecords(result.data || []);
+      if (result.success && result.data) {
+        setRecords(result.data);
+        setFilteredRecords(result.data);
       } else {
-        setError(result.message || "Failed to load records");
+        setError(result.error || "Failed to load records");
       }
     } catch (err) {
       console.error("Error fetching records:", err);
