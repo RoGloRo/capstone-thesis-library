@@ -7,6 +7,8 @@ import React from "react";
 import { db } from "@/database/drizzle";
 import { borrowRecords, books, users } from "@/database/schema";
 import { eq, and } from "drizzle-orm";
+import { User, Calendar, BookOpen, Clock, CreditCard, Mail, Hash, Shield } from "lucide-react";
+import Image from "next/image";
 
 // Simple card components since shadcn/ui might not be installed
 const Card = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -186,82 +188,199 @@ const Page = async () => {
   };
 
   const userStatus = userData.status || 'PENDING';
-  const userInfo = [
-    { label: 'Full Name', value: userData.fullName },
-    { label: 'Email', value: userData.email },
-    { label: 'University ID', value: userData.universityId },
-    { 
-      label: 'Status', 
-      value: (
-        <Badge 
-          variant={userStatus === 'APPROVED' ? 'default' : userStatus === 'PENDING' ? 'secondary' : 'destructive'}
-          className="capitalize text-black"
-        >
-          {userStatus.toLowerCase()}
-        </Badge>
-      ) 
-    },
-    { 
-      label: 'Role', 
-      value: (
-        <Badge variant={userData.role === 'ADMIN' ? 'default' : 'outline'} className="capitalize text-black">
-          {userData.role}
-        </Badge>
-      ) 
-    },
-    { label: 'Member Since', value: formatDate(userData.createdAt) },
-    { label: 'Last Active', value: formatDate(userData.lastActivityDate) },
-  ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">My Profile</h1>
-        <form action={async () => {
-          "use server";
-          await signOut();
-        }}>
-          <Button variant="outline">Sign Out</Button>
-        </form>
-      </div>
-
-      <Card className="border-muted/50" style={{ backgroundColor: '#232839' }}>
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-amber-100">
-              <AvatarFallback className="bg-amber-100 text-amber-800 text-xl font-medium">
-                {getInitials(userData.fullName)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-2xl text-white">{userData.fullName}</CardTitle>
-              <p className="text-muted-foreground">{userData.email}</p>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 rounded-2xl">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">My Profile</h1>
+            <p className="text-blue-200">Manage your account and library activity</p>
           </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-0">
-          {userInfo.map((info, index) => (
-            <div key={index} className="space-y-1">
-              <p className="text-sm text-muted-foreground">{info.label}</p>
-              <p className="font-medium text-white">{info.value}</p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+          <form action={async () => {
+            "use server";
+            await signOut();
+          }}>
+            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+              Sign Out
+            </Button>
+          </form>
+        </div>
 
-      <div className="pt-4">
-        <BookList 
-          title="Borrowed Books" 
-          books={borrowedBooks} 
-          containerClassName="mt-6"
-        />
-      </div>
-      <div className="pt-4">
-        <BookList 
-          title="Returned Books" 
-          books={returnedBooks} 
-          containerClassName="mt-6"
-        />
+        {/* Profile Overview Card */}
+        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+          <CardHeader className="pb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              <Avatar className="h-20 w-20 border-4 border-blue-400/50">
+                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-2xl font-bold">
+                  {getInitials(userData.fullName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <CardTitle className="text-3xl text-white mb-2">{userData.fullName}</CardTitle>
+                <div className="flex items-center gap-2 text-blue-200 mb-2">
+                  <Mail className="h-4 w-4" />
+                  <span>{userData.email}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Badge 
+                    variant={userStatus === 'APPROVED' ? 'default' : userStatus === 'PENDING' ? 'secondary' : 'destructive'}
+                    className="capitalize"
+                  >
+                    {userStatus.toLowerCase()}
+                  </Badge>
+                  <Badge variant={userData.role === 'ADMIN' ? 'default' : 'outline'} className="capitalize">
+                    <Shield className="h-3 w-3 mr-1" />
+                    {userData.role}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Information Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Personal Information */}
+          <Card className="lg:col-span-2 bg-white/5 border-white/10 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl text-white flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Personal Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <p className="text-sm text-blue-200 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Full Name
+                </p>
+                <p className="font-medium text-white">{userData.fullName}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-blue-200 flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </p>
+                <p className="font-medium text-white">{userData.email}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-blue-200 flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  University ID
+                </p>
+                <p className="font-medium text-white">{userData.universityId}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-blue-200 flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Member Since
+                </p>
+                <p className="font-medium text-white">{formatDate(userData.createdAt)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-blue-200 flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Last Active
+                </p>
+                <p className="font-medium text-white">{formatDate(userData.lastActivityDate)}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* University Card */}
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl text-white flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                University Card
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {userData.universityCard ? (
+                <div className="space-y-4">
+                  <div className="relative aspect-[1.586/1] bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl p-4 text-white shadow-lg">
+                    <div className="absolute top-4 right-4">
+                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <CreditCard className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="flex flex-col h-full justify-between">
+                      <div>
+                        <p className="text-xs opacity-75 mb-1">STUDENT ID</p>
+                        <p className="text-lg font-bold">{userData.universityId}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs opacity-75 mb-1">STUDENT NAME</p>
+                        <p className="font-medium text-sm">{userData.fullName}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <Image 
+                      src={userData.universityCard} 
+                      alt="University ID Card" 
+                      width={300}
+                      height={200}
+                      className="w-full rounded-lg border border-white/20 shadow-md object-cover"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">No university card uploaded</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Library Statistics */}
+        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-xl text-white flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Library Statistics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <div className="text-2xl font-bold text-blue-400 mb-1">{borrowedBooks.length}</div>
+                <div className="text-sm text-blue-200">Currently Borrowed</div>
+              </div>
+              <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                <div className="text-2xl font-bold text-green-400 mb-1">{returnedBooks.length}</div>
+                <div className="text-sm text-green-200">Books Returned</div>
+              </div>
+              <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                <div className="text-2xl font-bold text-purple-400 mb-1">{borrowedBooks.length + returnedBooks.length}</div>
+                <div className="text-sm text-purple-200">Total Books Read</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Books Section */}
+        <div className="space-y-8">
+          <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
+            <BookList 
+              title="Currently Borrowed Books" 
+              books={borrowedBooks} 
+              containerClassName=""
+            />
+          </div>
+          
+          <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
+            <BookList 
+              title="Reading History" 
+              books={returnedBooks} 
+              containerClassName=""
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

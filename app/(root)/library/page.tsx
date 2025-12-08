@@ -1,110 +1,177 @@
 import { db } from "@/database/drizzle";
 import { books } from "@/database/schema";
-import { and, ilike, or } from "drizzle-orm";
+import { and, ilike, or, sql } from "drizzle-orm";
 import BookCard from "@/components/BookCard";
 import { Book } from "@/types";
+import { BookOpen } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import SearchBar from "@/components/SearchBar";
 
 interface SearchParams {
-  searchParams: {
+  searchParams: Promise<{
     author?: string;
     genre?: string;
     search?: string;
-  };
+    sort?: string;
+  }>;
 }
 
 export default async function LibraryPage({ searchParams }: SearchParams) {
   // Get search parameters
-  const author = searchParams?.author;
-  const genre = searchParams?.genre;
-  const search = searchParams?.search;
+  const params = await searchParams;
+  const author = params?.author && params.author !== 'all' ? params.author : undefined;
+  const genre = params?.genre && params.genre !== 'all' ? params.genre : undefined;
+  const search = params?.search;
+  const sort = params?.sort || 'title';
+  
+  // Get all unique authors and genres for filter dropdowns
+  const [authorsResult, genresResult] = await Promise.all([
+    db.select({ author: books.author }).from(books).groupBy(books.author).orderBy(books.author),
+    db.select({ genre: books.genre }).from(books).groupBy(books.genre).orderBy(books.genre)
+  ]);
+  
+  const availableAuthors = authorsResult.map(r => r.author).filter(Boolean);
+  const availableGenres = genresResult.map(r => r.genre).filter(Boolean);
   
   // Build the query based on search parameters
   let query = db.select().from(books);
   
+  const conditions = [];
+  
   if (search) {
     const searchTerm = `%${decodeURIComponent(search)}%`;
-    query = query.where(
+    conditions.push(
       or(
         ilike(books.title, searchTerm),
         ilike(books.author, searchTerm),
         ilike(books.genre, searchTerm)
       )
     );
-  } else {
-    if (author) {
-      const authorSearch = `%${decodeURIComponent(author)}%`;
-      query = query.where(ilike(books.author, authorSearch));
-    }
-    
-    if (genre) {
-      const genreSearch = `%${decodeURIComponent(genre)}%`;
-      query = query.where(ilike(books.genre, genreSearch));
-    }
   }
   
-  // Execute the query with ordering
-  const filteredBooks = (await query.orderBy(books.title)) as unknown as Book[];
+  if (author) {
+    const authorSearch = `%${decodeURIComponent(author)}%`;
+    conditions.push(ilike(books.author, authorSearch));
+  }
   
-  // Function to get filter message
-  const getFilterMessage = () => {
-    if (search) {
-      return `Search results for "${decodeURIComponent(search)}"`;
-    }
-    if (author && genre) {
-      return `Showing books by ${decodeURIComponent(author)} in ${decodeURIComponent(genre)}`;
-    }
-    if (author) {
-      return `Showing books by ${decodeURIComponent(author)}`;
-    }
-    if (genre) {
-      return `Showing books in ${decodeURIComponent(genre)}`;
-    }
-    return 'All Books';
-  };
+  if (genre) {
+    const genreSearch = `%${decodeURIComponent(genre)}%`;
+    conditions.push(ilike(books.genre, genreSearch));
+  }
+  
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
+  }
+  
+  // Apply sorting
+  switch (sort) {
+    case 'author':
+      query = query.orderBy(books.author);
+      break;
+    case 'rating':
+      query = query.orderBy(sql`${books.rating} DESC`);
+      break;
+    case 'genre':
+      query = query.orderBy(books.genre);
+      break;
+    default:
+      query = query.orderBy(books.title);
+  }
+  
+  // Execute the query
+  const filteredBooks = (await query) as unknown as Book[];
+  
+
 
   return (
-    <section className="mt-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Library</h1>
-          {(search || author || genre) && (
-            <p className="text-muted-foreground mt-1">
-              {getFilterMessage()}
-              <a 
-                href="/library" 
-                className="ml-2 text-blue-400 hover:underline"
-              >
-                (Clear filters)
-              </a>
-            </p>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
+            <BookOpen className="h-8 w-8" />
+            Library
+          </h1>
+          <p className="text-blue-200">Discover and explore our book collection</p>
         </div>
-      </div>
-
-      {filteredBooks.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {author || genre 
-              ? `No books found matching your criteria.`
-              : 'No books found in the library.'
+        
+        {/* Search Bar */}
+        <SearchBar 
+          currentSearch={search}
+          currentAuthor={author}
+          currentGenre={genre}
+          currentSort={sort}
+          availableAuthors={availableAuthors}
+          availableGenres={availableGenres}
+        />
+        
+        {/* Active Filters */}
+        {(search || author || genre) && (
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-sm text-blue-200">Active filters:</span>
+            {search && (
+              <Badge variant="secondary" className="bg-blue-500/20 text-blue-200">
+                Search: &ldquo;{decodeURIComponent(search)}&rdquo;
+              </Badge>
+            )}
+            {author && (
+              <Badge variant="secondary" className="bg-green-500/20 text-green-200">
+                Author: {decodeURIComponent(author)}
+              </Badge>
+            )}
+            {genre && (
+              <Badge variant="secondary" className="bg-purple-500/20 text-purple-200">
+                Genre: {decodeURIComponent(genre)}
+              </Badge>
+            )}
+          </div>
+        )}
+        
+        {/* Results Count */}
+        <div className="mb-6">
+          <p className="text-blue-200">
+            {filteredBooks.length === 0 
+              ? 'No books found'
+              : `${filteredBooks.length} book${filteredBooks.length === 1 ? '' : 's'} found`
             }
+            {sort && sort !== 'title' && (
+              <span className="ml-2 text-sm">
+                • Sorted by {sort === 'rating' ? 'rating (highest first)' : sort}
+              </span>
+            )}
           </p>
-          {(author || genre) && (
-            <a 
-              href="/library" 
-              className="mt-2 inline-block text-blue-400 hover:underline"
-            >
-              Clear filters and view all books
-            </a>
-          )}
         </div>
-      ) : (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {filteredBooks.map((book) => (
-            <BookCard key={book.id} {...book} />
-          ))}
-        </ul>
-      )}
-    </section>
+
+        {/* Books Grid */}
+        {filteredBooks.length === 0 ? (
+          <div className="text-center py-16 rounded-2xl border border-white/10">
+            <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No Books Found</h3>
+            <p className="text-gray-400 mb-4">
+              {search || author || genre 
+                ? 'Try adjusting your search criteria or filters'
+                : 'No books are currently available in the library'
+              }
+            </p>
+            {(search || author || genre) && (
+              <Button 
+                variant="outline" 
+                className="border-white/20 text-white hover:bg-white/10"
+                onClick={() => window.location.href = '/library'}
+              >
+                Clear all filters
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-6 rounded-2xl border border-white/10">
+            {filteredBooks.map((book) => (
+              <BookCard key={book.id} {...book} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
