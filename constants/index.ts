@@ -38,6 +38,11 @@ export const adminSideBarLinks = [
     route: "/admin/account-requests",
     text: "Account Requests",
   },
+  {
+    img: "/icons/admin/mail.svg",
+    route: "/admin/email-system",
+    text: "Email System",
+  },
 ];
 
 export const FIELD_NAMES = {

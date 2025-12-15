@@ -36,7 +36,7 @@ const BorrowBook = ({
     const result = await borrowBook({ bookId, userId });
 
     if (result.success) {
-      toast("Success", { description: "Book borrowed successfully" });
+      toast("Success", { description: "Borrowing successful. Please check your email for the loan details." });
       router.push("/my-profile");
     } else {
       toast("Already Borrowed", { 

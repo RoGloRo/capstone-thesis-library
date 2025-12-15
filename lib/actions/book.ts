@@ -1,9 +1,10 @@
 "use server";
 
 import { db } from "@/database/drizzle";
-import { books, borrowRecords } from "@/database/schema";
+import { books, borrowRecords, users } from "@/database/schema";
 import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
+import { workflowClient } from "@/lib/workflow";
 
 export const borrowBook = async (params: BorrowBookParams) => {
   const { userId, bookId } = params;
@@ -42,19 +43,108 @@ export const borrowBook = async (params: BorrowBookParams) => {
       };
     }
 
-    const dueDate = dayjs().add(7, "day").toDate().toDateString();
+    const borrowDate = dayjs().toDate();
+    const dueDate = dayjs().add(7, "day").toDate();
+    const dueDateString = dueDate.toDateString();
 
-    const record = await db.insert(borrowRecords).values({
+    const [record] = await db.insert(borrowRecords).values({
       userId,
       bookId,
-      dueDate,
+      dueDate: dueDateString,
       status: "BORROWED",
-    });
+    }).returning();
 
     await db
       .update(books)
       .set({ availableCopies: book[0].availableCopies - 1 })
       .where(eq(books.id, bookId));
+
+    // Fetch user and book details for email notification
+    const [user] = await db
+      .select({
+        fullName: users.fullName,
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const [bookDetails] = await db
+      .select({
+        title: books.title,
+        author: books.author,
+      })
+      .from(books)
+      .where(eq(books.id, bookId))
+      .limit(1);
+
+    if (user && bookDetails) {
+      // Check if we have the necessary environment variables for email
+      const hasResendToken = !!process.env.RESEND_TOKEN;
+      const hasQstashToken = !!process.env.QSTASH_TOKEN;
+      
+      if (hasResendToken && hasQstashToken) {
+        // Send email directly using sendEmail function instead of workflow for development
+        try {
+          const { sendEmail } = await import("@/lib/workflow");
+          const { render } = await import("@react-email/render");
+          const BookBorrowingConfirmationEmail = (await import("@/emails/BookBorrowingConfirmationEmail")).default;
+          
+          const emailHtml = await render(
+            BookBorrowingConfirmationEmail({
+              userName: user.fullName,
+              bookTitle: bookDetails.title,
+              bookAuthor: bookDetails.author,
+              borrowDate: borrowDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }),
+              dueDate: dueDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }),
+              loanDuration: 7,
+            })
+          );
+
+          await sendEmail({
+            email: user.email,
+            subject: `📚 Book Borrowed Successfully: ${bookDetails.title}`,
+            message: emailHtml,
+          });
+          
+          console.log("✅ Email sent successfully to:", user.email);
+        } catch (emailError) {
+          // Log the error but don't fail the borrowing process
+          console.error("Failed to send email notification:", emailError);
+        }
+      } else {
+        // Missing environment variables, log what would be sent
+        console.log("📧 Email notification (missing env vars):", {
+          to: user.email,
+          subject: `📚 Book Borrowed Successfully: ${bookDetails.title}`,
+          bookTitle: bookDetails.title,
+          bookAuthor: bookDetails.author,
+          userName: user.fullName,
+          borrowDate: borrowDate.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          dueDate: dueDate.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          missing: {
+            resendToken: !hasResendToken,
+            qstashToken: !hasQstashToken,
+          },
+        });
+      }
+    }
 
     return {
       success: true,

@@ -50,6 +50,7 @@ export const borrowRecords = pgTable("borrow_records", {
   dueDate: date("due_date").notNull(),
   returnDate: date("return_date"),
   status: BORROW_STATUS_ENUM("status").default("BORROWED").notNull(),
+  dueDateReminderSent: boolean("due_date_reminder_sent").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
