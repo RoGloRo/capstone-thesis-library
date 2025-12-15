@@ -14,7 +14,7 @@ type InitialData = {
   fullName: string;
 }
 
-const ONE_DAY_IN_MS = 24 * 60 * 60 * 100;
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000; // Fixed: was 100, should be 1000
 const THREE_DAY_IN_MS = 3 * ONE_DAY_IN_MS;
 const THIRTY_DAY_IN_MS = 30 * ONE_DAY_IN_MS;
 

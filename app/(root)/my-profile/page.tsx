@@ -370,6 +370,11 @@ const Page = async () => {
               title="Currently Borrowed Books" 
               books={borrowedBooks} 
               containerClassName=""
+              userData={{
+                fullName: userData.fullName,
+                email: userData.email,
+                universityId: userData.universityId
+              }}
             />
           </div>
           
@@ -378,6 +383,11 @@ const Page = async () => {
               title="Reading History" 
               books={returnedBooks} 
               containerClassName=""
+              userData={{
+                fullName: userData.fullName,
+                email: userData.email,
+                universityId: userData.universityId
+              }}
             />
           </div>
         </div>

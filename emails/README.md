@@ -52,6 +52,16 @@ A celebration email template for returning active users with:
 - Motivational content and quotes
 - Encouragement to maintain momentum
 
+### AccountApprovalEmail
+
+An approval notification email template for newly approved users featuring:
+
+- Green color scheme for success and approval
+- Account activation confirmation
+- Feature highlights and quick start guide
+- Account details and access information
+- Professional approval layout with call-to-action
+
 ## Usage
 
 The templates are automatically used by the workflow system when triggering email notifications. They are rendered to HTML using `@react-email/render` before being sent through the Upstash QStash + Resend integration.

@@ -69,13 +69,47 @@ export const signUp = async (params: AuthCredentials) => {
       universityCard,
     });
 
-    await workflowClient.trigger({
-      url: `${config.env.prodApiEndpoint}/api/workflows/onboarding`,
-      body: {
-        email,
-        fullName,
-      },
-    });
+    // Trigger onboarding workflow (use different approaches for dev vs prod)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const isProduction = process.env.NODE_ENV === "production";
+    const hasExternalUrl = baseUrl && !baseUrl.includes("localhost") && !baseUrl.includes("127.0.0.1");
+    
+    if (isProduction || hasExternalUrl) {
+      // Use workflow client for production
+      await workflowClient.trigger({
+        url: `${baseUrl}/api/workflows/onboarding`,
+        body: {
+          email,
+          fullName,
+        },
+      });
+    } else {
+      // Send welcome email directly in development
+      try {
+        const { sendEmail } = await import("@/lib/workflow");
+        const { render } = await import("@react-email/render");
+        const WelcomeEmail = (await import("@/emails/WelcomeEmail")).default;
+        
+        const profileUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/my-profile`;
+        
+        const emailHtml = await render(
+          WelcomeEmail({
+            userName: fullName,
+            profileUrl,
+          })
+        );
+
+        await sendEmail({
+          email,
+          subject: "Welcome to Smart Library! 👋 Your reading journey begins now",
+          message: emailHtml,
+        });
+        
+        console.log("✅ Welcome email sent successfully to:", email);
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+      }
+    }
 
     await signInWithCredentials({email, password});
     return{success: true};

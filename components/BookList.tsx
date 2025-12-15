@@ -5,10 +5,16 @@ import BookCard from "./BookCard";
 interface Props {
   title: string;
   books: Book[]; 
-  containerClassName?: string
+  containerClassName?: string;
+  // User data for PDF receipts (only needed for loaned books)
+  userData?: {
+    fullName: string;
+    email: string;
+    universityId?: number;
+  };
 }
 
-const BookList = ({ title, books, containerClassName }: Props) => {
+const BookList = ({ title, books, containerClassName, userData }: Props) => {
   if (!books || books.length === 0) return null;
   return (
     <section className={containerClassName}>
@@ -16,8 +22,14 @@ const BookList = ({ title, books, containerClassName }: Props) => {
 
       <ul className="book-list">
         {books.map((book) => (
-          <BookCard key={book.title} {...book} />
-        ) )}
+          <BookCard 
+            key={book.title} 
+            {...book} 
+            userName={userData?.fullName}
+            userEmail={userData?.email}
+            universityId={userData?.universityId}
+          />
+        ))}
       </ul>
     </section>
   );

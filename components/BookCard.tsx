@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "./ui/button";
 import { Download, Eye, EyeOff, Calendar, Clock, CheckCircle } from "lucide-react";
+import { generatePDFReceipt, calculateLoanDuration, determineLoanStatus, formatDisplayDate } from "@/lib/pdf-receipt";
+import { toast } from "sonner";
 
 const formatDate = (iso?: string | null) => {
   if (!iso) return "";
@@ -22,9 +24,17 @@ const daysBetween = (from: Date, to: Date) => {
   return Math.ceil((to.getTime() - from.getTime()) / msPerDay);
 };
 
+interface BookCardProps extends Book {
+  // User information for PDF receipt (only needed for loaned books)
+  userName?: string;
+  userEmail?: string;
+  universityId?: number;
+}
+
 const BookCard = ({ 
   id, 
-  title, 
+  title,
+  author,
   genre, 
   coverColor, 
   coverUrl, 
@@ -33,9 +43,62 @@ const BookCard = ({
   dueDate, 
   returnDate, 
   availableCopies, 
-  totalCopies 
-}: Book) => {
+  totalCopies,
+  userName,
+  userEmail,
+  universityId
+}: BookCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  
+  const handleDownloadReceipt = async () => {
+    // Only generate receipt for loaned books with required data
+    if (!isLoanedBook || !borrowDate || !dueDate || !userName || !userEmail || !author) {
+      toast.error('Receipt Error', {
+        description: 'Unable to generate receipt. Missing required loan or user information.'
+      });
+      return;
+    }
+
+    setIsDownloading(true);
+    
+    try {
+      const loanDuration = calculateLoanDuration(borrowDate, dueDate);
+      const status = determineLoanStatus(dueDate, returnDate);
+
+      const receiptData = {
+        // User Information
+        userName,
+        userEmail,
+        universityId,
+        
+        // Book Information
+        bookTitle: title,
+        bookAuthor: author,
+        bookGenre: genre,
+        
+        // Loan Information
+        borrowDate: formatDisplayDate(borrowDate),
+        dueDate: formatDisplayDate(dueDate),
+        returnDate: returnDate ? formatDisplayDate(returnDate) : null,
+        loanDuration,
+        status
+      };
+
+      generatePDFReceipt(receiptData);
+      
+      toast.success('Receipt Downloaded', {
+        description: 'Your loan receipt has been downloaded successfully.'
+      });
+    } catch (error) {
+      console.error('Error generating PDF receipt:', error);
+      toast.error('Download Failed', {
+        description: 'There was an error generating your receipt. Please try again.'
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
   let dueText = "";
   if (returnDate) {
     dueText = `Returned on ${formatDate(returnDate)}`;
@@ -71,11 +134,15 @@ const BookCard = ({
             <div className="mt-3 flex flex-col gap-3 w-full">
               {/* Download Receipt Button */}
               <Button 
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-2.5 font-medium"
-                onClick={(e) => { e.preventDefault(); }}
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-2.5 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isDownloading}
+                onClick={(e) => { 
+                  e.preventDefault(); 
+                  handleDownloadReceipt();
+                }}
               >
-                <Download className="h-4 w-4 mr-2" />
-                Download Receipt
+                <Download className={`h-4 w-4 mr-2 ${isDownloading ? 'animate-spin' : ''}`} />
+                {isDownloading ? 'Generating...' : 'Download Receipt'}
               </Button>
               
               {/* View Loan Details Button */}

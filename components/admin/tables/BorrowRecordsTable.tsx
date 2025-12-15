@@ -21,9 +21,12 @@ import {
 } from "@/components/ui/dialog";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, Download } from "lucide-react";
 import { BorrowRecord } from "@/types/borrow";
 import { ReturnBookButton } from "@/components/ReturnBookButton";
+import { generatePDFReceipt, calculateLoanDuration, determineLoanStatus, formatDisplayDate } from "@/lib/pdf-receipt";
+import { toast } from "sonner";
 
 export default function BorrowRecordsTable() {
   // Remove the duplicate state declaration
@@ -33,6 +36,7 @@ const [searchTerm, setSearchTerm] = useState("");
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState<string | null>(null);
 const [viewingCard, setViewingCard] = useState<{ name: string; cardUrl: string } | null>(null);
+const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
   // Update the getImageUrl function in BorrowRecordsTable.tsx
 const getImageUrl = (url: string | null) => {
   if (!url) return null;
@@ -97,6 +101,59 @@ useEffect(() => {
 
   setFilteredRecords(filtered);
 }, [searchTerm, records]);
+
+  const handleDownloadReceipt = async (record: BorrowRecord) => {
+    // Validate required data
+    if (!record.userName || !record.userEmail || !record.bookTitle || !record.bookAuthor || !record.borrowDate || !record.dueDate) {
+      toast.error('Receipt Error', {
+        description: 'Unable to generate receipt. Missing required loan or user information.'
+      });
+      return;
+    }
+
+    setDownloadingIds(prev => new Set(prev).add(record.id));
+    
+    try {
+      const loanDuration = calculateLoanDuration(record.borrowDate.toString(), record.dueDate.toString());
+      const status = determineLoanStatus(record.dueDate.toString(), record.returnDate?.toString() || null);
+
+      const receiptData = {
+        // User Information
+        userName: record.userName,
+        userEmail: record.userEmail,
+        universityId: record.universityId,
+        
+        // Book Information
+        bookTitle: record.bookTitle,
+        bookAuthor: record.bookAuthor,
+        bookGenre: 'General', // Default genre as it's not available in borrow records
+        
+        // Loan Information
+        borrowDate: formatDisplayDate(record.borrowDate.toString()),
+        dueDate: formatDisplayDate(record.dueDate.toString()),
+        returnDate: record.returnDate ? formatDisplayDate(record.returnDate.toString()) : null,
+        loanDuration,
+        status
+      };
+
+      generatePDFReceipt(receiptData);
+      
+      toast.success('Receipt Downloaded', {
+        description: `Receipt for "${record.bookTitle}" has been downloaded successfully.`
+      });
+    } catch (error) {
+      console.error('Error generating PDF receipt:', error);
+      toast.error('Download Failed', {
+        description: 'There was an error generating the receipt. Please try again.'
+      });
+    } finally {
+      setDownloadingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(record.id);
+        return newSet;
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -191,6 +248,7 @@ useEffect(() => {
               <TableHead>Due Date</TableHead>
               <TableHead>Returned On</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -234,6 +292,18 @@ useEffect(() => {
                 <TableCell>{formatDate(record.dueDate)}</TableCell>
                 <TableCell>{formatDate(record.returnDate)}</TableCell>
                 <TableCell>{getStatusBadge(record.status)}</TableCell>
+                <TableCell>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 w-8 p-0"
+                    disabled={downloadingIds.has(record.id)}
+                    onClick={() => handleDownloadReceipt(record)}
+                    title="Download Receipt"
+                  >
+                    <Download className={`h-4 w-4 ${downloadingIds.has(record.id) ? 'animate-spin' : ''}`} />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
