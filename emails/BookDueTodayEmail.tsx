@@ -1,0 +1,307 @@
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Hr,
+  Html,
+  Img,
+  Preview,
+  Section,
+  Text,
+} from "@react-email/components";
+import * as React from "react";
+
+interface BookDueTodayEmailProps {
+  userName: string;
+  bookTitle: string;
+  bookAuthor: string;
+  borrowDate: string;
+  dueDate: string;
+  loanDuration: number;
+  profileUrl?: string;
+}
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+export const BookDueTodayEmail = ({
+  userName = "John Doe",
+  bookTitle = "The Great Gatsby",
+  bookAuthor = "F. Scott Fitzgerald", 
+  borrowDate = "December 1, 2024",
+  dueDate = "December 16, 2024",
+  loanDuration = 15,
+  profileUrl = `${baseUrl}/my-profile`,
+}: BookDueTodayEmailProps) => (
+  <Html>
+    <Head />
+    <Preview>📚 Your book "{bookTitle}" is due today!</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Section style={header}>
+          <Text style={headerText}>SMART LIBRARY</Text>
+          <Text style={subHeaderText}>Book Due Today</Text>
+        </Section>
+        
+        <Section style={content}>
+          <Text style={greeting}>Hi {userName},</Text>
+          
+          <Section style={urgentBox}>
+            <Text style={urgentTitle}>📅 URGENT: Book Due Today!</Text>
+            <Text style={urgentMessage}>
+              Your borrowed book is due today. Please return it to avoid late fees.
+            </Text>
+          </Section>
+
+          <Section style={bookSection}>
+            <Text style={sectionTitle}>📖 Book Details</Text>
+            <Text style={bookTitle}>{bookTitle}</Text>
+            <Text style={bookAuthor}>by {bookAuthor}</Text>
+          </Section>
+
+          <Section style={loanSection}>
+            <Text style={sectionTitle}>📋 Loan Information</Text>
+            <div style={loanDetails}>
+              <div style={loanItem}>
+                <Text style={loanLabel}>Borrowed:</Text>
+                <Text style={loanValue}>{borrowDate}</Text>
+              </div>
+              <div style={loanItem}>
+                <Text style={loanLabel}>Due Date:</Text>
+                <Text style={dueDateValue}>{dueDate} (Today)</Text>
+              </div>
+              <div style={loanItem}>
+                <Text style={loanLabel}>Loan Duration:</Text>
+                <Text style={loanValue}>{loanDuration} days</Text>
+              </div>
+              <div style={loanItem}>
+                <Text style={loanLabel}>Status:</Text>
+                <Text style={statusValue}>Due Today</Text>
+              </div>
+            </div>
+          </Section>
+
+          <Section style={actionSection}>
+            <Text style={actionText}>
+              Please return your book today or renew your loan if possible.
+            </Text>
+            <Button style={button} href={profileUrl}>
+              View My Profile & Loans
+            </Button>
+          </Section>
+
+          <Hr style={hr} />
+          
+          <Section style={footer}>
+            <Text style={footerText}>
+              Questions? Contact us or visit your local library branch.
+            </Text>
+            <Text style={footerNote}>
+              This is an automated reminder from Smart Library System.
+            </Text>
+          </Section>
+        </Section>
+      </Container>
+    </Body>
+  </Html>
+);
+
+export default BookDueTodayEmail;
+
+// Styles
+const main = {
+  backgroundColor: "#f8fafc",
+  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
+};
+
+const container = {
+  margin: "0 auto",
+  padding: "20px",
+  maxWidth: "600px",
+};
+
+const header = {
+  backgroundColor: "#dc2626", // Red for urgency
+  borderRadius: "8px 8px 0 0",
+  padding: "30px 20px",
+  textAlign: "center" as const,
+};
+
+const headerText = {
+  color: "#ffffff",
+  fontSize: "28px",
+  fontWeight: "bold",
+  margin: "0 0 8px 0",
+  letterSpacing: "1px",
+};
+
+const subHeaderText = {
+  color: "#fecaca",
+  fontSize: "16px",
+  margin: "0",
+  fontWeight: "500",
+};
+
+const content = {
+  backgroundColor: "#ffffff",
+  borderRadius: "0 0 8px 8px",
+  padding: "40px 30px",
+  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+};
+
+const greeting = {
+  fontSize: "18px",
+  color: "#1f2937",
+  marginBottom: "24px",
+  fontWeight: "600",
+};
+
+const urgentBox = {
+  backgroundColor: "#fef2f2",
+  border: "2px solid #fca5a5",
+  borderRadius: "8px",
+  padding: "20px",
+  marginBottom: "30px",
+};
+
+const urgentTitle = {
+  fontSize: "18px",
+  fontWeight: "bold",
+  color: "#dc2626",
+  margin: "0 0 8px 0",
+};
+
+const urgentMessage = {
+  fontSize: "14px",
+  color: "#7f1d1d",
+  margin: "0",
+  lineHeight: "1.5",
+};
+
+const bookSection = {
+  marginBottom: "24px",
+  padding: "20px",
+  backgroundColor: "#f9fafb",
+  borderRadius: "8px",
+  border: "1px solid #e5e7eb",
+};
+
+const loanSection = {
+  marginBottom: "30px",
+  padding: "20px",
+  backgroundColor: "#f9fafb", 
+  borderRadius: "8px",
+  border: "1px solid #e5e7eb",
+};
+
+const sectionTitle = {
+  fontSize: "16px",
+  fontWeight: "600",
+  color: "#374151",
+  marginBottom: "16px",
+  margin: "0 0 16px 0",
+};
+
+const bookTitle = {
+  fontSize: "20px",
+  fontWeight: "600",
+  color: "#1f2937",
+  margin: "0 0 8px 0",
+};
+
+const bookAuthor = {
+  fontSize: "14px",
+  color: "#6b7280",
+  margin: "0",
+  fontStyle: "italic",
+};
+
+const loanDetails = {
+  display: "flex",
+  flexDirection: "column" as const,
+  gap: "12px",
+};
+
+const loanItem = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "8px 0",
+  borderBottom: "1px solid #f3f4f6",
+};
+
+const loanLabel = {
+  fontSize: "14px",
+  color: "#6b7280",
+  fontWeight: "500",
+  margin: "0",
+};
+
+const loanValue = {
+  fontSize: "14px",
+  color: "#1f2937",
+  fontWeight: "600",
+  margin: "0",
+};
+
+const dueDateValue = {
+  fontSize: "14px",
+  color: "#dc2626",
+  fontWeight: "700",
+  margin: "0",
+};
+
+const statusValue = {
+  fontSize: "14px",
+  color: "#dc2626",
+  fontWeight: "700",
+  margin: "0",
+};
+
+const actionSection = {
+  textAlign: "center" as const,
+  marginBottom: "30px",
+};
+
+const actionText = {
+  fontSize: "16px",
+  color: "#374151",
+  marginBottom: "20px",
+  lineHeight: "1.5",
+};
+
+const button = {
+  backgroundColor: "#dc2626",
+  borderRadius: "8px",
+  color: "#ffffff",
+  fontSize: "16px",
+  fontWeight: "600",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "14px 28px",
+  margin: "0 auto",
+};
+
+const hr = {
+  borderColor: "#e5e7eb",
+  margin: "30px 0",
+};
+
+const footer = {
+  textAlign: "center" as const,
+};
+
+const footerText = {
+  fontSize: "14px",
+  color: "#6b7280",
+  marginBottom: "8px",
+  lineHeight: "1.5",
+};
+
+const footerNote = {
+  fontSize: "12px",
+  color: "#9ca3af",
+  margin: "0",
+  fontStyle: "italic",
+};

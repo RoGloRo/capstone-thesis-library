@@ -24,7 +24,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Download } from "lucide-react";
 import { BorrowRecord } from "@/types/borrow";
-import { ReturnBookButton } from "@/components/ReturnBookButton";
 import { generatePDFReceipt, calculateLoanDuration, determineLoanStatus, formatDisplayDate } from "@/lib/pdf-receipt";
 import { toast } from "sonner";
 
@@ -121,7 +120,7 @@ useEffect(() => {
         // User Information
         userName: record.userName,
         userEmail: record.userEmail,
-        universityId: record.universityId,
+        universityId: record.universityId || undefined,
         
         // Book Information
         bookTitle: record.bookTitle,
@@ -203,7 +202,7 @@ useEffect(() => {
     try {
       const date = new Date(dateString);
       return format(date, "MMM d, yyyy");
-    } catch (e) {
+    } catch {
       return "-";
     }
   };
@@ -269,7 +268,7 @@ useEffect(() => {
                       onClick={() => 
                         setViewingCard({
                           name: record.userName || "User",
-                          cardUrl: record.universityCard
+                          cardUrl: record.universityCard || ""
                         })
                       }
                       className="text-blue-600 hover:text-blue-800 hover:underline"
@@ -290,7 +289,7 @@ useEffect(() => {
                 </TableCell>
                 <TableCell>{formatDate(record.borrowDate)}</TableCell>
                 <TableCell>{formatDate(record.dueDate)}</TableCell>
-                <TableCell>{formatDate(record.returnDate)}</TableCell>
+                <TableCell>{record.returnDate ? formatDate(record.returnDate) : "-"}</TableCell>
                 <TableCell>{getStatusBadge(record.status)}</TableCell>
                 <TableCell>
                   <Button
@@ -323,7 +322,7 @@ useEffect(() => {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{viewingCard?.name}'s University Card</DialogTitle>
+            <DialogTitle>{viewingCard?.name}&apos;s University Card</DialogTitle>
           </DialogHeader>
           <div className="relative h-64 w-full">
             {viewingCard?.cardUrl ? (

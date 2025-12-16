@@ -42,7 +42,7 @@ const BookOverview = async ({
 const checkIfUserHasBorrowedBook = async (userId: string, bookId: string) => {
   try {
     const [record] = await db
-      .select()
+      .select({ id: borrowRecords.id })
       .from(borrowRecords)
       .where(
         and(

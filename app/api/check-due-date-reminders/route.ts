@@ -109,7 +109,7 @@ export async function POST() {
         try {
           await db
             .update(borrowRecords)
-            .set({ dueDateReminderSent: true })
+            .set({ reminderSent: true })
             .where(eq(borrowRecords.id, record.borrowRecordId));
           
           console.log(`Marked reminder as sent for record: ${record.borrowRecordId}`);

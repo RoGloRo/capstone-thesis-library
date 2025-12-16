@@ -144,10 +144,10 @@ const Page = async () => {
     .where(
       and(
         eq(borrowRecords.userId, session.user.id as string),
-        eq(borrowRecords.status, "STATUS") // Changed from "BORROWED" to "RETURNED"
+        eq(borrowRecords.status, "STATUS")
       )
     );
-
+  
   const returnedBooks = returnedRows.map((r) => ({
     id: (r.id ?? "") as string,
     title: (r.title ?? "") as string,

@@ -5,10 +5,11 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const userId = params.id;
+    const userId = id;
 
     if (!userId) {
       return NextResponse.json(

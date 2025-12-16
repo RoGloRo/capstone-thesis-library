@@ -5,8 +5,9 @@ import { and, eq } from "drizzle-orm";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   const { searchParams } = new URL(request.url);
   const userId = searchParams.get("userId");
 
@@ -24,7 +25,7 @@ export async function GET(
       .where(
         and(
           eq(borrowRecords.userId, userId),
-          eq(borrowRecords.bookId, params.id),
+          eq(borrowRecords.bookId, id),
           eq(borrowRecords.status, "BORROWED")
         )
       )

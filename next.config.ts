@@ -24,6 +24,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  serverExternalPackages: ['drizzle-orm', '@neondatabase/serverless', 'bcryptjs'],
 };
 
 export default nextConfig;

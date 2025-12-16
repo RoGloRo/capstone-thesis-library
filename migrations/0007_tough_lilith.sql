@@ -1,0 +1,1 @@
+ALTER TABLE "borrow_records" ADD COLUMN "overdue_penalty_sent" boolean DEFAULT false;

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       .set({ 
         dueDate: dueDateString,
         // Reset reminder sent flag if column exists
-        // dueDateReminderSent: false 
+        // reminderSent: false 
       })
       .where(eq(borrowRecords.id, borrowRecordId))
       .returning();

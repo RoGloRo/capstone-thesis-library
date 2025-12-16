@@ -4,7 +4,6 @@ import { db } from "@/database/drizzle";
 import { books, borrowRecords, users } from "@/database/schema";
 import dayjs from "dayjs";
 import { and, eq } from "drizzle-orm";
-import { workflowClient } from "@/lib/workflow";
 
 export const borrowBook = async (params: BorrowBookParams) => {
   const { userId, bookId } = params;
@@ -179,7 +178,7 @@ export const returnBook = async (params: { borrowRecordId: string; bookId: strin
     const [record] = await db
       .update(borrowRecords)
       .set({
-        status: 'STATUS', // Using 'STATUS' as the return status since it's in the enum
+        status: 'STATUS', // Using 'STATUS' as the return status (matches current database)
         returnDate: new Date().toISOString().split('T')[0] // Current date in YYYY-MM-DD format
       })
       .where(eq(borrowRecords.id, borrowRecordId))
@@ -196,6 +195,94 @@ export const returnBook = async (params: { borrowRecordId: string; bookId: strin
         availableCopies: book.availableCopies + 1 
       })
       .where(eq(books.id, bookId));
+
+    // Fetch user and book details for return confirmation email
+    const [user] = await db
+      .select({
+        fullName: users.fullName,
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.id, record.userId))
+      .limit(1);
+
+    const [bookDetails] = await db
+      .select({
+        title: books.title,
+        author: books.author,
+      })
+      .from(books)
+      .where(eq(books.id, bookId))
+      .limit(1);
+
+    // Send return confirmation email
+    if (user && bookDetails) {
+      // Check if we have the necessary environment variables for email
+      const hasResendToken = !!process.env.RESEND_TOKEN;
+      const hasQstashToken = !!process.env.QSTASH_TOKEN;
+      
+      if (hasResendToken && hasQstashToken) {
+        try {
+          const { sendEmail } = await import("@/lib/workflow");
+          const { render } = await import("@react-email/render");
+          const BookReturnConfirmationEmail = (await import("@/emails/BookReturnConfirmationEmail")).default;
+          
+          // Calculate loan duration if we have borrow date
+          const borrowDate = new Date(record.borrowDate);
+          const returnDate = new Date();
+          const loanDuration = Math.ceil((returnDate.getTime() - borrowDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          const emailHtml = await render(
+            BookReturnConfirmationEmail({
+              userName: user.fullName,
+              bookTitle: bookDetails.title,
+              bookAuthor: bookDetails.author,
+              returnDate: returnDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }),
+              borrowDate: borrowDate.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }),
+              loanDuration,
+              libraryUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/library`,
+            })
+          );
+
+          await sendEmail({
+            email: user.email,
+            subject: `📚 Book Returned Successfully: ${bookDetails.title}`,
+            message: emailHtml,
+          });
+          
+          console.log("✅ Return confirmation email sent successfully to:", user.email);
+        } catch (emailError) {
+          // Log the error but don't fail the return process
+          console.error("Failed to send return confirmation email:", emailError);
+        }
+      } else {
+        // Missing environment variables, log what would be sent
+        console.log("📧 Return confirmation email (missing env vars):", {
+          to: user.email,
+          subject: `📚 Book Returned Successfully: ${bookDetails.title}`,
+          bookTitle: bookDetails.title,
+          bookAuthor: bookDetails.author,
+          userName: user.fullName,
+          returnDate: new Date().toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          missing: {
+            resendToken: !hasResendToken,
+            qstashToken: !hasQstashToken,
+          },
+        });
+      }
+    }
 
     return { success: true, data: record };
   } catch (error) {

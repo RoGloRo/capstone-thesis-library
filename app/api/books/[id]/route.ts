@@ -8,8 +8,9 @@ import { books } from "@/database/schema";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const body = await request.json();
     const validation = bookSchema.safeParse(body);
@@ -21,7 +22,7 @@ export async function PUT(
       );
     }
 
-    const result = await updateBook(params.id, validation.data);
+    const result = await updateBook(id, validation.data);
 
     if (!result.success) {
       return NextResponse.json(
@@ -42,10 +43,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    await db.delete(books).where(eq(books.id, params.id));
+    await db.delete(books).where(eq(books.id, id));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting book:", error);
