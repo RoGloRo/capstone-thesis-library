@@ -59,16 +59,12 @@ const Page = async () => {
   // If no session, show nothing (or redirect to sign-in as desired)
   if (!session?.user?.id) {
     return (
-      <>
-        <form action={async () => {
-          "use server";
-          await signOut();
-        }} className="mb-10">
-          <Button>Logout</Button>
-        </form>
-
-        <p className="text-light-100">Please sign in to view your profile.</p>
-      </>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 rounded-2xl flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Access Required</h2>
+          <p className="text-blue-200">Please sign in to view your profile.</p>
+        </div>
+      </div>
     );
   }
 
@@ -198,14 +194,6 @@ const Page = async () => {
             <h1 className="text-4xl font-bold text-white mb-2">My Profile</h1>
             <p className="text-blue-200">Manage your account and library activity</p>
           </div>
-          <form action={async () => {
-            "use server";
-            await signOut();
-          }}>
-            <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-              Sign Out
-            </Button>
-          </form>
         </div>
 
         {/* Profile Overview Card */}

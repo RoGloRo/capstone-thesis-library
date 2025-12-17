@@ -153,6 +153,30 @@ export async function getRecentlyBorrowedBooks() {
   }));
 }
 
+export async function getRecentlyReturnedBooks() {
+  const recentReturns = await db
+    .select({
+      id: borrowRecords.id,
+      bookTitle: books.title,
+      borrowerName: users.fullName,
+      returnDate: borrowRecords.returnDate,
+      borrowDate: borrowRecords.borrowDate,
+      status: borrowRecords.status,
+    })
+    .from(borrowRecords)
+    .leftJoin(books, eq(borrowRecords.bookId, books.id))
+    .leftJoin(users, eq(borrowRecords.userId, users.id))
+    .where(sql`${borrowRecords.returnDate} IS NOT NULL`)
+    .orderBy(desc(borrowRecords.returnDate))
+    .limit(10);
+
+  return recentReturns.map(record => ({
+    ...record,
+    returnDate: record.returnDate ? new Date(record.returnDate) : null,
+    borrowDate: new Date(record.borrowDate),
+  }));
+}
+
 export async function getOverdueBooks() {
   const today = new Date().toISOString().split('T')[0];
   

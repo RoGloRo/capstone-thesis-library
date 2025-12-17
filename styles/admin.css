@@ -152,7 +152,13 @@
 
   /* Header */
   .admin-header {
-    @apply flex lg:items-end items-start justify-between lg:flex-row flex-col gap-5 sm:mb-10 mb-5;
+    @apply flex items-center justify-between gap-5 sm:mb-10 mb-5 flex-wrap;
+  }
+
+  @media (max-width: 768px) {
+    .admin-header {
+      @apply flex-col items-start gap-4;
+    }
   }
 
   /* Search */

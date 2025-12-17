@@ -212,6 +212,7 @@ useEffect(() => {
       case "BORROWED":
         return <Badge variant="outline" className="border-amber-200 bg-amber-100 text-amber-800">Borrowed</Badge>;
       case "RETURNED":
+      case "STATUS": // Display "STATUS" records as "RETURNED" for consistency
         return <Badge variant="outline" className="border-green-200 bg-green-100 text-green-800">Returned</Badge>;
       case "OVERDUE":
         return <Badge variant="outline" className="border-red-200 bg-red-100 text-red-800">Overdue</Badge>;
@@ -295,12 +296,13 @@ useEffect(() => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 w-8 p-0"
+                    className="flex items-center gap-2 px-3 py-2 h-auto text-xs font-medium transition-all duration-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={downloadingIds.has(record.id)}
                     onClick={() => handleDownloadReceipt(record)}
-                    title="Download Receipt"
+                    title={downloadingIds.has(record.id) ? "Generating receipt..." : "Download Receipt"}
                   >
-                    <Download className={`h-4 w-4 ${downloadingIds.has(record.id) ? 'animate-spin' : ''}`} />
+                    <Download className={`h-3.5 w-3.5 ${downloadingIds.has(record.id) ? 'animate-spin' : ''}`} />
+                    {downloadingIds.has(record.id) ? 'Generating...' : 'Receipt'}
                   </Button>
                 </TableCell>
               </TableRow>

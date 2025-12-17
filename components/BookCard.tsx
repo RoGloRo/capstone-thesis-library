@@ -112,16 +112,28 @@ const BookCard = ({
   }
 
   return (
-    <li className={cn(isLoanedBook && "xs:w-52 w-full")}> 
-      <Link href={`/books/${id}`} className={cn(isLoanedBook && "w-full flex flex-col items-center")}>
+    <div className={cn(
+      isLoanedBook && "xs:w-52 w-full",
+      "sm:group sm:transition-all sm:duration-300 sm:hover:scale-105"
+    )}> 
+      <Link 
+        href={`/books/${id}`} 
+        className={cn(
+          isLoanedBook && "w-full flex flex-col items-center",
+          "block sm:transition-all sm:duration-300"
+        )}
+      >
 
-        <BookCover coverColor={coverColor} coverImage={coverUrl} className={""} />
+        <div className="sm:relative sm:transition-transform sm:duration-300 sm:group-hover:scale-105">
+          <BookCover coverColor={coverColor} coverImage={coverUrl} className={""} />
+        </div>
 
         <div className={cn("mt-4", !isLoanedBook && "xs:max-w-40 max-w-28")}>
-          <p className="book-title">{title}</p>
+          <p className="book-title sm:group-hover:text-amber-300 sm:transition-colors sm:duration-300">{title}</p>
           <p className="book-genre">{genre}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            {availableCopies} of {totalCopies} available
+            <span className="sm:hidden">{availableCopies}/{totalCopies}</span>
+            <span className="hidden sm:inline">{availableCopies} of {totalCopies} available</span>
           </p>
         </div>
 
@@ -129,12 +141,12 @@ const BookCard = ({
           <div className="mt-3 w-full">
             <div className="book-loaned">
               <Image src="/icons/calendar.svg" alt="calendar" width={18} height={18} className="object-contain" />
-              <p className="text-light-100">{dueText}</p>
+              <p className="text-light-100 text-sm sm:text-base">{dueText}</p>
             </div>
             <div className="mt-3 flex flex-col gap-3 w-full">
               {/* Download Receipt Button */}
               <Button 
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-2.5 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl py-2.5 font-medium disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] sm:min-h-[auto]"
                 disabled={isDownloading}
                 onClick={(e) => { 
                   e.preventDefault(); 
@@ -148,7 +160,7 @@ const BookCard = ({
               {/* View Loan Details Button */}
               <Button 
                 variant="outline" 
-                className="w-full border-2 border-blue-200 hover:border-blue-300 bg-blue-50/50 hover:bg-blue-100/70 text-blue-700 hover:text-blue-800 rounded-xl py-2.5 font-medium transition-all duration-300 backdrop-blur-sm"
+                className="w-full border-2 border-blue-200 hover:border-blue-300 bg-blue-50/50 hover:bg-blue-100/70 text-blue-700 hover:text-blue-800 rounded-xl py-2.5 font-medium transition-all duration-300 backdrop-blur-sm min-h-[44px] sm:min-h-[auto]"
                 onClick={(e) => { e.preventDefault(); setShowDetails((s) => !s); }}
               >
                 {showDetails ? (
@@ -223,7 +235,7 @@ const BookCard = ({
         )}
 
       </Link>
-    </li>
+    </div>
   );
 };
 

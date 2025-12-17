@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from 'date-fns';
+import { Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,8 @@ export function RecentlyBorrowedTable({ data }: RecentlyBorrowedTableProps) {
                 </TableCell>
                 <TableCell>
                   <Button size="sm" variant="outline">
-                    Return
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Receipt
                   </Button>
                 </TableCell>
               </TableRow>

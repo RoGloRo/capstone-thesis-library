@@ -2,16 +2,20 @@
 import { Avatar, AvatarFallback} from "@/components/ui/avatar"
 import { cn, getInitials } from "@/lib/utils";
 import { Session } from "next-auth";
+import { handleSignOut } from "@/lib/actions/auth-actions";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useState, useEffect } from "react";
+import { LogOut, Menu, X, Home, Library, Bell, User } from "lucide-react";
 
 const Header = ({session}: {session: Session}) => {
   const pathname = usePathname();
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -21,13 +25,71 @@ const Header = ({session}: {session: Session}) => {
     }
   };
 
-  return <header className="my-10 flex items-center justify-between gap-5">
-    <Link href="/" className="flex-shrink-0">
-      <Image src="/icons/logo.svg" alt="logo" width={40} height={40} />
-    </Link>
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
-    {/* Enhanced Search Bar */}
-    <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-6">
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  // Check admin role
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (session?.user?.id) {
+        try {
+          const response = await fetch(`/api/users/${session.user.id}/role-check`);
+          if (response.ok) {
+            const data = await response.json();
+            setIsAdmin(data.isAdmin);
+          }
+        } catch (error) {
+          console.error('Error checking admin role:', error);
+        }
+      }
+    };
+
+    checkAdminRole();
+  }, [session?.user?.id]);
+
+  // Close mobile menu when clicking outside or pressing Escape
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isMobileMenuOpen && !target.closest('.mobile-menu-container')) {
+        closeMobileMenu();
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isMobileMenuOpen) {
+        closeMobileMenu();
+      }
+    };
+
+    if (isMobileMenuOpen) {
+      document.addEventListener('click', handleOutsideClick);
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isMobileMenuOpen]);
+
+  return <>
+    <header className="my-10 flex items-center justify-between gap-5">
+      <Link href="/" className="flex-shrink-0">
+        <Image src="/icons/logo.svg" alt="logo" width={40} height={40} />
+      </Link>
+
+      {/* Enhanced Search Bar - Hidden on mobile */}
+      <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-6 hidden md:block">
       <div className="relative group">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-100/50 to-orange-100/50 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:border-amber-300/70">
@@ -100,37 +162,250 @@ const Header = ({session}: {session: Session}) => {
       </div>
     </form>
 
-    <div className="flex items-center gap-6">
-      <Link href="/" className={cn("text-base cursor-pointer capitalize hover:text-amber-500 transition-colors", 
-        pathname === "/" ? "text-amber-500 font-medium" : "text-gray-700")}>
-        Home
-      </Link>
-      
-      <Link href="/library" className={cn("text-base cursor-pointer capitalize hover:text-amber-500 transition-colors", 
-        pathname.startsWith("/library") ? "text-amber-500 font-medium" : "text-gray-700")}>
-        Library
-      </Link>
-      
-      {/* Notification Bell */}
-      <button className="relative p-2 text-gray-600 hover:text-amber-500 transition-colors">
-        <Image 
-          src="/icons/notification-bell.svg" 
-          alt="Notifications" 
-          width={24} 
-          height={24} 
+      {/* Desktop Navigation - Hidden on mobile */}
+      <div className="hidden md:flex items-center gap-6">
+        <Link href="/" className={cn("text-base cursor-pointer capitalize hover:text-amber-500 transition-colors", 
+          pathname === "/" ? "text-amber-500 font-medium" : "text-gray-700")}>
+          Home
+        </Link>
+        
+        <Link href="/library" className={cn("text-base cursor-pointer capitalize hover:text-amber-500 transition-colors", 
+          pathname.startsWith("/library") ? "text-amber-500 font-medium" : "text-gray-700")}>
+          Library
+        </Link>
+        
+        {/* Notification Bell */}
+        <button className="relative p-2 text-gray-600 hover:text-amber-500 transition-colors">
+          <Image 
+            src="/icons/notification-bell.svg" 
+            alt="Notifications" 
+            width={24} 
+            height={24} 
+          />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+        
+        {/* Logout Button */}
+        <form action={handleSignOut}>
+          <button 
+            type="submit" 
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 border border-gray-300 hover:border-red-300 rounded-lg transition-all duration-300 group"
+            title="Sign Out"
+          >
+            <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+            <span className="hidden sm:inline">Logout</span>
+          </button>
+        </form>
+        
+        {/* User Profile */}
+        <Link href="/my-profile" className="ml-2">
+          <Avatar className="border-2 border-amber-100 hover:border-amber-300 transition-colors">
+            <AvatarFallback className="bg-amber-100 text-amber-800 font-medium">
+              {getInitials(session?.user?.name || "IN")}
+            </AvatarFallback>
+          </Avatar>
+        </Link>
+      </div>
+
+      {/* Mobile Menu Button - Only visible on mobile */}
+      <div className="md:hidden flex items-center gap-4">
+        {/* Mobile Search Icon */}
+        <button 
+          onClick={() => router.push('/library')} 
+          className="p-2 text-gray-600 hover:text-amber-500 transition-colors"
+          aria-label="Search"
+        >
+          <Image 
+            src="/icons/search-fill.svg" 
+            alt="Search" 
+            width={20} 
+            height={20} 
+          />
+        </button>
+
+        {/* Mobile Burger Menu Button */}
+        <button
+          onClick={toggleMobileMenu}
+          className="mobile-menu-container p-2 text-gray-600 hover:text-amber-500 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 rounded-lg"
+          aria-label="Toggle navigation menu"
+          aria-expanded={isMobileMenuOpen}
+        >
+          {isMobileMenuOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
+        </button>
+      </div>
+    </header>
+
+    {/* Mobile Navigation Menu Overlay */}
+    {isMobileMenuOpen && (
+      <div className="md:hidden fixed inset-0 z-50 mobile-menu-container">
+        {/* Backdrop */}
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+          onClick={closeMobileMenu}
+          aria-hidden="true"
         />
-        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-      </button>
-      
-      {/* User Profile */}
-      <Link href="/my-profile" className="ml-2">
-        <Avatar className="border-2 border-amber-100 hover:border-amber-300 transition-colors">
-          <AvatarFallback className="bg-amber-100 text-amber-800 font-medium">
-            {getInitials(session?.user?.name || "IN")}
-          </AvatarFallback>
-        </Avatar>
-      </Link>
-    </div>
-  </header>;
+        
+        {/* Slide-out Menu */}
+        <div className={cn(
+          "fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white/95 backdrop-blur-md shadow-2xl border-l border-gray-200/60 transform transition-transform duration-300 ease-out",
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        )}>
+          {/* Menu Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200/60">
+            <h2 className="text-lg font-semibold text-gray-800">Navigation</h2>
+            <button
+              onClick={closeMobileMenu}
+              className="p-2 text-gray-600 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 rounded-lg"
+              aria-label="Close navigation menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Menu Content */}
+          <div className="flex flex-col h-full">
+            {/* Navigation Links */}
+            <nav className="flex-1 px-6 py-4 space-y-2">
+              <Link 
+                href="/" 
+                onClick={closeMobileMenu}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 hover:bg-amber-50 active:scale-95",
+                  pathname === "/" 
+                    ? "text-amber-600 bg-amber-50 border border-amber-200" 
+                    : "text-gray-700 hover:text-amber-600"
+                )}
+              >
+                <Home className="w-5 h-5" />
+                <span>Home</span>
+              </Link>
+              
+              <Link 
+                href="/library" 
+                onClick={closeMobileMenu}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 hover:bg-amber-50 active:scale-95",
+                  pathname.startsWith("/library") 
+                    ? "text-amber-600 bg-amber-50 border border-amber-200" 
+                    : "text-gray-700 hover:text-amber-600"
+                )}
+              >
+                <Library className="w-5 h-5" />
+                <span>Library</span>
+              </Link>
+
+              {/* Admin Link - Only show for admin users */}
+              {isAdmin && (
+                <Link 
+                  href="/admin" 
+                  onClick={closeMobileMenu}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 hover:bg-purple-50 active:scale-95",
+                    pathname.startsWith("/admin") 
+                      ? "text-purple-600 bg-purple-50 border border-purple-200" 
+                      : "text-gray-700 hover:text-purple-600"
+                  )}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>Admin Panel</span>
+                </Link>
+              )}
+
+              {/* Notifications */}
+              <button 
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-amber-600 hover:bg-amber-50 transition-all duration-200 active:scale-95 w-full text-left"
+              >
+                <div className="relative">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
+                </div>
+                <span>Notifications</span>
+              </button>
+
+              <Link 
+                href="/my-profile" 
+                onClick={closeMobileMenu}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 hover:bg-amber-50 active:scale-95",
+                  pathname.startsWith("/my-profile") 
+                    ? "text-amber-600 bg-amber-50 border border-amber-200" 
+                    : "text-gray-700 hover:text-amber-600"
+                )}
+              >
+                <User className="w-5 h-5" />
+                <span>My Profile</span>
+              </Link>
+
+              {/* Logout Button in Navigation */}
+              <form action={handleSignOut} className="w-full">
+                <button 
+                  type="submit" 
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-300 active:scale-95 w-full text-left"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Sign Out</span>
+                </button>
+              </form>
+
+              {/* Full Search Bar for Mobile */}
+              <div className="pt-4 pb-2">
+                <form onSubmit={handleSearch} className="space-y-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search books, authors..."
+                      className="w-full py-3 pl-12 pr-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      aria-label="Search books, authors, or categories"
+                    />
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      <Image
+                        src="/icons/search-fill.svg"
+                        alt="Search"
+                        width={18}
+                        height={18}
+                        className="opacity-70"
+                      />
+                    </div>
+                  </div>
+                  <button 
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-3 rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-300 active:scale-95"
+                  >
+                    Search Library
+                  </button>
+                </form>
+              </div>
+            </nav>
+
+            {/* Menu Footer */}
+            <div className="border-t border-gray-200/60 p-6">
+              {/* User Info Display Only */}
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50">
+                <Avatar className="w-8 h-8 border-2 border-amber-100">
+                  <AvatarFallback className="bg-amber-100 text-amber-800 text-sm font-medium">
+                    {getInitials(session?.user?.name || "IN")}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium">{session?.user?.name || "User"}</span>
+                  <span className="text-sm text-gray-500">{session?.user?.email}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </>;
 }
 export default Header

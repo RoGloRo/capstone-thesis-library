@@ -4,13 +4,15 @@ import { BorrowingTrendsChart } from "@/components/admin/BorrowingTrendsChart";
 import { TopGenresChart } from "@/components/admin/TopGenresChart";
 import { ActiveBooksChart } from "@/components/admin/ActiveBooksChart";
 import { RecentlyBorrowedTable } from "@/components/admin/RecentlyBorrowedTable";
+import { RecentlyReturnedTable } from "@/components/admin/RecentlyReturnedTable";
 import { OverdueBooksTable } from "@/components/admin/OverdueBooksTable";
 import { TopBorrowersList } from "@/components/admin/TopBorrowersList";
 import { 
   getAdminDashboardStats, 
   getBorrowingTrends, 
   getTopGenres, 
-  getRecentlyBorrowedBooks, 
+  getRecentlyBorrowedBooks,
+  getRecentlyReturnedBooks, 
   getOverdueBooks, 
   getTopBorrowers 
 } from "./utils";
@@ -21,6 +23,7 @@ export default async function AdminDashboard() {
     borrowingTrends,
     topGenres,
     recentlyBorrowedBooks,
+    recentlyReturnedBooks,
     overdueBooksData,
     topBorrowers
   ] = await Promise.all([
@@ -28,6 +31,7 @@ export default async function AdminDashboard() {
     getBorrowingTrends(),
     getTopGenres(),
     getRecentlyBorrowedBooks(),
+    getRecentlyReturnedBooks(),
     getOverdueBooks(),
     getTopBorrowers()
   ]);
@@ -116,12 +120,14 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Tables Section */}
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RecentlyBorrowedTable data={recentlyBorrowedBooks} />
-        {overdueBooksData.length > 0 && (
-          <OverdueBooksTable data={overdueBooksData} />
-        )}
+        <RecentlyReturnedTable data={recentlyReturnedBooks} />
       </div>
+      
+      {overdueBooksData.length > 0 && (
+        <OverdueBooksTable data={overdueBooksData} />
+      )}
     </div>
   );
 }

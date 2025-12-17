@@ -88,6 +88,13 @@
     @apply mt-10 flex flex-wrap gap-5 max-xs:justify-between xs:gap-10;
   }
 
+  /* Mobile responsive adjustments for book-list only */
+  @media (max-width: 475px) {
+    .book-list {
+      @apply gap-3 justify-center;
+    }
+  }
+
   /* Book Overview */
   .book-overview {
     @apply flex flex-col-reverse items-center gap-12 sm:gap-32 xl:flex-row xl:gap-8;

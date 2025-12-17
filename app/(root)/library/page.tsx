@@ -2,7 +2,6 @@ import { db } from "@/database/drizzle";
 import { books } from "@/database/schema";
 import { and, ilike, or, sql } from "drizzle-orm";
 import BookCard from "@/components/BookCard";
-import { Book } from "@/types";
 import { BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -80,12 +79,12 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
   }
   
   // Execute the query
-  const filteredBooks = (await query) as unknown as Book[];
+  const filteredBooks = await query;
   
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-800">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -165,7 +164,7 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-6 rounded-2xl border border-white/10">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 p-3 sm:p-6 rounded-2xl border border-white/10">
             {filteredBooks.map((book) => (
               <BookCard key={book.id} {...book} />
             ))}

@@ -20,7 +20,7 @@ const BookList = ({ title, books, containerClassName, userData }: Props) => {
     <section className={containerClassName}>
       <h2 className="font-bebas-neue text-4xl text-light-100">{title}</h2>
 
-      <ul className="book-list">
+      <div className="book-list">
         {books.map((book) => (
           <BookCard 
             key={book.title} 
@@ -30,7 +30,7 @@ const BookList = ({ title, books, containerClassName, userData }: Props) => {
             universityId={userData?.universityId}
           />
         ))}
-      </ul>
+      </div>
     </section>
   );
 };
