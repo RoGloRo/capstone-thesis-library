@@ -2,6 +2,7 @@ import { Session } from "next-auth";
 import { handleSignOut } from "@/lib/actions/auth-actions";
 import { LogOut, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { ModeToggle } from "../ui/mode-toggle";
 
 const Header = ({ session }: { session: Session }) => {
   return (
@@ -17,6 +18,7 @@ const Header = ({ session }: { session: Session }) => {
 
       {/* Right side actions */}
       <div className="flex items-center gap-4">
+        <ModeToggle />
         {/* Back to User App */}
         <Link 
           href="/"

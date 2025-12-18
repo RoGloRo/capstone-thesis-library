@@ -173,6 +173,14 @@ const Header = ({session}: {session: Session}) => {
           pathname.startsWith("/library") ? "text-amber-500 font-medium" : "text-gray-700")}>
           Library
         </Link>
+
+        {/* Admin Panel Link - Only show for admin users on desktop */}
+        {isAdmin && (
+          <Link href="/admin" className={cn("text-base cursor-pointer capitalize hover:text-purple-500 transition-colors", 
+            pathname.startsWith("/admin") ? "text-purple-500 font-medium" : "text-gray-700")}>
+            Admin Panel
+          </Link>
+        )}
         
         {/* Notification Bell */}
         <button className="relative p-2 text-gray-600 hover:text-amber-500 transition-colors">
