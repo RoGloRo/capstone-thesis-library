@@ -4,13 +4,13 @@ import { getBookById } from "@/lib/admin/actions/book";
 import { notFound } from "next/navigation";
 
 interface EditBookPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function EditBookPage({ params }: EditBookPageProps) {
-  const bookId = params.id;
+  const { id: bookId } = await params;
   const result = await getBookById(bookId);
   
   if (!result.success || !result.book) {
