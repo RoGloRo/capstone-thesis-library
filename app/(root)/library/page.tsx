@@ -33,9 +33,7 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
   const availableAuthors = authorsResult.map(r => r.author).filter(Boolean);
   const availableGenres = genresResult.map(r => r.genre).filter(Boolean);
   
-  // Build the query based on search parameters
-  let query = db.select().from(books);
-  
+  // Build the conditions array
   const conditions = [];
   
   if (search) {
@@ -59,27 +57,28 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
     conditions.push(ilike(books.genre, genreSearch));
   }
   
-  if (conditions.length > 0) {
-    query = query.where(and(...conditions));
-  }
-  
-  // Apply sorting
-  switch (sort) {
-    case 'author':
-      query = query.orderBy(books.author);
-      break;
-    case 'rating':
-      query = query.orderBy(sql`${books.rating} DESC`);
-      break;
-    case 'genre':
-      query = query.orderBy(books.genre);
-      break;
-    default:
-      query = query.orderBy(books.title);
-  }
-  
-  // Execute the query
-  const filteredBooks = await query;
+  // Build and execute the query in a single chain to avoid type issues
+  const filteredBooks = await (() => {
+    let baseQuery = db.select().from(books);
+    
+    // Apply conditions if any
+    if (conditions.length > 0) {
+      // @ts-expect-error: Drizzle type system issue with query reassignment
+      baseQuery = baseQuery.where(and(...conditions));
+    }
+    
+    // Apply sorting
+    switch (sort) {
+      case 'author':
+        return baseQuery.orderBy(books.author);
+      case 'rating':
+        return baseQuery.orderBy(sql`${books.rating} DESC`);
+      case 'genre':
+        return baseQuery.orderBy(books.genre);
+      default:
+        return baseQuery.orderBy(books.title);
+    }
+  })();
   
 
 

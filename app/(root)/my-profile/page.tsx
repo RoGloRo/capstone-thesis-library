@@ -1,6 +1,5 @@
-import { signOut, auth } from "@/auth";
+import { auth } from "@/auth";
 import BookList from "@/components/BookList";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getInitials } from "@/lib/utils";
 import React from "react";
