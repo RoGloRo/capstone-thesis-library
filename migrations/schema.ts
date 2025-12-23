@@ -1,7 +1,7 @@
 import { pgTable, unique, uuid, varchar, text, integer, date, timestamp, numeric, foreignKey, boolean, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
-export const borrowStatus = pgEnum("borrow_status", ['BORROWED', 'RETURNED', 'OVERDUE'])
+export const borrowStatus = pgEnum("borrow_status", ['BORROWED', 'STATUS'])
 export const role = pgEnum("role", ['USER', 'ADMIN'])
 export const status = pgEnum("status", ['PENDING', 'APPROVED', 'REJECTED'])
 

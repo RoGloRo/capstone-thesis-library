@@ -22,9 +22,10 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import Link from "next/link";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Search } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +45,8 @@ interface BooksTableProps {
 export function BooksTable({ data }: BooksTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [selectedSort, setSelectedSort] = useState<string>("latest");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -51,6 +54,39 @@ export function BooksTable({ data }: BooksTableProps) {
   const handleDeleteClick = (bookId: string) => {
     setBookToDelete(bookId);
     setIsDeleteDialogOpen(true);
+  };
+
+  // Enhanced global filter function
+  const globalFilterFn = (row: any, columnId: string, value: string) => {
+    const searchValue = value.toLowerCase();
+    const title = row.original.title?.toLowerCase() || '';
+    const author = row.original.author?.toLowerCase() || '';
+    const genre = row.original.genre?.toLowerCase() || '';
+    
+    return title.includes(searchValue) || 
+           author.includes(searchValue) || 
+           genre.includes(searchValue);
+  };
+
+  // Handle sort dropdown changes
+  const handleSortChange = (value: string) => {
+    setSelectedSort(value);
+    switch (value) {
+      case 'latest':
+        setSorting([{ id: 'createdAt', desc: true }]);
+        break;
+      case 'oldest':
+        setSorting([{ id: 'createdAt', desc: false }]);
+        break;
+      case 'title-asc':
+        setSorting([{ id: 'title', desc: false }]);
+        break;
+      case 'title-desc':
+        setSorting([{ id: 'title', desc: true }]);
+        break;
+      default:
+        setSorting([]);
+    }
   };
 
   const handleConfirmDelete = async () => {
@@ -148,23 +184,41 @@ export function BooksTable({ data }: BooksTableProps) {
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: globalFilterFn,
     state: {
       sorting,
       columnFilters,
+      globalFilter,
     },
   });
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter by title..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+      <div className="flex items-center justify-between py-4 gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search by title, author, or genre..."
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <Select value={selectedSort} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select sorting" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">Latest to Oldest</SelectItem>
+              <SelectItem value="oldest">Oldest to Latest</SelectItem>
+              <SelectItem value="title-asc">Title (A–Z)</SelectItem>
+              <SelectItem value="title-desc">Title (Z–A)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -207,30 +261,48 @@ export function BooksTable({ data }: BooksTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Search className="h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600 text-lg font-medium">No books found</p>
+                    <p className="text-gray-500 text-sm">
+                      {globalFilter 
+                        ? `No results match "${globalFilter}"` 
+                        : "No books available at the moment"}
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="text-sm text-gray-700">
+          Showing {table.getRowModel().rows.length} of {data.length} books
+          {globalFilter && (
+            <span className="ml-2 text-blue-600 font-medium">
+              (filtered)
+            </span>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

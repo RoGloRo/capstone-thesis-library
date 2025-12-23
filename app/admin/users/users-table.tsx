@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -28,7 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Loader2, Trash2, Link as LinkIcon, FileImage } from "lucide-react";
+import { ChevronDown, Loader2, Trash2, Link as LinkIcon, FileImage, Search } from "lucide-react";
 import config from "@/lib/config";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -57,6 +58,7 @@ export function UsersTable({ data }: UsersTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedSort, setSelectedSort] = useState<string>("latest");
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
@@ -114,6 +116,27 @@ export function UsersTable({ data }: UsersTableProps) {
       toast.error('Failed to update role');
     } finally {
       setUpdatingRole(null);
+    }
+  };
+
+  // Handle sort dropdown changes
+  const handleSortChange = (value: string) => {
+    setSelectedSort(value);
+    switch (value) {
+      case 'latest':
+        setSorting([{ id: 'createdAt', desc: true }]);
+        break;
+      case 'oldest':
+        setSorting([{ id: 'createdAt', desc: false }]);
+        break;
+      case 'name-asc':
+        setSorting([{ id: 'fullName', desc: false }]);
+        break;
+      case 'name-desc':
+        setSorting([{ id: 'fullName', desc: true }]);
+        break;
+      default:
+        setSorting([]);
     }
   };
 
@@ -261,15 +284,32 @@ export function UsersTable({ data }: UsersTableProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Search by name, email, or ID..."
-          value={(table.getState().globalFilter as string) ?? ""}
-          onChange={(event) => {
-            table.setGlobalFilter(event.target.value);
-          }}
-          className="max-w-sm"
-        />
+      <div className="flex items-center justify-between py-4 gap-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search by name, email, or university ID..."
+            value={(table.getState().globalFilter as string) ?? ""}
+            onChange={(event) => {
+              table.setGlobalFilter(event.target.value);
+            }}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <Select value={selectedSort} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select sorting" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">Latest to Oldest</SelectItem>
+              <SelectItem value="oldest">Oldest to Latest</SelectItem>
+              <SelectItem value="name-asc">Name (A–Z)</SelectItem>
+              <SelectItem value="name-desc">Name (Z–A)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -312,30 +352,48 @@ export function UsersTable({ data }: UsersTableProps) {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No approved users found.
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Search className="h-12 w-12 text-gray-400 mb-4" />
+                    <p className="text-gray-600 text-lg font-medium">No users found</p>
+                    <p className="text-gray-500 text-sm">
+                      {globalFilter 
+                        ? `No results match "${globalFilter}"` 
+                        : "No approved users available at the moment"}
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="flex items-center justify-between space-x-2 py-4">
+        <div className="text-sm text-gray-700">
+          Showing {table.getRowModel().rows.length} of {data.length} users
+          {globalFilter && (
+            <span className="ml-2 text-blue-600 font-medium">
+              (filtered)
+            </span>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

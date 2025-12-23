@@ -86,7 +86,7 @@ export const signUp = async (params: AuthCredentials) => {
     } else {
       // Send welcome email directly in development
       try {
-        const { sendEmail } = await import("@/lib/workflow");
+        const { sendWelcomeEmail } = await import("@/lib/email-with-logging");
         const { render } = await import("@react-email/render");
         const WelcomeEmail = (await import("@/emails/WelcomeEmail")).default;
         
@@ -99,11 +99,7 @@ export const signUp = async (params: AuthCredentials) => {
           })
         );
 
-        await sendEmail({
-          email,
-          subject: "Welcome to Smart Library! 👋 Your reading journey begins now",
-          message: emailHtml,
-        });
+        await sendWelcomeEmail(email, fullName, emailHtml);
         
         console.log("✅ Welcome email sent successfully to:", email);
       } catch (emailError) {

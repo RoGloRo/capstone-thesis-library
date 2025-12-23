@@ -4,6 +4,20 @@ import { integer, text, boolean, pgTable, uuid, varchar, pgEnum, date, timestamp
 export const STATUS_ENUM = pgEnum("status", ["PENDING", "APPROVED", "REJECTED"]);
 export const ROLE_ENUM = pgEnum("role", ["USER", "ADMIN"]);
 export const BORROW_STATUS_ENUM = pgEnum("borrow_status", ["BORROWED", "STATUS"]);
+export const EMAIL_TYPE_ENUM = pgEnum("email_type", [
+  "WELCOME",
+  "ACCOUNT_APPROVAL", 
+  "ACCOUNT_REJECTION",
+  "BORROW_CONFIRMATION",
+  "DUE_REMINDER",
+  "OVERDUE_NOTICE",
+  "RETURN_CONFIRMATION",
+  "USER_ACTIVE",
+  "USER_INACTIVE",
+  "DUE_TODAY",
+  "PENALTY_NOTICE"
+]);
+export const EMAIL_STATUS_ENUM = pgEnum("email_status", ["SENT", "FAILED", "PENDING"]);
 
 export const users = pgTable("users", {
   id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
@@ -54,31 +68,14 @@ export const borrowRecords = pgTable("borrow_records", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
-export const savedBooks = pgTable(
-  "saved_books",
-  {
-    id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
-
-    userId: uuid("user_id")
-      .references(() => users.id)
-      .notNull(),
-
-    bookId: uuid("book_id")
-      .references(() => books.id)
-      .notNull(),
-
-    savedAt: timestamp("saved_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => ({
-    savedBooksUnique: uniqueIndex("saved_books_user_book_idx").on(
-      table.userId,
-      table.bookId
-    ),
-  })
-);
+export const emailLogs = pgTable("email_logs", {
+  id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
+  recipientEmail: text("recipient_email").notNull(),
+  recipientName: varchar("recipient_name", { length: 255 }),
+  emailType: EMAIL_TYPE_ENUM("email_type").notNull(),
+  status: EMAIL_STATUS_ENUM("status").default("SENT").notNull(),
+  subject: text("subject").notNull(),
+  errorMessage: text("error_message"),
+  sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow(),
+  metadata: text("metadata"), // JSON string for additional data
+});

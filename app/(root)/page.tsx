@@ -1,7 +1,7 @@
 import BookList from "@/components/BookList";
 import BookOverview from "@/components/BookOverview";
 import { db } from "@/database/drizzle";
-import { books, borrowRecords, savedBooks } from "@/database/schema";
+import { books, borrowRecords } from "@/database/schema";
 import { auth } from "@/auth";
 import { and, desc, eq, inArray, not, sql, gt, count } from "drizzle-orm";
 
@@ -15,13 +15,12 @@ interface UserPreferences {
 /**
  * Enhanced Book Recommendation System
  * 
- * This system analyzes multiple data sources to provide personalized recommendations:
+ * This system analyzes reading history to provide personalized recommendations:
  * 1. Reading History: All borrowed books (returned and currently borrowed)
- * 2. Favorite Books: User's saved/bookmarked books 
- * 3. User Behavior Patterns: Completion rates, rating preferences, genre diversity
+ * 2. User Behavior Patterns: Completion rates, rating preferences, genre diversity
  * 
  * Recommendation Logic:
- * - Weighted preferences based on user actions (favorites > completed > borrowed)
+ * - Weighted preferences based on user actions (completed > borrowed)
  * - Time-decay for older interactions to prioritize recent interests
  * - Multi-criteria matching (genre, author, rating similarity)
  * - Fallback to trending/popular books for new users
@@ -43,27 +42,13 @@ const getRecommendedBooks = async (userId: string) => {
       .where(eq(borrowRecords.userId, userId))
       .orderBy(desc(borrowRecords.borrowDate)); // Most recent first
 
-    // Get user's saved/favorited books
-    const favoriteBooks = await db
-      .select({
-        genre: books.genre,
-        author: books.author,
-        rating: books.rating,
-        bookId: books.id,
-        savedAt: savedBooks.savedAt,
-      })
-      .from(savedBooks)
-      .innerJoin(books, eq(savedBooks.bookId, books.id))
-      .where(eq(savedBooks.userId, userId))
-      .orderBy(desc(savedBooks.savedAt)); // Most recently saved first
-
     // If no user data available, fall back to popular books
-    if (readingHistory.length === 0 && favoriteBooks.length === 0) {
+    if (readingHistory.length === 0) {
       return await getPopularBooks([], 6);
     }
 
     // Analyze user preferences with advanced weighting
-    const preferences = analyzeUserPreferences(readingHistory, favoriteBooks);
+    const preferences = analyzeUserPreferences(readingHistory);
 
     // Get personalized recommendations
     const recommendedBooks = await getPersonalizedRecommendations(preferences);
@@ -84,26 +69,14 @@ const analyzeUserPreferences = (
     bookId: string;
     returnDate?: string | null;
     borrowDate?: Date;
-  }>, 
-  favoriteBooks: Array<{
-    genre: string;
-    author: string;
-    rating: number;
-    bookId: string;
-    savedAt?: Date;
   }>
 ): UserPreferences => {
-  // Combine all user book interactions with different weights
-  const allBooks = [...readingHistory, ...favoriteBooks];
+  // Use reading history for book interactions with different weights
+  const allBooks = [...readingHistory];
   
   // Advanced weighting system
   const weightedBooks = allBooks.map(book => {
     let weight = 1; // Base weight for borrowed books
-    
-    // Higher weight for favorited books
-    if (favoriteBooks.some(fav => fav.bookId === book.bookId)) {
-      weight += 2; // Favorited books get +2 weight
-    }
     
     // Higher weight for completed books (returned books)
     if ('returnDate' in book && book.returnDate) {
@@ -165,7 +138,7 @@ const analyzeUserPreferences = (
   const weightedRatingSum = weightedBooks.reduce((sum, book) => sum + (book.rating * book.weight), 0);
   const avgRating = totalWeight > 0 ? weightedRatingSum / totalWeight : 4;
 
-  // Books to exclude (already read/saved)
+  // Books to exclude (already read)
   const excludeBookIds = Array.from(new Set(allBooks.map(book => book.bookId)));
 
   return {

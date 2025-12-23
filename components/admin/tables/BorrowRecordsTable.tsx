@@ -1,7 +1,7 @@
 // components/admin/tables/BorrowRecordsTable.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getBorrowRecords } from "@/lib/admin/actions/borrow";
 import {
   Table,
@@ -22,7 +22,8 @@ import {
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Download } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { BorrowRecord } from "@/types/borrow";
 import { generatePDFReceipt, calculateLoanDuration, determineLoanStatus, formatDisplayDate } from "@/lib/pdf-receipt";
 import { toast } from "sonner";
@@ -32,10 +33,14 @@ export default function BorrowRecordsTable() {
 const [records, setRecords] = useState<BorrowRecord[]>([]);
 const [filteredRecords, setFilteredRecords] = useState<BorrowRecord[]>([]);
 const [searchTerm, setSearchTerm] = useState("");
+const [selectedSort, setSelectedSort] = useState<string>("latest");
+const [currentPage, setCurrentPage] = useState(1);
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState<string | null>(null);
 const [viewingCard, setViewingCard] = useState<{ name: string; cardUrl: string } | null>(null);
 const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
+
+const itemsPerPage = 10;
   // Update the getImageUrl function in BorrowRecordsTable.tsx
 const getImageUrl = (url: string | null) => {
   if (!url) return null;
@@ -50,6 +55,26 @@ const getImageUrl = (url: string | null) => {
   
   // Otherwise, assume it's a filename in the /ids/ directory
   return `https://ik.imagekit.io/jsmasterylemor/ids/${url}`;
+};
+
+// Handle sort dropdown changes
+const handleSortChange = useCallback((value: string) => {
+  setSelectedSort(value);
+  setCurrentPage(1); // Reset to first page when sorting
+}, []);
+
+// Calculate pagination
+const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
+const startIndex = (currentPage - 1) * itemsPerPage;
+const endIndex = startIndex + itemsPerPage;
+const currentRecords = filteredRecords.slice(startIndex, endIndex);
+
+const handlePreviousPage = () => {
+  setCurrentPage(prev => Math.max(prev - 1, 1));
+};
+
+const handleNextPage = () => {
+  setCurrentPage(prev => Math.min(prev + 1, totalPages));
 };
   
 // Add this effect for data fetching
@@ -82,24 +107,43 @@ useEffect(() => {
 
 // Keep the search effect separate
 useEffect(() => {
-  if (!searchTerm.trim()) {
-    setFilteredRecords(records);
-    return;
+  let filtered = records;
+  
+  if (searchTerm.trim()) {
+    const term = searchTerm.toLowerCase();
+    filtered = records.filter(record => {
+      return (
+        (record.userName?.toLowerCase().includes(term)) ||
+        (record.userEmail?.toLowerCase().includes(term)) ||
+        (record.universityId?.toString().includes(term)) ||
+        (record.bookTitle?.toLowerCase().includes(term)) ||
+        (record.bookAuthor?.toLowerCase().includes(term))
+      );
+    });
   }
 
-  const term = searchTerm.toLowerCase();
-  const filtered = records.filter(record => {
-    return (
-      (record.userName?.toLowerCase().includes(term)) ||
-      (record.userEmail?.toLowerCase().includes(term)) ||
-      (record.universityId?.toString().includes(term)) ||
-      (record.bookTitle?.toLowerCase().includes(term)) ||
-      (record.bookAuthor?.toLowerCase().includes(term))
-    );
-  });
-
-  setFilteredRecords(filtered);
-}, [searchTerm, records]);
+  // Apply sorting
+  const sortedRecords = [...filtered];
+  switch (selectedSort) {
+    case 'latest':
+      sortedRecords.sort((a, b) => new Date(b.borrowDate).getTime() - new Date(a.borrowDate).getTime());
+      break;
+    case 'oldest':
+      sortedRecords.sort((a, b) => new Date(a.borrowDate).getTime() - new Date(b.borrowDate).getTime());
+      break;
+    case 'due-soon':
+      sortedRecords.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+      break;
+    case 'user-name':
+      sortedRecords.sort((a, b) => (a.userName || '').localeCompare(b.userName || ''));
+      break;
+    default:
+      break;
+  }
+  
+  setFilteredRecords(sortedRecords);
+  setCurrentPage(1); // Reset to first page when searching or sorting
+}, [searchTerm, records, selectedSort]);
 
   const handleDownloadReceipt = async (record: BorrowRecord) => {
     // Validate required data
@@ -223,8 +267,8 @@ useEffect(() => {
 
  return (
     <div className="w-full space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="relative w-full max-w-md">
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
@@ -233,6 +277,20 @@ useEffect(() => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 w-full"
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <Select value={selectedSort} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Select sorting" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="latest">Latest Borrowed</SelectItem>
+              <SelectItem value="oldest">Oldest Borrowed</SelectItem>
+              <SelectItem value="due-soon">Due Date (Soon)</SelectItem>
+              <SelectItem value="user-name">User Name (A–Z)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -252,7 +310,7 @@ useEffect(() => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRecords.map((record) => (
+            {currentRecords.map((record) => (
               <TableRow key={record.id}>
                 <TableCell className="font-medium">
                   <div>
@@ -311,11 +369,56 @@ useEffect(() => {
         </Table>
 
         {filteredRecords.length === 0 && !loading && (
-          <div className="text-center py-8 text-gray-500">
-            {searchTerm ? "No matching records found" : "No records available"}
+          <div className="text-center py-12">
+            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 text-lg font-medium">No records found</p>
+            <p className="text-gray-500 text-sm">
+              {searchTerm 
+                ? `No results match "${searchTerm}"` 
+                : "No borrow records available at the moment"}
+            </p>
           </div>
         )}
       </div>
+
+      {/* Pagination Controls */}
+      {filteredRecords.length > 0 && (
+        <div className="flex items-center justify-between space-x-2 py-4">
+          <div className="text-sm text-gray-700">
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredRecords.length)} of {filteredRecords.length} records
+            {searchTerm && (
+              <span className="ml-2 text-blue-600 font-medium">
+                (filtered from {records.length} total)
+              </span>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreviousPage}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <span className="text-sm font-medium px-2">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* University Card Modal */}
       <Dialog

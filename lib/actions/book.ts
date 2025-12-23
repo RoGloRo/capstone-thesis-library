@@ -85,7 +85,7 @@ export const borrowBook = async (params: BorrowBookParams) => {
       if (hasResendToken && hasQstashToken) {
         // Send email directly using sendEmail function instead of workflow for development
         try {
-          const { sendEmail } = await import("@/lib/workflow");
+          const { sendBorrowConfirmationEmail } = await import("@/lib/email-with-logging");
           const { render } = await import("@react-email/render");
           const BookBorrowingConfirmationEmail = (await import("@/emails/BookBorrowingConfirmationEmail")).default;
           
@@ -108,11 +108,13 @@ export const borrowBook = async (params: BorrowBookParams) => {
             })
           );
 
-          await sendEmail({
-            email: user.email,
-            subject: `📚 Book Borrowed Successfully: ${bookDetails.title}`,
-            message: emailHtml,
-          });
+          await sendBorrowConfirmationEmail(
+            user.email,
+            user.fullName,
+            emailHtml,
+            bookDetails.title,
+            bookDetails.author
+          );
           
           console.log("✅ Email sent successfully to:", user.email);
         } catch (emailError) {
@@ -223,7 +225,7 @@ export const returnBook = async (params: { borrowRecordId: string; bookId: strin
       
       if (hasResendToken && hasQstashToken) {
         try {
-          const { sendEmail } = await import("@/lib/workflow");
+          const { sendReturnConfirmationEmail } = await import("@/lib/email-with-logging");
           const { render } = await import("@react-email/render");
           const BookReturnConfirmationEmail = (await import("@/emails/BookReturnConfirmationEmail")).default;
           
@@ -252,11 +254,12 @@ export const returnBook = async (params: { borrowRecordId: string; bookId: strin
             })
           );
 
-          await sendEmail({
-            email: user.email,
-            subject: `📚 Book Returned Successfully: ${bookDetails.title}`,
-            message: emailHtml,
-          });
+          await sendReturnConfirmationEmail(
+            user.email,
+            user.fullName,
+            emailHtml,
+            bookDetails.title
+          );
           
           console.log("✅ Return confirmation email sent successfully to:", user.email);
         } catch (emailError) {

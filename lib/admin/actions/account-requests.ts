@@ -90,11 +90,8 @@ export const approveAccountRequest = async (userId: string) => {
           })
         );
 
-        await sendEmail({
-          email: user.email,
-          subject: "🎉 Your Smart Library account has been approved!",
-          message: emailHtml,
-        });
+        const { sendAccountApprovalEmail } = await import("@/lib/email-with-logging");
+        await sendAccountApprovalEmail(user.email, user.fullName, emailHtml);
 
         console.log(`✅ Account approval email sent to: ${user.email}`);
       } else {

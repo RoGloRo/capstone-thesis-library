@@ -57,6 +57,13 @@
       "when": 1765888149306,
       "tag": "0007_tough_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1766400171724,
+      "tag": "0008_fat_mordo",
+      "breakpoints": true
     }
   ]
 }

@@ -7,7 +7,9 @@ const config = {
       urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!,
       privateKey: process.env.IMAGEKIT_PRIVATE_KEY!,
     },
-    databaseUrl: process.env.DATABASE_URL!,
+    databaseUrl: typeof window === 'undefined' && process.env.DATABASE_URL 
+      ? process.env.DATABASE_URL.replace(/^['"]|['"]$/g, '') 
+      : '',
 
     upstash: {
       redisUrl: process.env.UPSTASH_REDIS_REST_URL!,

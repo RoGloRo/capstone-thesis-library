@@ -19,6 +19,11 @@ export const adminSideBarLinks = [
     text: "Home",
   },
   {
+    img: "/icons/admin/mail.svg",
+    route: "/admin/email-logs",
+    text: "Email Logs",
+  },
+  {
     img: "/icons/admin/users.svg",
     route: "/admin/users",
     text: "All Users",
@@ -38,11 +43,7 @@ export const adminSideBarLinks = [
     route: "/admin/account-requests",
     text: "Account Requests",
   },
-  {
-    img: "/icons/admin/mail.svg",
-    route: "/admin/email-system",
-    text: "Email System",
-  },
+  
 ];
 
 export const FIELD_NAMES = {
