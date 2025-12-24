@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { FormEvent, useState, useEffect } from "react";
-import { LogOut, Menu, X, Home, Library, Bell, User } from "lucide-react";
+import { LogOut, Menu, X, Home, Library, Bell, User, MessageSquare } from "lucide-react";
 import NotificationDropdown from "@/components/NotificationDropdown";
 
 const Header = ({session}: {session: Session}) => {
@@ -94,12 +94,28 @@ const Header = ({session}: {session: Session}) => {
 
   return <>
     <header className="my-10 flex items-center justify-between gap-5">
-      <Link href="/" className="flex-shrink-0">
-        <Image src="/icons/logo.svg" alt="logo" width={40} height={40} />
-      </Link>
+      <div className="flex items-center gap-4 flex-shrink-0">
+        <Link href="/" className="flex-shrink-0">
+          <Image src="/icons/logo.svg" alt="logo" width={40} height={40} />
+        </Link>
+        
+        {/* AI Assistant Link */}
+        <Link href="/chat" className={cn(
+          "relative px-4 py-2 text-base font-medium rounded-lg transition-all duration-300 ease-out group",
+          pathname.startsWith("/chat") 
+            ? "text-emerald-700 bg-emerald-50/80 shadow-sm" 
+            : "text-gray-700 hover:text-emerald-600 hover:bg-emerald-50/60"
+        )}>
+          <span className="relative z-10">AI</span>
+          <div className={cn(
+            "absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-full transition-all duration-300 ease-out",
+            pathname.startsWith("/chat") ? "w-6" : "w-0 group-hover:w-4"
+          )}></div>
+        </Link>
+      </div>
 
       {/* Enhanced Search Bar - Hidden on mobile */}
-      <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-6 hidden md:block">
+      <form onSubmit={handleSearch} className="flex-1 max-w-xl mx-4 hidden md:block">
       <div className="relative group">
         <div className="absolute inset-0 bg-gradient-to-r from-amber-100/50 to-orange-100/50 rounded-full blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:border-amber-300/70">
@@ -334,6 +350,21 @@ const Header = ({session}: {session: Session}) => {
               >
                 <Library className="w-5 h-5" />
                 <span>Library</span>
+              </Link>
+
+              {/* AI Assistant Link */}
+              <Link 
+                href="/chat" 
+                onClick={closeMobileMenu}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 hover:bg-emerald-50 active:scale-95",
+                  pathname.startsWith("/chat") 
+                    ? "text-emerald-700 bg-emerald-50 border border-emerald-200" 
+                    : "text-gray-700 hover:text-emerald-600"
+                )}
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span>AI Assistant</span>
               </Link>
 
               {/* Admin Link - Only show for admin users */}

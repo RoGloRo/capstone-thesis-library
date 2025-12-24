@@ -1,6 +1,6 @@
 import { Session } from "next-auth";
 import { handleSignOut } from "@/lib/actions/auth-actions";
-import { LogOut, ArrowLeft } from "lucide-react";
+import { LogOut, ArrowLeft, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { ModeToggle } from "../ui/mode-toggle";
 
@@ -19,6 +19,17 @@ const Header = ({ session }: { session: Session }) => {
       {/* Right side actions */}
       <div className="flex items-center gap-4">
         <ModeToggle />
+        
+        {/* AI Assistant Link */}
+        <Link 
+          href="/chat"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 border border-gray-300 hover:border-emerald-300 rounded-lg transition-all duration-300 group"
+          title="AI Assistant"
+        >
+          <MessageSquare className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+          <span>AI Assistant</span>
+        </Link>
+
         {/* Back to User App */}
         <Link 
           href="/"
