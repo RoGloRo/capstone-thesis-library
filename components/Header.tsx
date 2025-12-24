@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { FormEvent, useState, useEffect } from "react";
 import { LogOut, Menu, X, Home, Library, Bell, User } from "lucide-react";
+import NotificationDropdown from "@/components/NotificationDropdown";
 
 const Header = ({session}: {session: Session}) => {
   const pathname = usePathname();
@@ -16,6 +17,7 @@ const Header = ({session}: {session: Session}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -31,6 +33,14 @@ const Header = ({session}: {session: Session}) => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const toggleNotifications = () => {
+    setIsNotificationOpen(!isNotificationOpen);
+  };
+
+  const closeNotifications = () => {
+    setIsNotificationOpen(false);
   };
 
   // Check admin role
@@ -163,35 +173,55 @@ const Header = ({session}: {session: Session}) => {
     </form>
 
       {/* Desktop Navigation - Hidden on mobile */}
-      <div className="hidden md:flex items-center gap-6">
-        <Link href="/" className={cn("text-base cursor-pointer capitalize hover:text-amber-500 transition-colors", 
-          pathname === "/" ? "text-amber-500 font-medium" : "text-gray-700")}>
-          Home
+      <div className="hidden md:flex items-center gap-2">
+        <Link href="/" className={cn(
+          "relative px-4 py-2 text-base font-medium capitalize rounded-lg transition-all duration-300 ease-out group",
+          pathname === "/" 
+            ? "text-amber-600 bg-amber-50/80 shadow-sm" 
+            : "text-gray-700 hover:text-amber-600 hover:bg-amber-50/60"
+        )}>
+          <span className="relative z-10">Home</span>
+          <div className={cn(
+            "absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300 ease-out",
+            pathname === "/" ? "w-8" : "w-0 group-hover:w-6"
+          )}></div>
         </Link>
         
-        <Link href="/library" className={cn("text-base cursor-pointer capitalize hover:text-amber-500 transition-colors", 
-          pathname.startsWith("/library") ? "text-amber-500 font-medium" : "text-gray-700")}>
-          Library
+        <Link href="/library" className={cn(
+          "relative px-4 py-2 text-base font-medium capitalize rounded-lg transition-all duration-300 ease-out group",
+          pathname.startsWith("/library") 
+            ? "text-amber-600 bg-amber-50/80 shadow-sm" 
+            : "text-gray-700 hover:text-amber-600 hover:bg-amber-50/60"
+        )}>
+          <span className="relative z-10">Library</span>
+          <div className={cn(
+            "absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300 ease-out",
+            pathname.startsWith("/library") ? "w-8" : "w-0 group-hover:w-6"
+          )}></div>
         </Link>
 
         {/* Admin Panel Link - Only show for admin users on desktop */}
         {isAdmin && (
-          <Link href="/admin" className={cn("text-base cursor-pointer capitalize hover:text-purple-500 transition-colors", 
-            pathname.startsWith("/admin") ? "text-purple-500 font-medium" : "text-gray-700")}>
-            Admin Panel
+          <Link href="/admin" className={cn(
+            "relative px-4 py-2 text-base font-medium capitalize rounded-lg transition-all duration-300 ease-out group",
+            pathname.startsWith("/admin") 
+              ? "text-purple-600 bg-purple-50/80 shadow-sm" 
+              : "text-gray-700 hover:text-purple-600 hover:bg-purple-50/60"
+          )}>
+            <span className="relative z-10">Admin Panel</span>
+            <div className={cn(
+              "absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-300 ease-out",
+              pathname.startsWith("/admin") ? "w-8" : "w-0 group-hover:w-6"
+            )}></div>
           </Link>
         )}
         
-        {/* Notification Bell */}
-        <button className="relative p-2 text-gray-600 hover:text-amber-500 transition-colors">
-          <Image 
-            src="/icons/notification-bell.svg" 
-            alt="Notifications" 
-            width={24} 
-            height={24} 
-          />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        {/* Notification Bell with Dropdown */}
+        <NotificationDropdown
+          isOpen={isNotificationOpen}
+          onToggle={toggleNotifications}
+          onClose={closeNotifications}
+        />
         
         {/* Logout Button */}
         <form action={handleSignOut}>
@@ -327,16 +357,19 @@ const Header = ({session}: {session: Session}) => {
               )}
 
               {/* Notifications */}
-              <button 
-                onClick={closeMobileMenu}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-amber-600 hover:bg-amber-50 transition-all duration-200 active:scale-95 w-full text-left"
-              >
-                <div className="relative">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
+              <div className="px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <Bell className="w-5 h-5 text-amber-600" />
+                  <span className="text-base font-medium text-gray-700">Notifications</span>
                 </div>
-                <span>Notifications</span>
-              </button>
+                <div className="mt-2 ml-8">
+                  <NotificationDropdown
+                    isOpen={isNotificationOpen}
+                    onToggle={toggleNotifications}
+                    onClose={closeNotifications}
+                  />
+                </div>
+              </div>
 
               <Link 
                 href="/my-profile" 
