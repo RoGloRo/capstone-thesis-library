@@ -21,7 +21,8 @@ export const { POST } = serve(async (context) => {
     loanDuration 
   } = context.requestPayload as BookReturnEmailData;
 
-  await context.log(`📧 Sending return confirmation email to: ${userEmail} for "${bookTitle}"`);
+  // TODO: Add logging when context.log is available
+  console.log(`📧 Sending return confirmation email to: ${userEmail} for "${bookTitle}"`);
 
   try {
     // Import email utilities
@@ -49,7 +50,7 @@ export const { POST } = serve(async (context) => {
       message: emailHtml,
     });
 
-    await context.log(`✅ Return confirmation email sent successfully to: ${userEmail}`);
+    console.log(`✅ Return confirmation email sent successfully to: ${userEmail}`);
 
     return {
       success: true,
@@ -59,7 +60,7 @@ export const { POST } = serve(async (context) => {
     };
 
   } catch (error) {
-    await context.log(`❌ Failed to send return confirmation email to ${userEmail}: ${error}`);
+    console.error(`❌ Failed to send return confirmation email to ${userEmail}: ${error}`);
     
     throw new Error(`Failed to send return confirmation email: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }

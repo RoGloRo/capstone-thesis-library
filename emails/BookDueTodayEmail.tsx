@@ -55,8 +55,8 @@ export const BookDueTodayEmail = ({
 
           <Section style={bookSection}>
             <Text style={sectionTitle}>📖 Book Details</Text>
-            <Text style={bookTitle}>{bookTitle}</Text>
-            <Text style={bookAuthor}>by {bookAuthor}</Text>
+            <Text style={bookTitleStyle}>{bookTitle}</Text>
+            <Text style={bookAuthorStyle}>by {bookAuthor}</Text>
           </Section>
 
           <Section style={loanSection}>
@@ -202,14 +202,14 @@ const sectionTitle = {
   margin: "0 0 16px 0",
 };
 
-const bookTitle = {
+const bookTitleStyle = {
   fontSize: "20px",
   fontWeight: "600",
   color: "#1f2937",
   margin: "0 0 8px 0",
 };
 
-const bookAuthor = {
+const bookAuthorStyle = {
   fontSize: "14px",
   color: "#6b7280",
   margin: "0",

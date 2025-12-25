@@ -7,7 +7,7 @@ export const { POST } = serve(async (context) => {
   const today = new Date();
   const todayDateString = today.toISOString().split('T')[0];
   
-  await context.log(`🔍 Daily check: Books due today (${todayDateString})`);
+  console.log(`🔍 Daily check: Books due today (${todayDateString})`);
 
   // Find all borrowed books that are due today
   const booksDueToday = await db
@@ -30,10 +30,10 @@ export const { POST } = serve(async (context) => {
       )
     );
 
-  await context.log(`📚 Found ${booksDueToday.length} books due today`);
+  console.log(`📚 Found ${booksDueToday.length} books due today`);
 
   if (booksDueToday.length === 0) {
-    await context.log("✅ No books due today - no reminders needed");
+    console.log("✅ No books due today - no reminders needed");
     return {
       success: true,
       message: "No books due today",
@@ -46,7 +46,7 @@ export const { POST } = serve(async (context) => {
 
   for (const record of booksDueToday) {
     try {
-      await context.log(`📧 Sending due today reminder to: ${record.userEmail} for "${record.bookTitle}"`);
+      console.log(`📧 Sending due today reminder to: ${record.userEmail} for "${record.bookTitle}"`);
 
       // Import email utilities
       const { sendEmail } = await import("@/lib/workflow");
@@ -85,20 +85,20 @@ export const { POST } = serve(async (context) => {
         message: emailHtml,
       });
 
-      await context.log(`✅ Due today email sent successfully to: ${record.userEmail}`);
+      console.log(`✅ Due today email sent successfully to: ${record.userEmail}`);
       emailsSent++;
 
       // Add a small delay between emails to avoid overwhelming the email service
-      await context.sleep(2);
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
     } catch (error) {
-      await context.log(`❌ Failed to send due today email to ${record.userEmail}: ${error}`);
+      console.error(`❌ Failed to send due today email to ${record.userEmail}: ${error}`);
       emailsFailed++;
     }
   }
 
   const summary = `📊 Due today reminders complete: ${emailsSent} sent, ${emailsFailed} failed`;
-  await context.log(summary);
+  console.log(summary);
 
   return {
     success: true,

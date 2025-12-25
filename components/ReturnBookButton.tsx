@@ -36,6 +36,10 @@ export function ReturnBookButton({
         }
       }
       
+      if (!recordId) {
+        throw new Error("Failed to get borrow record ID");
+      }
+      
       const result = await returnBook({ 
         borrowRecordId: recordId, 
         bookId 

@@ -4,6 +4,7 @@
 import { db } from "@/database/drizzle";
 import { borrowRecords, users, books } from "@/database/schema";
 import { and, eq } from "drizzle-orm";
+import { BorrowRecordsResponse, BorrowRecord } from "@/types/borrow";
 
 export const getBorrowRecords = async (): Promise<BorrowRecordsResponse> => {
   try {
@@ -29,7 +30,7 @@ export const getBorrowRecords = async (): Promise<BorrowRecordsResponse> => {
     const now = new Date();
     const recordsWithStatus = records.map(record => {
       const isOverdue = !record.returnDate && new Date(record.dueDate) < now;
-      const status = isOverdue ? "OVERDUE" : record.status;
+      const status = isOverdue ? "OVERDUE" : (record.status as "BORROWED" | "RETURNED");
 
       return {
         ...record,
@@ -42,7 +43,7 @@ export const getBorrowRecords = async (): Promise<BorrowRecordsResponse> => {
       };
     });
 
-    return { success: true, data: recordsWithStatus };
+    return { success: true, data: recordsWithStatus as BorrowRecord[] };
   } catch (error) {
     console.error("Error fetching borrow records:", error);
     return { 

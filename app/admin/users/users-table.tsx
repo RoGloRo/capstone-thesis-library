@@ -179,7 +179,9 @@ export function UsersTable({ data }: UsersTableProps) {
       accessorKey: "lastActivityDate",
       header: "Last Active",
       cell: ({ row }) => {
-        const date = new Date(row.getValue("lastActivityDate") || new Date());
+        const dateValue = row.getValue("lastActivityDate");
+        if (!dateValue) return 'N/A';
+        const date = new Date(dateValue as string);
         return date.toLocaleDateString();
       },
     },
@@ -187,7 +189,7 @@ export function UsersTable({ data }: UsersTableProps) {
       accessorKey: "role",
       header: "Role",
       cell: ({ row }) => {
-        const role = row.getValue("role") as string;
+        const role = row.getValue("role") as string | null;
         const userId = row.original.id;
         
         return (
@@ -199,7 +201,7 @@ export function UsersTable({ data }: UsersTableProps) {
                 disabled={updatingRole === userId}
               >
                 <div className="flex items-center gap-2">
-                  <span className="capitalize">{role.toLowerCase()}</span>
+                  <span className="capitalize">{(role || 'USER').toLowerCase()}</span>
                   {updatingRole === userId ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
@@ -230,7 +232,9 @@ export function UsersTable({ data }: UsersTableProps) {
       accessorKey: "createdAt",
       header: "Joined On",
       cell: ({ row }) => {
-        const date = new Date(row.getValue("createdAt"));
+        const dateValue = row.getValue("createdAt");
+        if (!dateValue) return 'N/A';
+        const date = new Date(dateValue as string | Date);
         return date.toLocaleDateString();
       },
     },

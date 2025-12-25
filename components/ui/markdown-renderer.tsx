@@ -184,11 +184,11 @@ const COMPONENTS = {
   hr: withClass("hr", "border-slate-950/20 dark:border-slate-50/20"),
 }
 
-function withClass(Tag: keyof JSX.IntrinsicElements, classes: string) {
+function withClass(Tag: keyof React.JSX.IntrinsicElements, classes: string) {
   const Component = ({ node, ...props }: any) => (
     <Tag className={classes} {...props} />
   )
-  Component.displayName = Tag
+  Component.displayName = String(Tag)
   return Component
 }
 

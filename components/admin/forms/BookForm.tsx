@@ -47,19 +47,19 @@ const BookForm = ({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<BookFormData>({
+  const form = useForm({
     resolver: zodResolver(bookSchema),
     defaultValues: {
-      title,
-      description,
-      author,
-      genre,
-      rating,
-      totalCopies,
-      coverUrl,
-      coverColor,
-      videoUrl,
-      summary,
+      title: title || "",
+      description: description || "",
+      author: author || "",
+      genre: genre || "",
+      rating: rating || 1,
+      totalCopies: totalCopies || 1,
+      coverUrl: coverUrl || "",
+      coverColor: coverColor || "#000000",
+      videoUrl: videoUrl || "",
+      summary: summary || "",
     },
   });
 
@@ -175,8 +175,11 @@ const BookForm = ({
                             max={5}
                             placeholder="1-5"
                             className="w-20"
-                            {...field}
+                            value={typeof field.value === 'number' ? field.value : ""}
                             onChange={(e) => field.onChange(Number(e.target.value))}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            disabled={field.disabled}
                           />
                           <span className="text-sm text-muted-foreground">out of 5 stars</span>
                         </div>
@@ -200,8 +203,11 @@ const BookForm = ({
                           type="number"
                           min={1}
                           placeholder="Number of copies"
-                          {...field}
+                          value={typeof field.value === 'number' ? field.value : ""}
                           onChange={(e) => field.onChange(Number(e.target.value))}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          disabled={field.disabled}
                         />
                       </FormControl>
                       <FormMessage />

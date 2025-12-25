@@ -1,8 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FieldValues, Path, SubmitHandler, useForm } from "react-hook-form";
-import { ZodType } from "zod";
+import { useForm } from "react-hook-form";
+import { ZodSchema } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,30 +21,29 @@ import { useRouter } from "next/navigation";
 import { FIELD_TYPES } from "@/constants";
 import FileUpload from "./FileUpload";
 
-interface Props<T extends FieldValues> {
-  schema: ZodType<T>;
-  defaultValues: T;
-  onSubmit: (data: T) => Promise<{ success: boolean; error?: string }>;
+interface Props {
+  schema: ZodSchema<any>;
+  defaultValues: Record<string, any>;
+  onSubmit: (data: any) => Promise<{ success: boolean; error?: string }>;
   type: "SIGN_IN" | "SIGN_UP";
 }
 
-function AuthForm<T extends FieldValues>({
+function AuthForm({
   type,
   schema,
   defaultValues,
   onSubmit,
-}: Props<T>) {
+}: Props) {
   const router = useRouter();
   const isSignIn = type === "SIGN_IN";
 
-  const form = useForm<T>({
-    resolver: zodResolver(schema),
+  const form = useForm({
     defaultValues,
   });
 
-  const fields = Object.keys(defaultValues) as Path<T>[];
+  const fields = Object.keys(defaultValues);
 
-  const handleSubmit: SubmitHandler<T> = async (data) => {
+  const handleSubmit = async (data: any) => {
     const result = await onSubmit(data);
 
     if (result.success) {

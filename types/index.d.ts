@@ -23,10 +23,10 @@ type User = {
   email: string;
   universityId: number;
   universityCard: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-  role: 'USER' | 'ADMIN';
-  lastActivityDate: Date;
-  createdAt: Date;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
+  role: 'USER' | 'ADMIN' | null;
+  lastActivityDate: string | null;
+  createdAt: Date | null;
 };
 
 type BorrowRecord = {

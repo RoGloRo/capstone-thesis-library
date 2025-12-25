@@ -17,7 +17,7 @@ export async function PUT(
 
     if (!validation.success) {
       return NextResponse.json(
-        { message: "Invalid book data", errors: validation.error.errors },
+        { message: "Invalid book data", errors: validation.error.issues },
         { status: 400 }
       );
     }

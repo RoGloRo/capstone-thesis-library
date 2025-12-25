@@ -42,7 +42,7 @@ export function TopGenresChart({ data }: TopGenresChartProps) {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ genre, percent }) => percent > 0.05 ? `${genre} ${(percent * 100).toFixed(0)}%` : ''}
+              label={(entry: any) => entry.percent > 0.05 ? `${entry.payload.genre} ${(entry.percent * 100).toFixed(0)}%` : ''}
               outerRadius={100}
               innerRadius={40}
               fill="#8884d8"

@@ -11,7 +11,18 @@ export async function POST(request: NextRequest) {
     const { userEmail } = await request.json();
     
     // Find an overdue book for this user, or any overdue book if no email provided
-    let query = db
+    // Build conditions array
+    const conditions = [
+      eq(borrowRecords.status, "BORROWED"),
+      lt(borrowRecords.dueDate, new Date().toISOString().split('T')[0]),
+      isNull(borrowRecords.returnDate)
+    ];
+
+    if (userEmail) {
+      conditions.push(eq(users.email, userEmail));
+    }
+
+    const overdueRecords = await db
       .select({
         borrowRecordId: borrowRecords.id,
         userId: borrowRecords.userId,
@@ -26,19 +37,8 @@ export async function POST(request: NextRequest) {
       .from(borrowRecords)
       .leftJoin(users, eq(borrowRecords.userId, users.id))
       .leftJoin(books, eq(borrowRecords.bookId, books.id))
-      .where(
-        and(
-          eq(borrowRecords.status, "BORROWED"),
-          lt(borrowRecords.dueDate, new Date().toISOString().split('T')[0]),
-          isNull(borrowRecords.returnDate)
-        )
-      );
-
-    if (userEmail) {
-      query = query.where(eq(users.email, userEmail));
-    }
-
-    const overdueRecords = await query.limit(1);
+      .where(and(...conditions))
+      .limit(1);
 
     if (!overdueRecords.length) {
       return NextResponse.json(
