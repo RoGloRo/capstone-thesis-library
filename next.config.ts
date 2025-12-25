@@ -21,9 +21,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   serverExternalPackages: ['drizzle-orm', '@neondatabase/serverless', 'bcryptjs'],
 };
 
