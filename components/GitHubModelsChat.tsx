@@ -106,10 +106,8 @@ const GitHubModelsChat: React.FC = () => {
   };
 
   const suggestedPrompts = [
-    "What books do you recommend for beginners in science fiction?",
-    "How can I renew my library books?",
-    "Tell me about the library's digital resources.",
-    "What are your operating hours?"
+    "What is Smart Library AI?",
+    "How can I use Smart Library AI?",
   ];
 
   const handleSuggestionClick = (suggestion: string) => {
