@@ -8,6 +8,7 @@ import Header from "@/components/admin/Header";
 import { db } from "@/database/drizzle";
 import { users } from "@/database/schema";
 import { eq } from "drizzle-orm";
+import { ThemeProvider } from "@/components/theme-providers";
 
 const Layout = async ({ children }: { children: ReactNode }) => {
   const session = await auth();
@@ -24,14 +25,21 @@ const Layout = async ({ children }: { children: ReactNode }) => {
   if (!isAdmin) redirect("/");
 
   return (
-    <main className="flex min-h-screen w-full flex-row">
-      <Sidebar session={session} />
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      storageKey="admin-theme"
+    >
+      <main className="flex min-h-screen w-full flex-row bg-white dark:bg-gray-900 transition-colors">
+        <Sidebar session={session} />
 
-      <div className="admin-container">
-        <Header session={session} />
-        {children}
-      </div>
-    </main>
+        <div className="admin-container bg-gray-50 dark:bg-gray-800 transition-colors">
+          <Header session={session} />
+          {children}
+        </div>
+      </main>
+    </ThemeProvider>
   );
 };
 export default Layout;

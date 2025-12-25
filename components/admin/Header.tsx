@@ -6,12 +6,12 @@ import { ModeToggle } from "../ui/mode-toggle";
 
 const Header = ({ session }: { session: Session }) => {
   return (
-    <header className="admin-header flex justify-between items-center">
+    <header className="admin-header flex justify-between items-center bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors">
       <div>
-        <h2 className="text-2xl font-semibold text-dark-400">
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white transition-colors">
           {session?.user?.name}
         </h2>
-        <p className="text-base text-slate-500">
+        <p className="text-base text-slate-500 dark:text-slate-400 transition-colors">
           Monitor all of your users and books here
         </p>
       </div>
@@ -23,7 +23,7 @@ const Header = ({ session }: { session: Session }) => {
         {/* AI Assistant Link */}
         <Link 
           href="/chat"
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 border border-gray-300 hover:border-emerald-300 rounded-lg transition-all duration-300 group"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border border-gray-300 dark:border-gray-600 hover:border-emerald-300 dark:hover:border-emerald-500 rounded-lg transition-all duration-300 group"
           title="AI Assistant"
         >
           <MessageSquare className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
@@ -33,7 +33,7 @@ const Header = ({ session }: { session: Session }) => {
         {/* Back to User App */}
         <Link 
           href="/"
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-admin hover:bg-gray-50 border border-gray-300 hover:border-primary-admin rounded-lg transition-all duration-300 group"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-admin dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:border-primary-admin dark:hover:border-blue-500 rounded-lg transition-all duration-300 group"
           title="Back to User App"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
@@ -44,7 +44,7 @@ const Header = ({ session }: { session: Session }) => {
         <form action={handleSignOut}>
           <button 
             type="submit" 
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 border border-red-600 hover:border-red-700 rounded-lg transition-all duration-300 group shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 border border-red-600 hover:border-red-700 dark:border-red-700 dark:hover:border-red-800 rounded-lg transition-all duration-300 group shadow-sm hover:shadow-md"
             title="Sign Out"
           >
             <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
