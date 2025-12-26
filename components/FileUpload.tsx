@@ -166,7 +166,7 @@ const FileUpload = ({
         }}
       />
 
-      <button className={cn("upload-btn", styles.button)} onClick={startFileDialog}>
+      <button className={cn("upload-btn sm:w-auto", styles.button)} onClick={startFileDialog}>
         {/* hide upload icon when a file has already been uploaded */}
         {!file.filePath && (
           <Image src="/icons/upload.svg" alt="upload-icon" width={20} height={20} className="object-contain" />
@@ -177,7 +177,12 @@ const FileUpload = ({
         {file.filePath && (
           <p
             className={cn("upload-filename", styles.text)}
-            style={{ maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+            style={{ 
+              maxWidth: "calc(100vw - 4rem)", 
+              overflow: "hidden", 
+              textOverflow: "ellipsis", 
+              whiteSpace: "nowrap" 
+            }}
             title={file.filePath ?? undefined}
           >
             {file.filePath}
@@ -188,21 +193,48 @@ const FileUpload = ({
       {progress > 0 && progress !== 100 && (
         <div className="w-full rounded-full bg-green-200">
           <div className="progress" style={{ width: `${progress}%` }}>
-            {progress}%
+            <span className="sm:hidden">{progress}%</span>
+            <span className="hidden sm:inline">{progress}%</span>
           </div>
         </div>
       )}
       {file.filePath && type === "image" && (
-        <Image
-          src={file.filePath && file.filePath.startsWith("http") ? file.filePath : `${config.env.imagekit.urlEndpoint}${file.filePath}`}
-          alt={file.filePath || "uploaded image"}
-          width={500}
-          height={300}
-        />
+        <>
+          {/* Mobile responsive version */}
+          <div className="w-full mt-4 sm:hidden">
+            <div className="relative w-full aspect-[4/3] border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+              <Image
+                src={file.filePath && file.filePath.startsWith("http") ? file.filePath : `${config.env.imagekit.urlEndpoint}${file.filePath}`}
+                alt={file.filePath || "uploaded image"}
+                fill
+                className="object-contain p-2"
+                sizes="100vw"
+              />
+            </div>
+            <p className="text-xs text-center mt-2 text-gray-500">University ID Card Preview</p>
+          </div>
+          
+          {/* Desktop version - original behavior */}
+          <div className="hidden sm:block mt-4">
+            <Image
+              src={file.filePath && file.filePath.startsWith("http") ? file.filePath : `${config.env.imagekit.urlEndpoint}${file.filePath}`}
+              alt={file.filePath || "uploaded image"}
+              width={500}
+              height={300}
+              className="mx-auto"
+            />
+          </div>
+        </>
       )}
 
       {file.filePath && type === "video" && (
-        <video src={file.filePath.startsWith("http") ? file.filePath : `${config.env.imagekit.urlEndpoint}${file.filePath}`} controls className="h-96 w-full rounded-xl" />
+        <div className="w-full mt-4 sm:max-w-none">
+          <video 
+            src={file.filePath.startsWith("http") ? file.filePath : `${config.env.imagekit.urlEndpoint}${file.filePath}`} 
+            controls 
+            className="w-full h-auto max-h-64 sm:max-h-96 sm:h-96 rounded-xl border border-gray-200 sm:border-0"
+          />
+        </div>
       )}
     </>
   );

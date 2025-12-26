@@ -44,19 +44,29 @@ function AuthForm({
   const fields = Object.keys(defaultValues);
 
   const handleSubmit = async (data: any) => {
-    const result = await onSubmit(data);
+    try {
+      const result = await onSubmit(data);
 
-    if (result.success) {
-      toast("Success", {
-        description: isSignIn
-          ? "You have successfully signed in."
-          : "Your account has been created successfully. Please check your email to verify your account.",
-      });
+      if (result.success) {
+        toast("Success", {
+          description: isSignIn
+            ? "You have successfully signed in."
+            : "Your account has been created successfully. Welcome to our library!",
+        });
 
-      router.push("/");
-    } else {
+        // Small delay to show the success message before navigation
+        setTimeout(() => {
+          router.push("/");
+        }, 1000);
+      } else {
+        toast("Error", {
+          description: result.error ?? "An error occurred. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
       toast("Error", {
-        description: result.error ?? "An error occurred.",
+        description: "An unexpected error occurred. Please try again.",
       });
     }
   };
@@ -76,23 +86,28 @@ function AuthForm({
       </p>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
           {fields.map((fieldName) => (
             <FormField
               key={fieldName}
               control={form.control}
               name={fieldName}
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full">
                   <FormLabel className="capitalize">{fieldName}</FormLabel>
 
                   <FormControl>
                     {fieldName === "universityCard" ? (
-                      <FileUpload type="image"
-                        accept="image/*"
-                        placeholder="Upload your ID"
-                        folder="ids"
-                        variant="dark" onFileChange={field.onChange} />
+                      <div className="w-full">
+                        <FileUpload 
+                          type="image"
+                          accept="image/*"
+                          placeholder="Upload your ID"
+                          folder="ids"
+                          variant="dark" 
+                          onFileChange={field.onChange} 
+                        />
+                      </div>
                     ) : (
                       <Input
                         {...field}

@@ -1,0 +1,20 @@
+{
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    },
+    "app/api/workflows/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/workflows/check-overdue-books",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/workflows/due-today-reminders", 
+      "schedule": "0 8 * * *"
+    }
+  ]
+}
