@@ -17,7 +17,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, X, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, X, Search, ChevronLeft, ChevronRight, Trash2, RotateCcw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,15 +42,17 @@ export default function AccountRequestsTable() {
 
   const itemsPerPage = 10;
 
-   const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const requests = await getAccountRequests();
       setRequests(requests);
       setFilteredRequests(requests);
       setError(null);
     } catch (err) {
-      console.error("Error fetching account requests:", err);
-      const errorMessage = err instanceof Error ? err.message : "An error occurred while fetching account requests";
+      console.error('Error fetching account requests:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while fetching account requests';
       setError(errorMessage);
       toast.error(errorMessage);
       setRequests([]);
@@ -58,40 +60,44 @@ export default function AccountRequestsTable() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRequests();
-  }, []);
+  }, [fetchRequests]);
 
   // Handle sort dropdown changes
   const handleSortChange = useCallback((value: string) => {
     setSelectedSort(value);
-    const sortedRequests = [...filteredRequests];
     
-    switch (value) {
-      case 'latest':
-        sortedRequests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        break;
-      case 'oldest':
-        sortedRequests.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        break;
-      case 'name-asc':
-        sortedRequests.sort((a, b) => a.fullName.localeCompare(b.fullName));
-        break;
-      case 'name-desc':
-        sortedRequests.sort((a, b) => b.fullName.localeCompare(a.fullName));
-        break;
-      case 'status':
-        sortedRequests.sort((a, b) => a.status.localeCompare(b.status));
-        break;
-      default:
-        break;
-    }
-    
-    setFilteredRequests(sortedRequests);
+    // Sort the current filtered requests, not create new dependency
+    setFilteredRequests(prevFiltered => {
+      const sortedRequests = [...prevFiltered];
+      
+      switch (value) {
+        case 'latest':
+          sortedRequests.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+          break;
+        case 'oldest':
+          sortedRequests.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+          break;
+        case 'name-asc':
+          sortedRequests.sort((a, b) => a.fullName.localeCompare(b.fullName));
+          break;
+        case 'name-desc':
+          sortedRequests.sort((a, b) => b.fullName.localeCompare(a.fullName));
+          break;
+        case 'status':
+          sortedRequests.sort((a, b) => a.status.localeCompare(b.status));
+          break;
+        default:
+          break;
+      }
+      
+      return sortedRequests;
+    });
     setCurrentPage(1); // Reset to first page when sorting
-  }, [filteredRequests]);
+  }, []);
 
   // Search effect
   useEffect(() => {
@@ -112,8 +118,10 @@ export default function AccountRequestsTable() {
     setCurrentPage(1); // Reset to first page when searching
     
     // Apply current sorting after filtering
-    setTimeout(() => handleSortChange(selectedSort), 0);
-  }, [searchTerm, requests, selectedSort, handleSortChange]);
+    if (selectedSort !== 'latest') {
+      setTimeout(() => handleSortChange(selectedSort), 0);
+    }
+  }, [searchTerm, requests, selectedSort]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
@@ -188,6 +196,86 @@ export default function AccountRequestsTable() {
   } catch (err) {
     console.error("Error rejecting account:", err);
     toast.error("An error occurred while rejecting the account");
+  } finally {
+    setIsProcessing(null);
+  }
+};
+
+const handleUnreject = async (userId: string) => {
+  if (isProcessing) return;
+  
+  setIsProcessing(`unreject-${userId}`);
+  try {
+    // Call the server action to change status back to PENDING
+    const response = await fetch(`/api/users/${userId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: 'PENDING' }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Failed to unreject account');
+    }
+
+    toast.success("Account status changed to pending");
+    // Update both the main requests and filtered requests
+    setRequests(prevRequests => 
+      prevRequests.map(request => 
+        request.id === userId 
+          ? { ...request, status: "PENDING" as const } 
+          : request
+      )
+    );
+    setFilteredRequests(prevRequests => 
+      prevRequests.map(request => 
+        request.id === userId 
+          ? { ...request, status: "PENDING" as const } 
+          : request
+      )
+    );
+  } catch (err) {
+    console.error("Error unrejecting account:", err);
+    toast.error(err instanceof Error ? err.message : "An error occurred while changing account status");
+  } finally {
+    setIsProcessing(null);
+  }
+};
+
+const handleDeleteUser = async (userId: string) => {
+  if (isProcessing) return;
+  
+  // Show confirmation dialog
+  if (!confirm("Are you sure you want to permanently delete this user? This action cannot be undone.")) {
+    return;
+  }
+  
+  setIsProcessing(`delete-${userId}`);
+  try {
+    const response = await fetch(`/api/users/${userId}`, {
+      method: 'DELETE',
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 409) {
+        toast.error(data.details || data.error || 'Cannot delete user with active records');
+      } else {
+        throw new Error(data.error || 'Failed to delete user');
+      }
+      return;
+    }
+
+    toast.success("User deleted successfully");
+    // Remove the user from both arrays
+    setRequests(prevRequests => prevRequests.filter(request => request.id !== userId));
+    setFilteredRequests(prevRequests => prevRequests.filter(request => request.id !== userId));
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    toast.error(err instanceof Error ? err.message : "An error occurred while deleting the user");
   } finally {
     setIsProcessing(null);
   }
@@ -315,26 +403,75 @@ export default function AccountRequestsTable() {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8"
-                      onClick={() => handleApprove(request.id)}
-                      disabled={request.status === "REJECTED"}
-                    >
-                      <Check className="h-4 w-4 mr-1" />
-                      Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-8"
-                      onClick={() => handleReject(request.id)}
-                      disabled={request.status === "REJECTED"}
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Reject
-                    </Button>
+                    {request.status === "PENDING" ? (
+                      // Show Approve and Reject buttons for pending requests
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleApprove(request.id);
+                          }}
+                          disabled={isProcessing === `approve-${request.id}`}
+                        >
+                          <Check className="h-4 w-4 mr-1" />
+                          {isProcessing === `approve-${request.id}` ? "Approving..." : "Approve"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleReject(request.id);
+                          }}
+                          disabled={isProcessing === `reject-${request.id}`}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          {isProcessing === `reject-${request.id}` ? "Rejecting..." : "Reject"}
+                        </Button>
+                      </>
+                    ) : (
+                      // Show Unreject and Delete buttons for rejected requests
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleUnreject(request.id);
+                          }}
+                          disabled={isProcessing === `unreject-${request.id}`}
+                        >
+                          <RotateCcw className="h-4 w-4 mr-1" />
+                          {isProcessing === `unreject-${request.id}` ? "Unrejecting..." : "Unreject"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDeleteUser(request.id);
+                          }}
+                          disabled={isProcessing === `delete-${request.id}`}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          {isProcessing === `delete-${request.id}` ? "Deleting..." : "Delete"}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -368,9 +505,14 @@ export default function AccountRequestsTable() {
           </div>
           <div className="flex items-center space-x-2">
             <Button
+              type="button"
               variant="outline"
               size="sm"
-              onClick={handlePreviousPage}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handlePreviousPage();
+              }}
               disabled={currentPage === 1}
               className="flex items-center gap-1"
             >
@@ -381,9 +523,14 @@ export default function AccountRequestsTable() {
               Page {currentPage} of {totalPages}
             </span>
             <Button
+              type="button"
               variant="outline"
               size="sm"
-              onClick={handleNextPage}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleNextPage();
+              }}
               disabled={currentPage === totalPages}
               className="flex items-center gap-1"
             >

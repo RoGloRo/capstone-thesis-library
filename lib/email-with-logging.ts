@@ -83,6 +83,17 @@ export async function sendAccountApprovalEmail(email: string, userName: string, 
   });
 }
 
+export async function sendAccountRejectionEmail(email: string, userName: string, message: string) {
+  return sendEmailWithLogging({
+    email,
+    subject: "Smart Library Account Registration Update",
+    message,
+    emailType: "ACCOUNT_REJECTION",
+    recipientName: userName,
+    metadata: { rejectionDate: new Date().toISOString() }
+  });
+}
+
 export async function sendBorrowConfirmationEmail(
   email: string, 
   userName: string, 

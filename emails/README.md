@@ -4,6 +4,18 @@ This directory contains React Email templates for the Smart Library application.
 
 ## Templates
 
+### AccountRejectionEmail
+
+A professional email template for account registration rejections that includes:
+
+- Clear notification of rejection status
+- User's name and personalized message
+- Supportive tone explaining the decision
+- Next steps and guidance for users
+- Support contact information
+- Professional red-themed styling
+- Encouragement to reapply if eligible
+
 ### BookBorrowingConfirmationEmail
 
 A reusable email template for book borrowing confirmations that includes:

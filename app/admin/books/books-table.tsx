@@ -164,8 +164,13 @@ export function BooksTable({ data }: BooksTableProps) {
         <Button
           variant="ghost"
           size="icon"
+          type="button"
           className="h-8 w-8 p-0 hover:bg-red-100"
-          onClick={() => handleDeleteClick(row.original.id)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleDeleteClick(row.original.id);
+          }}
           disabled={isDeleting}
         >
           <Trash2 className="h-4 w-4 text-red-600" />

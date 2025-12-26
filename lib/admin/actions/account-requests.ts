@@ -121,10 +121,60 @@ export const approveAccountRequest = async (userId: string) => {
 
 export const rejectAccountRequest = async (userId: string) => {
   try {
+    // First, get user details before updating
+    const [user] = await db
+      .select({
+        fullName: users.fullName,
+        email: users.email,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) {
+      return { 
+        success: false, 
+        error: "User not found" 
+      };
+    }
+
+    // Update the user status to rejected
     await db
       .update(users)
       .set({ status: "REJECTED" })
       .where(eq(users.id, userId));
+
+    // Send rejection notification email
+    try {
+      // Check if we have the necessary environment variables for email
+      const hasResendToken = !!process.env.RESEND_TOKEN;
+      const hasQstashToken = !!process.env.QSTASH_TOKEN;
+      
+      if (hasResendToken && hasQstashToken) {
+        const { sendAccountRejectionEmail } = await import("@/lib/email-with-logging");
+        const { render } = await import("@react-email/render");
+        const AccountRejectionEmail = (await import("@/emails/AccountRejectionEmail")).default;
+        
+        const supportEmail = "contact@lemoroquias.online";
+        
+        const emailHtml = await render(
+          AccountRejectionEmail({
+            userName: user.fullName,
+            userEmail: user.email,
+            supportEmail,
+          })
+        );
+
+        await sendAccountRejectionEmail(user.email, user.fullName, emailHtml);
+        
+        console.log("✅ Account rejection email sent successfully to:", user.email);
+      } else {
+        console.warn("⚠️ Email tokens not configured - rejection email not sent");
+      }
+    } catch (emailError) {
+      // Log email error but don't fail the rejection process
+      console.error("Failed to send rejection email:", emailError);
+    }
     
     revalidatePath("/admin/account-requests");
     return { success: true };

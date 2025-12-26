@@ -76,8 +76,17 @@ export function UsersTable({ data }: UsersTableProps) {
         method: 'DELETE',
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to delete user');
+        // Handle specific error cases
+        if (response.status === 409) {
+          // Conflict - user has borrow records
+          toast.error(data.details || data.error || 'Cannot delete user with active records');
+        } else {
+          throw new Error(data.error || 'Failed to delete user');
+        }
+        return;
       }
 
       toast.success('User deleted successfully');
@@ -85,7 +94,7 @@ export function UsersTable({ data }: UsersTableProps) {
       window.location.reload();
     } catch (error) {
       console.error('Error deleting user:', error);
-      toast.error('Failed to delete user');
+      toast.error(error instanceof Error ? error.message : 'Failed to delete user');
     } finally {
       setIsDeleting(false);
       setIsDeleteDialogOpen(false);
@@ -403,9 +412,15 @@ export function UsersTable({ data }: UsersTableProps) {
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the user and remove their data from our servers.
+            <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>This action cannot be undone. This will permanently delete the user and remove their data from our servers.</p>
+              <div className="bg-amber-50 border border-amber-200 rounded-md p-3 mt-3">
+                <p className="text-sm text-amber-800">
+                  <strong>Note:</strong> Users with active borrow records or history cannot be deleted. 
+                  Please ensure all books are returned and records are cleared first.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -415,7 +430,7 @@ export function UsersTable({ data }: UsersTableProps) {
               disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? 'Checking & Deleting...' : 'Delete User'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
