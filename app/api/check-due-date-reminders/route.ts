@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/database/drizzle";
 import { borrowRecords, books, users } from "@/database/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { sendEmail } from "@/lib/workflow";
 import { render } from "@react-email/render";
 import DueDateReminderEmail from "@/emails/DueDateReminderEmail";
@@ -15,7 +15,7 @@ export async function POST() {
 
     console.log(`Checking for books due on: ${tomorrowDateString}`);
 
-    // Find all borrowed books that are due tomorrow and haven't had reminders sent
+    // Find all borrowed books that are due tomorrow and haven't had due date reminders sent
     const booksDueTomorrow = await db
       .select({
         borrowRecordId: borrowRecords.id,
@@ -24,6 +24,7 @@ export async function POST() {
         bookTitle: books.title,
         bookAuthor: books.author,
         dueDate: borrowRecords.dueDate,
+        reminderSent: borrowRecords.reminderSent,
       })
       .from(borrowRecords)
       .innerJoin(users, eq(borrowRecords.userId, users.id))
@@ -31,7 +32,8 @@ export async function POST() {
       .where(
         and(
           eq(borrowRecords.status, "BORROWED"),
-          eq(borrowRecords.dueDate, tomorrowDateString)
+          eq(borrowRecords.dueDate, tomorrowDateString),
+          eq(borrowRecords.reminderSent, false) // Only books that haven't had due date reminders sent
         )
       );
 
@@ -103,20 +105,17 @@ export async function POST() {
           console.log(`✅ Triggered workflow reminder for ${record.userEmail} for "${record.bookTitle}"`);
         }
 
-        // Mark reminder as sent to prevent duplicates (skip for now until database is updated)
-        // Note: In production, uncomment this when the dueDateReminderSent column exists
-        /*
+        // Mark reminder as sent to prevent duplicates
         try {
           await db
             .update(borrowRecords)
             .set({ reminderSent: true })
             .where(eq(borrowRecords.id, record.borrowRecordId));
           
-          console.log(`Marked reminder as sent for record: ${record.borrowRecordId}`);
+          console.log(`✅ Marked due date reminder as sent for record: ${record.borrowRecordId}`);
         } catch (updateError) {
-          console.warn(`Failed to update reminder status for ${record.borrowRecordId}:`, updateError);
+          console.warn(`⚠️ Failed to update reminder status for ${record.borrowRecordId}:`, updateError);
         }
-        */
 
         results.details.push({
           borrowRecordId: record.borrowRecordId,

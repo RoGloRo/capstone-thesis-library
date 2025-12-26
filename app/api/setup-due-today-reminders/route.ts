@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     if (action === "schedule") {
       // Schedule daily due today reminders to run every day at 9:00 AM using QStash directly
       const scheduleId = await qstash.schedules.create({
-        destination: `${baseUrl}/api/check-books-due-today`,
+        destination: `${baseUrl}/api/workflows/daily-due-today-reminders`,
         cron: "0 9 * * *", // Every day at 9:00 AM UTC
         body: JSON.stringify({ 
           type: "daily_due_today_check",
@@ -42,14 +42,14 @@ export async function POST(request: NextRequest) {
         message: "Daily due today reminders scheduled successfully",
         scheduleId,
         schedule: "Every day at 9:00 AM UTC",
-        endpoint: `${baseUrl}/api/check-books-due-today`,
+        endpoint: `${baseUrl}/api/workflows/daily-due-today-reminders`,
         nextRun: "Next scheduled run will be at 9:00 AM UTC",
       });
 
     } else if (action === "trigger-now") {
       // Trigger the workflow immediately for testing
       await qstash.publishJSON({
-        url: `${baseUrl}/api/check-books-due-today`,
+        url: `${baseUrl}/api/workflows/daily-due-today-reminders`,
         body: { 
           type: "immediate_due_today_check",
           triggeredAt: new Date().toISOString() 

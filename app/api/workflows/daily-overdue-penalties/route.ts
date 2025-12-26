@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         bookId: borrowRecords.bookId,
         borrowDate: borrowRecords.borrowDate,
         dueDate: borrowRecords.dueDate,
-        // overduePenaltySent: borrowRecords.overduePenaltySent, // Commented out until migration
+        reminderSent: borrowRecords.reminderSent, // Use reminderSent to track if penalty email was sent
         userFullName: users.fullName,
         userEmail: users.email,
         bookTitle: books.title,
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
         and(
           eq(borrowRecords.status, "BORROWED"),
           lt(borrowRecords.dueDate, todayString),
-          // eq(borrowRecords.overduePenaltySent, false), // Commented out until migration
+          eq(borrowRecords.reminderSent, false), // Only books that haven't had penalty emails sent
           isNull(borrowRecords.returnDate)
         )
       );
@@ -109,8 +109,7 @@ export async function POST(request: NextRequest) {
         // Mark penalty email as sent
         await db
           .update(borrowRecords)
-          // .set({ overduePenaltySent: true }) // Commented out until migration
-          .set({ reminderSent: true }) // Use reminderSent as temp flag
+          .set({ reminderSent: true }) // Mark that penalty email has been sent
           .where(eq(borrowRecords.id, record.borrowRecordId));
 
         emailsSent++;
