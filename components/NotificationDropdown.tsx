@@ -152,7 +152,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       <button
         onClick={onToggle}
         className={cn(
-          "relative p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50",
+          "relative p-2 sm:p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center",
           isOpen 
             ? "text-amber-600 bg-amber-50" 
             : "text-gray-600 hover:text-amber-500 hover:bg-amber-50"
@@ -164,7 +164,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         
         {/* Notification Count Badge */}
         {notifications.length > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium shadow-sm">
+          <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center font-medium shadow-sm">
             {notifications.length > 9 ? '9+' : notifications.length}
           </span>
         )}
@@ -172,42 +172,42 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200/80 z-50 max-h-96 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200/80 z-50 max-h-[70vh] sm:max-h-96 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">Notifications</h3>
             <button
               onClick={onClose}
-              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1 rounded-lg hover:bg-gray-100 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center touch-manipulation"
               aria-label="Close notifications"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-[50vh] sm:max-h-80 overflow-y-auto">
             {isLoading ? (
-              <div className="p-6 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading notifications...</p>
+              <div className="p-4 sm:p-6 text-center">
+                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-amber-500 mx-auto"></div>
+                <p className="text-gray-500 mt-2 text-sm">Loading notifications...</p>
               </div>
             ) : error ? (
-              <div className="p-6 text-center">
-                <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <p className="text-red-600 text-sm">{error}</p>
+              <div className="p-4 sm:p-6 text-center">
+                <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 mx-auto mb-2" />
+                <p className="text-red-600 text-xs sm:text-sm">{error}</p>
                 <button
                   onClick={fetchNotifications}
-                  className="mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm transition-colors"
+                  className="mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs sm:text-sm transition-colors touch-manipulation"
                 >
                   Retry
                 </button>
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-8 text-center">
-                <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 font-medium mb-1">No notifications</p>
-                <p className="text-gray-400 text-sm">You're all caught up!</p>
+              <div className="p-6 sm:p-8 text-center">
+                <Bell className="w-8 h-8 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2 sm:mb-3" />
+                <p className="text-gray-500 font-medium mb-1 text-sm sm:text-base">No notifications</p>
+                <p className="text-gray-400 text-xs sm:text-sm">You're all caught up!</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
@@ -218,31 +218,31 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                   return (
                     <div
                       key={notification.id}
-                      className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer touch-manipulation"
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-2 sm:gap-3">
                         <div className={cn(
-                          "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center",
+                          "flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center",
                           config.bgColor
                         )}>
-                          <IconComponent className={cn("w-4 h-4", config.color)} />
+                          <IconComponent className={cn("w-3 h-3 sm:w-4 sm:h-4", config.color)} />
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
                             <span className={cn(
-                              "text-xs font-medium px-2 py-0.5 rounded-full",
+                              "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap",
                               config.bgColor,
                               config.color
                             )}>
                               {config.label}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-[10px] sm:text-xs text-gray-500">
                               {formatTimeAgo(notification.sentAt)}
                             </span>
                           </div>
                           
-                          <p className="text-sm text-gray-900 font-medium text-ellipsis overflow-hidden">
+                          <p className="text-xs sm:text-sm text-gray-900 font-medium line-clamp-2 break-words">
                             {notification.subject}
                           </p>
                         </div>
@@ -256,13 +256,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="p-3 border-t border-gray-100 bg-gray-50">
+            <div className="p-2 sm:p-3 border-t border-gray-100 bg-gray-50">
               <button
                 onClick={() => {
                   // Optional: Navigate to full notifications page
                   onClose();
                 }}
-                className="w-full text-center text-sm text-amber-600 hover:text-amber-700 font-medium py-1 transition-colors"
+                className="w-full text-center text-xs sm:text-sm text-amber-600 hover:text-amber-700 font-medium py-2 sm:py-1 transition-colors touch-manipulation"
               >
                 View All Notifications
               </button>

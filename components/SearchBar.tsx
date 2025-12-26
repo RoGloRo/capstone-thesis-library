@@ -102,19 +102,6 @@ export default function SearchBar({
             <Filter className="h-4 w-4 mr-2" />
             Apply Filters
           </Button>
-          
-          {/* Clear Filters */}
-          {(currentSearch || currentAuthor || currentGenre) && (
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="border-white/20 text-white hover:bg-white/10"
-              onClick={() => window.location.href = '/library'}
-            >
-              <X className="h-4 w-4 mr-2" />
-              Clear All
-            </Button>
-          )}
         </div>
       </form>
     </div>

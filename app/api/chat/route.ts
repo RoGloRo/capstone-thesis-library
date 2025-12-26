@@ -49,8 +49,11 @@ export async function POST(request: NextRequest) {
         role: "system",
         content: `
           Library FAQs (App-Specific Information):
+          - The library is located at Muntinlupa National High School(MNHS) 92QH+J45, University Rd, Muntinlupa, 1776 Metro Manila.
+          - The library is open from 8:00 AM to 4:00 PM, Monday to Friday.
           - The library app allows users to browse and search for books, borrow and return them, and view their borrowing history.
           - Users can borrow up to the maximum number of books allowed by library policy.
+          - New accounts must be reviewed and approved by an administrator for security purposes.
           - Search for a book, open its details page, and click the Borrow button if the book is available.
           - Yes. You need an account to borrow books, view your borrowing history, and receive notifications.
           - Users can only borrow a book if they have an account and if they are approved by the admin.
@@ -67,6 +70,7 @@ export async function POST(request: NextRequest) {
             Receipt downloads
           - You can view your borrowed books and loan history in the My Profile Borrowed Books section.
           - No, you cannot renew borrowed books yet.
+          - The book may not be available or may already be borrowed.
           - If you need further assistance, please contact the library directly:
           📧 contact@lemoroquias.online
           📞 09933703396

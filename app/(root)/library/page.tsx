@@ -6,6 +6,7 @@ import { BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
+import Link from "next/link";
 
 interface SearchParams {
   searchParams: Promise<{
@@ -123,6 +124,15 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
                 Genre: {decodeURIComponent(genre)}
               </Badge>
             )}
+            <Link href="/library">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-red-600 border-red-500 text-white hover:bg-red-700 hover:border-red-600"
+              >
+                Clear all filters
+              </Button>
+            </Link>
           </div>
         )}
         
@@ -153,13 +163,14 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
               }
             </p>
             {(search || author || genre) && (
-              <Button 
-                variant="outline" 
-                className="border-white/20 text-white hover:bg-white/10"
-                onClick={() => window.location.href = '/library'}
-              >
-                Clear all filters
-              </Button>
+              <Link href="/library">
+                <Button 
+                  variant="outline" 
+                  className="bg-red-600 border-red-500 text-white hover:bg-red-700 hover:border-red-600"
+                >
+                  Clear all filters
+                </Button>
+              </Link>
             )}
           </div>
         ) : (

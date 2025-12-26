@@ -86,6 +86,7 @@ const Page = async () => {
       dueDate: borrowRecords.dueDate,
       returnDate: borrowRecords.returnDate,
       borrowStatus: borrowRecords.status,
+      borrowId: borrowRecords.id,
     })
     .from(borrowRecords)
     .leftJoin(books, eq(borrowRecords.bookId, books.id))
@@ -98,6 +99,7 @@ const Page = async () => {
 
   const borrowedBooks = rows.map((r) => ({
     id: (r.id ?? "") as string,
+    borrowId: (r.borrowId ?? "") as string, // Add unique borrow record ID
     title: (r.title ?? "") as string,
     author: (r.author ?? "") as string,
     genre: (r.genre ?? "") as string,
@@ -133,6 +135,7 @@ const Page = async () => {
       dueDate: borrowRecords.dueDate,
       returnDate: borrowRecords.returnDate,
       borrowStatus: borrowRecords.status,
+      borrowId: borrowRecords.id,
     })
     .from(borrowRecords)
     .leftJoin(books, eq(borrowRecords.bookId, books.id))
@@ -145,6 +148,7 @@ const Page = async () => {
   
   const returnedBooks = returnedRows.map((r) => ({
     id: (r.id ?? "") as string,
+    borrowId: (r.borrowId ?? "") as string, // Add unique borrow record ID
     title: (r.title ?? "") as string,
     author: (r.author ?? "") as string,
     genre: (r.genre ?? "") as string,
@@ -185,40 +189,40 @@ const Page = async () => {
   const userStatus = userData.status || 'PENDING';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 rounded-2xl">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-800 rounded-2xl">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-white mb-2">My Profile</h1>
-            <p className="text-blue-200">Manage your account and library activity</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">My Profile</h1>
+            <p className="text-emerald-200 text-sm sm:text-base">Manage your account and library activity</p>
           </div>
         </div>
 
         {/* Profile Overview Card */}
         <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
-          <CardHeader className="pb-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-              <Avatar className="h-20 w-20 border-4 border-blue-400/50">
-                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-2xl font-bold">
+          <CardHeader className="pb-4 sm:pb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+              <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-emerald-400/50">
+                <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-green-500 text-white text-xl sm:text-2xl font-bold">
                   {getInitials(userData.fullName)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <CardTitle className="text-3xl text-white mb-2">{userData.fullName}</CardTitle>
-                <div className="flex items-center gap-2 text-blue-200 mb-2">
-                  <Mail className="h-4 w-4" />
-                  <span>{userData.email}</span>
+                <CardTitle className="text-2xl sm:text-3xl text-white mb-1 sm:mb-2">{userData.fullName}</CardTitle>
+                <div className="flex items-center gap-2 text-emerald-200 mb-1 sm:mb-2">
+                  <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="text-sm sm:text-base truncate">{userData.email}</span>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                   <Badge 
                     variant={userStatus === 'APPROVED' ? 'default' : userStatus === 'PENDING' ? 'secondary' : 'destructive'}
-                    className="capitalize"
+                    className="capitalize text-xs"
                   >
                     {userStatus.toLowerCase()}
                   </Badge>
-                  <Badge variant={userData.role === 'ADMIN' ? 'default' : 'outline'} className="capitalize">
-                    <Shield className="h-3 w-3 mr-1" />
+                  <Badge variant={userData.role === 'ADMIN' ? 'default' : 'outline'} className="capitalize text-xs">
+                    <Shield className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
                     {userData.role}
                   </Badge>
                 </div>
@@ -228,50 +232,50 @@ const Page = async () => {
         </Card>
 
         {/* Information Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Personal Information */}
           <Card className="lg:col-span-2 bg-white/5 border-white/10 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-white flex items-center gap-2">
-                <User className="h-5 w-5" />
+              <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+                <User className="h-4 w-4 sm:h-5 sm:w-5" />
                 Personal Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1">
-                <p className="text-sm text-blue-200 flex items-center gap-2">
-                  <User className="h-4 w-4" />
+                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                  <User className="h-3 w-3 sm:h-4 sm:w-4" />
                   Full Name
                 </p>
-                <p className="font-medium text-white">{userData.fullName}</p>
+                <p className="font-medium text-white text-sm sm:text-base">{userData.fullName}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-blue-200 flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
+                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                  <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
                   Email
                 </p>
-                <p className="font-medium text-white">{userData.email}</p>
+                <p className="font-medium text-white text-sm sm:text-base break-all">{userData.email}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-blue-200 flex items-center gap-2">
-                  <Hash className="h-4 w-4" />
+                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                  <Hash className="h-3 w-3 sm:h-4 sm:w-4" />
                   University ID
                 </p>
-                <p className="font-medium text-white">{userData.universityId}</p>
+                <p className="font-medium text-white text-sm sm:text-base">{userData.universityId}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-blue-200 flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
+                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                  <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                   Member Since
                 </p>
-                <p className="font-medium text-white">{formatDate(userData.createdAt)}</p>
+                <p className="font-medium text-white text-sm sm:text-base">{formatDate(userData.createdAt)}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-blue-200 flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                   Last Active
                 </p>
-                <p className="font-medium text-white">{formatDate(userData.lastActivityDate)}</p>
+                <p className="font-medium text-white text-sm sm:text-base">{formatDate(userData.lastActivityDate)}</p>
               </div>
             </CardContent>
           </Card>
@@ -279,28 +283,28 @@ const Page = async () => {
           {/* University Card */}
           <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-xl text-white flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
+              <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
                 University Card
               </CardTitle>
             </CardHeader>
             <CardContent>
               {userData.universityCard ? (
-                <div className="space-y-4">
-                  <div className="relative aspect-[1.586/1] bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl p-4 text-white shadow-lg">
-                    <div className="absolute top-4 right-4">
-                      <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <CreditCard className="h-4 w-4" />
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="relative aspect-[1.586/1] bg-gradient-to-br from-emerald-600 to-green-700 rounded-xl p-3 sm:p-4 text-white shadow-lg">
+                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
                       </div>
                     </div>
                     <div className="flex flex-col h-full justify-between">
                       <div>
-                        <p className="text-xs opacity-75 mb-1">STUDENT ID</p>
-                        <p className="text-lg font-bold">{userData.universityId}</p>
+                        <p className="text-[10px] sm:text-xs opacity-75 mb-1">STUDENT ID</p>
+                        <p className="text-sm sm:text-lg font-bold">{userData.universityId}</p>
                       </div>
                       <div>
-                        <p className="text-xs opacity-75 mb-1">STUDENT NAME</p>
-                        <p className="font-medium text-sm">{userData.fullName}</p>
+                        <p className="text-[10px] sm:text-xs opacity-75 mb-1">STUDENT NAME</p>
+                        <p className="font-medium text-xs sm:text-sm truncate">{userData.fullName}</p>
                       </div>
                     </div>
                   </div>
@@ -310,14 +314,14 @@ const Page = async () => {
                       alt="University ID Card" 
                       width={300}
                       height={200}
-                      className="w-full rounded-lg border border-white/20 shadow-md object-cover"
+                      className="w-full rounded-lg border border-white/20 shadow-md object-cover max-h-48 sm:max-h-none"
                     />
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-400">No university card uploaded</p>
+                <div className="text-center py-6 sm:py-8">
+                  <CreditCard className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-gray-400 text-sm sm:text-base">No university card uploaded</p>
                 </div>
               )}
             </CardContent>
@@ -327,32 +331,32 @@ const Page = async () => {
         {/* Library Statistics */}
         <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-xl text-white flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
+            <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+              <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
               Library Statistics
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                <div className="text-2xl font-bold text-blue-400 mb-1">{borrowedBooks.length}</div>
-                <div className="text-sm text-blue-200">Currently Borrowed</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+              <div className="text-center p-3 sm:p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                <div className="text-xl sm:text-2xl font-bold text-emerald-400 mb-1">{borrowedBooks.length}</div>
+                <div className="text-xs sm:text-sm text-emerald-200">Currently Borrowed</div>
               </div>
-              <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-                <div className="text-2xl font-bold text-green-400 mb-1">{returnedBooks.length}</div>
-                <div className="text-sm text-green-200">Books Returned</div>
+              <div className="text-center p-3 sm:p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                <div className="text-xl sm:text-2xl font-bold text-green-400 mb-1">{returnedBooks.length}</div>
+                <div className="text-xs sm:text-sm text-green-200">Books Returned</div>
               </div>
-              <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                <div className="text-2xl font-bold text-purple-400 mb-1">{borrowedBooks.length + returnedBooks.length}</div>
-                <div className="text-sm text-purple-200">Total Books Read</div>
+              <div className="text-center p-3 sm:p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                <div className="text-xl sm:text-2xl font-bold text-purple-400 mb-1">{borrowedBooks.length + returnedBooks.length}</div>
+                <div className="text-xs sm:text-sm text-purple-200">Total Books Read</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Books Section */}
-        <div className="space-y-8">
-          <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10 backdrop-blur-sm">
             <BookList 
               title="Currently Borrowed Books" 
               books={borrowedBooks} 
@@ -365,7 +369,7 @@ const Page = async () => {
             />
           </div>
           
-          <div className="bg-white/5 rounded-xl p-6 border border-white/10 backdrop-blur-sm">
+          <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10 backdrop-blur-sm">
             <BookList 
               title="Reading History" 
               books={returnedBooks} 

@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import Header from "@/components/Header";
+import FloatingChat from "@/components/FloatingChat";
 import { db } from "@/database/drizzle";
 import { users } from "@/database/schema";
 import { eq } from "drizzle-orm";
@@ -37,6 +38,8 @@ const Layout = async ({ children }: { children: ReactNode }) => {
           {children}
         </div>
       </div>
+      {/* Floating Chat Widget */}
+      <FloatingChat />
     </main>
   
 }

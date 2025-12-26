@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import "@/styles/admin.css";
 import Sidebar from "@/components/admin/Sidebar";
 import Header from "@/components/admin/Header";
+import FloatingChat from "@/components/FloatingChat";
 import { db } from "@/database/drizzle";
 import { users } from "@/database/schema";
 import { eq } from "drizzle-orm";
@@ -38,6 +39,9 @@ const Layout = async ({ children }: { children: ReactNode }) => {
           <Header session={session} />
           {children}
         </div>
+        
+        {/* Floating Chat Widget */}
+        <FloatingChat />
       </main>
     </ThemeProvider>
   );

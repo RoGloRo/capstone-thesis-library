@@ -18,6 +18,8 @@ const Header = ({session}: {session: Session}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [mobileSearchQuery, setMobileSearchQuery] = useState("");
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -43,6 +45,28 @@ const Header = ({session}: {session: Session}) => {
     setIsNotificationOpen(false);
   };
 
+  const toggleMobileSearch = () => {
+    setIsMobileSearchOpen(!isMobileSearchOpen);
+    if (!isMobileSearchOpen) {
+      // Auto-focus will be handled in useEffect
+      setMobileSearchQuery("");
+    }
+  };
+
+  const closeMobileSearch = () => {
+    setIsMobileSearchOpen(false);
+    setMobileSearchQuery("");
+  };
+
+  const handleMobileSearch = (e: FormEvent) => {
+    e.preventDefault();
+    if (mobileSearchQuery.trim()) {
+      const query = encodeURIComponent(mobileSearchQuery.trim());
+      router.push(`/library?search=${query}`);
+      closeMobileSearch();
+    }
+  };
+
   // Check admin role
   useEffect(() => {
     const checkAdminRole = async () => {
@@ -62,24 +86,45 @@ const Header = ({session}: {session: Session}) => {
     checkAdminRole();
   }, [session?.user?.id]);
 
-  // Close mobile menu when clicking outside or pressing Escape
+  // Auto-focus mobile search input when opened
+  useEffect(() => {
+    if (isMobileSearchOpen) {
+      const searchInput = document.getElementById('mobile-search-input');
+      if (searchInput) {
+        setTimeout(() => searchInput.focus(), 100);
+      }
+    }
+  }, [isMobileSearchOpen]);
+
+  // Close mobile menu and search when clicking outside or pressing Escape
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (isMobileMenuOpen && !target.closest('.mobile-menu-container')) {
         closeMobileMenu();
       }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isMobileMenuOpen) {
-        closeMobileMenu();
+      if (isMobileSearchOpen && !target.closest('.mobile-search-container')) {
+        closeMobileSearch();
       }
     };
 
-    if (isMobileMenuOpen) {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (isMobileMenuOpen) {
+          closeMobileMenu();
+        }
+        if (isMobileSearchOpen) {
+          closeMobileSearch();
+        }
+      }
+    };
+
+    if (isMobileMenuOpen || isMobileSearchOpen) {
       document.addEventListener('click', handleOutsideClick);
       document.addEventListener('keydown', handleKeyDown);
+    }
+
+    if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
     } else {
       document.body.style.overflow = 'unset';
@@ -90,7 +135,7 @@ const Header = ({session}: {session: Session}) => {
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
     };
-  }, [isMobileMenuOpen]);
+  }, [isMobileMenuOpen, isMobileSearchOpen]);
 
   return <>
     <header className="my-10 flex items-center justify-between gap-5">
@@ -253,8 +298,8 @@ const Header = ({session}: {session: Session}) => {
         
         {/* User Profile */}
         <Link href="/my-profile" className="ml-2">
-          <Avatar className="border-2 border-amber-100 hover:border-amber-300 transition-colors">
-            <AvatarFallback className="bg-amber-100 text-amber-800 font-medium">
+          <Avatar className="border-2 border-emerald-100 hover:border-emerald-300 transition-colors">
+            <AvatarFallback className="bg-emerald-100 text-emerald-800 font-medium">
               {getInitials(session?.user?.name || "IN")}
             </AvatarFallback>
           </Avatar>
@@ -265,9 +310,11 @@ const Header = ({session}: {session: Session}) => {
       <div className="md:hidden flex items-center gap-4">
         {/* Mobile Search Icon */}
         <button 
-          onClick={() => router.push('/library')} 
-          className="p-2 text-gray-600 hover:text-amber-500 transition-colors"
-          aria-label="Search"
+          onClick={toggleMobileSearch}
+          className={`mobile-search-container p-2 transition-colors ${
+            isMobileSearchOpen ? 'text-amber-500' : 'text-gray-600 hover:text-amber-500'
+          }`}
+          aria-label="Toggle search"
         >
           <Image 
             src="/icons/search-fill.svg" 
@@ -292,6 +339,48 @@ const Header = ({session}: {session: Session}) => {
         </button>
       </div>
     </header>
+
+    {/* Mobile Inline Search Bar */}
+    {isMobileSearchOpen && (
+      <div className="md:hidden mb-4 mobile-search-container">
+        <form onSubmit={handleMobileSearch} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Image
+                src="/icons/search-fill.svg"
+                alt="Search"
+                width={18}
+                height={18}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 opacity-70"
+              />
+              <input
+                id="mobile-search-input"
+                type="text"
+                placeholder="Search books, authors, categories..."
+                className="w-full py-3 pl-10 pr-4 bg-white/20 border border-white/30 rounded-lg text-white placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-300"
+                value={mobileSearchQuery}
+                onChange={(e) => setMobileSearchQuery(e.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={!mobileSearchQuery.trim()}
+              className="px-4 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-all duration-300 flex items-center justify-center min-w-[80px]"
+            >
+              Search
+            </button>
+            <button
+              type="button"
+              onClick={closeMobileSearch}
+              className="px-3 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-all duration-300 flex items-center justify-center"
+              aria-label="Close search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </form>
+      </div>
+    )}
 
     {/* Mobile Navigation Menu Overlay */}
     {isMobileMenuOpen && (
@@ -387,21 +476,6 @@ const Header = ({session}: {session: Session}) => {
                 </Link>
               )}
 
-              {/* Notifications */}
-              <div className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <Bell className="w-5 h-5 text-amber-600" />
-                  <span className="text-base font-medium text-gray-700">Notifications</span>
-                </div>
-                <div className="mt-2 ml-8">
-                  <NotificationDropdown
-                    isOpen={isNotificationOpen}
-                    onToggle={toggleNotifications}
-                    onClose={closeNotifications}
-                  />
-                </div>
-              </div>
-
               <Link 
                 href="/my-profile" 
                 onClick={closeMobileMenu}
@@ -416,6 +490,17 @@ const Header = ({session}: {session: Session}) => {
                 <span>My Profile</span>
               </Link>
 
+              {/* Mobile Notifications */}
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-50 transition-all duration-200">
+                <Bell className="w-5 h-5 text-gray-700" />
+                <span className="text-base font-medium text-gray-700 flex-1">Notifications</span>
+                <NotificationDropdown
+                  isOpen={isNotificationOpen}
+                  onToggle={toggleNotifications}
+                  onClose={closeNotifications}
+                />
+              </div>
+
               {/* Logout Button in Navigation */}
               <form action={handleSignOut} className="w-full">
                 <button 
@@ -429,7 +514,10 @@ const Header = ({session}: {session: Session}) => {
 
               {/* Full Search Bar for Mobile */}
               <div className="pt-4 pb-2">
-                <form onSubmit={handleSearch} className="space-y-3">
+                <form onSubmit={(e) => {
+                  handleSearch(e);
+                  closeMobileMenu(); // Auto-close sidebar after search
+                }} className="space-y-3">
                   <div className="relative">
                     <input
                       type="text"
@@ -463,8 +551,8 @@ const Header = ({session}: {session: Session}) => {
             <div className="border-t border-gray-200/60 p-6">
               {/* User Info Display Only */}
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50">
-                <Avatar className="w-8 h-8 border-2 border-amber-100">
-                  <AvatarFallback className="bg-amber-100 text-amber-800 text-sm font-medium">
+                <Avatar className="w-8 h-8 border-2 border-emerald-100">
+                  <AvatarFallback className="bg-emerald-100 text-emerald-800 text-sm font-medium">
                     {getInitials(session?.user?.name || "IN")}
                   </AvatarFallback>
                 </Avatar>
