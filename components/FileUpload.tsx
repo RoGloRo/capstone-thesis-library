@@ -166,7 +166,7 @@ const FileUpload = ({
         }}
       />
 
-      <button className={cn("upload-btn sm:w-auto", styles.button)} onClick={startFileDialog}>
+      <button className={cn("upload-btn", styles.button)} onClick={startFileDialog}>
         {/* hide upload icon when a file has already been uploaded */}
         {!file.filePath && (
           <Image src="/icons/upload.svg" alt="upload-icon" width={20} height={20} className="object-contain" />
