@@ -70,7 +70,9 @@ export async function POST(request: NextRequest) {
             Receipt downloads
           - You can view your borrowed books and loan history in the My Profile Borrowed Books section.
           - No, you cannot renew borrowed books yet.
+          - If someone asks about the specific information about the users, just say that you don't have access to that information.   That information is private and confidential.
           - The book may not be available or may already be borrowed.
+          - The developers of this app/website are General Lemor Oquias, Paul Balisi, and Kenneth Sedava.
           - If you need further assistance, please contact the library directly:
           📧 contact@lemoroquias.online
           📞 09933703396

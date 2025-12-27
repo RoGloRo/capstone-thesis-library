@@ -202,7 +202,7 @@ export function BooksTable({ data }: BooksTableProps) {
     <div className="w-full">
       <div className="flex items-center justify-between py-4 gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
           <Input
             placeholder="Search by title, author, or genre..."
             value={globalFilter ?? ""}
@@ -211,7 +211,7 @@ export function BooksTable({ data }: BooksTableProps) {
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sort by:</span>
           <Select value={selectedSort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select sorting" />
@@ -267,9 +267,9 @@ export function BooksTable({ data }: BooksTableProps) {
                   className="h-24 text-center"
                 >
                   <div className="flex flex-col items-center justify-center py-8">
-                    <Search className="h-12 w-12 text-gray-400 mb-4" />
-                    <p className="text-gray-600 text-lg font-medium">No books found</p>
-                    <p className="text-gray-500 text-sm">
+                    <Search className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                    <p className="text-gray-600 dark:text-gray-300 text-lg font-medium">No books found</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
                       {globalFilter 
                         ? `No results match "${globalFilter}"` 
                         : "No books available at the moment"}

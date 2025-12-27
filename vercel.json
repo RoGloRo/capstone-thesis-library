@@ -9,12 +9,16 @@
   },
   "crons": [
     {
-      "path": "/api/workflows/check-overdue-books",
+      "path": "/api/workflows/daily-overdue-penalties",
       "schedule": "0 9 * * *"
     },
     {
-      "path": "/api/workflows/due-today-reminders", 
+      "path": "/api/workflows/daily-due-today-reminders", 
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/check-due-date-reminders",
+      "schedule": "0 10 * * *"
     }
   ]
 }

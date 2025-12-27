@@ -292,13 +292,13 @@ const handleDeleteUser = async (userId: string) => {
 
   if (error) {
     return (
-      <div className="rounded-md bg-red-50 p-4">
+      <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4">
         <div className="flex">
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
+            <h3 className="text-sm font-medium text-red-800 dark:text-red-400">
               Error loading account requests
             </h3>
-            <div className="mt-2 text-sm text-red-700">
+            <div className="mt-2 text-sm text-red-700 dark:text-red-300">
               <p>{error}</p>
             </div>
           </div>
@@ -309,13 +309,13 @@ const handleDeleteUser = async (userId: string) => {
 
   if (filteredRequests.length === 0 && !loading && !error) {
     return (
-      <div className="rounded-md bg-blue-50 p-4">
+      <div className="rounded-md bg-blue-50 dark:bg-blue-900/20 p-4">
         <div className="flex">
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-400">
               No account requests
             </h3>
-            <div className="mt-2 text-sm text-blue-700">
+            <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
               <p>{searchTerm ? `No requests match "${searchTerm}"` : "There are no pending or rejected account requests."}</p>
             </div>
           </div>
@@ -338,7 +338,7 @@ const handleDeleteUser = async (userId: string) => {
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sort by:</span>
           <Select value={selectedSort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select sorting" />
@@ -382,7 +382,7 @@ const handleDeleteUser = async (userId: string) => {
                         cardUrl: request.universityCard
                       })
                     }
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
+                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline"
                   >
                     View Card
                   </button>

@@ -206,7 +206,7 @@ export function UsersTable({ data }: UsersTableProps) {
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
-                className="h-8 px-2 text-left font-normal hover:bg-gray-100"
+                className="h-8 px-2 text-left font-normal hover:bg-gray-100 dark:hover:bg-gray-700"
                 disabled={updatingRole === userId}
               >
                 <div className="flex items-center gap-2">
@@ -222,13 +222,13 @@ export function UsersTable({ data }: UsersTableProps) {
             <DropdownMenuContent align="start">
               <DropdownMenuItem 
                 onClick={() => handleRoleChange(userId, 'USER')}
-                className={role === 'USER' ? 'bg-gray-100' : ''}
+                className={role === 'USER' ? 'bg-gray-100 dark:bg-gray-700' : ''}
               >
                 User
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => handleRoleChange(userId, 'ADMIN')}
-                className={role === 'ADMIN' ? 'bg-gray-100' : ''}
+                className={role === 'ADMIN' ? 'bg-gray-100 dark:bg-gray-700' : ''}
               >
                 Admin
               </DropdownMenuItem>
@@ -299,7 +299,7 @@ export function UsersTable({ data }: UsersTableProps) {
     <div className="w-full">
       <div className="flex items-center justify-between py-4 gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
           <Input
             placeholder="Search by name, email, or university ID..."
             value={(table.getState().globalFilter as string) ?? ""}
@@ -310,7 +310,7 @@ export function UsersTable({ data }: UsersTableProps) {
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-700">Sort by:</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sort by:</span>
           <Select value={selectedSort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select sorting" />

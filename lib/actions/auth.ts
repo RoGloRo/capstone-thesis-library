@@ -91,12 +91,23 @@ export const signUp = async (params: AuthCredentials) => {
         const isProduction = process.env.NODE_ENV === "production";
         const hasExternalUrl = baseUrl && !baseUrl.includes("localhost") && !baseUrl.includes("127.0.0.1");
         
+        // Always use correct production URL for Vercel deployments
+        const workflowUrl = isProduction && process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}/api/workflows/onboarding`
+          : `${baseUrl || "http://localhost:3000"}/api/workflows/onboarding`;
+        
         if (isProduction || hasExternalUrl) {
           // Use workflow client for production with timeout
-          console.log("🚀 Triggering production workflow for:", email);
+          console.log("🚀 Triggering production workflow:", {
+            url: workflowUrl,
+            email,
+            fullName,
+            hasBaseUrl: !!baseUrl,
+            hasVercelUrl: !!process.env.VERCEL_URL
+          });
           
           const workflowPromise = workflowClient.trigger({
-            url: `${baseUrl}/api/workflows/onboarding`,
+            url: workflowUrl,
             body: {
               email,
               fullName,
@@ -107,7 +118,7 @@ export const signUp = async (params: AuthCredentials) => {
           await Promise.race([
             workflowPromise,
             new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Workflow timeout')), 8000)
+              setTimeout(() => reject(new Error('Workflow timeout')), 10000)
             )
           ]);
           

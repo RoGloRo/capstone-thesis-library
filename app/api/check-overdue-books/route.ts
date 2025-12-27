@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
           }),
           daysOverdue,
           penaltyAmount,
-          returnBookUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/my-profile`,
+          returnBookUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/my-profile`,
         };
 
         if (hasResendToken && hasQstashToken) {

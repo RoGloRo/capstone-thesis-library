@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
             borrowDate: formatDate(borrowDate),
             dueDate: formatDate(dueDate),
             loanDuration,
-            profileUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/my-profile`,
+            profileUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/my-profile`,
           })
         );
 

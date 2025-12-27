@@ -41,23 +41,40 @@ const getUserState = async(email: string): Promise<UserState> => {
 export const { POST } = serve<InitialData>(async (context) => {
   const { email, fullName } = context.requestPayload
 
+  console.log("🎯 Onboarding workflow started:", { email, fullName });
+
   // Welcome Email
   await context.run("new-signup", async () => {
-    const profileUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/my-profile`;
-    
-    const emailHtml = await render(
-      WelcomeEmail({
-        userName: fullName,
-        profileUrl,
-      })
-    );
+    try {
+      console.log("📧 Preparing welcome email for:", email);
+      
+      const profileUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/my-profile`;
+      
+      const emailHtml = await render(
+        WelcomeEmail({
+          userName: fullName,
+          profileUrl,
+        })
+      );
 
-    await sendEmail({
-      email,
-      subject: "Welcome to Smart Library! 👋 Your reading journey begins now",
-      message: emailHtml,
-    })
-  })
+      console.log("📨 Sending welcome email...");
+      
+      await sendEmail({
+        email,
+        subject: "Welcome to Smart Library! 👋 Your reading journey begins now",
+        message: emailHtml,
+      });
+      
+      console.log("✅ Welcome email sent successfully to:", email);
+    } catch (error) {
+      console.error("❌ Welcome email failed:", {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        email,
+        fullName
+      });
+      throw error;
+    }
+  });
 
   await context.sleep("wait-for-3-days", 60 * 60 * 24 * 3)
 

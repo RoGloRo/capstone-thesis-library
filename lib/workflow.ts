@@ -12,19 +12,41 @@ const qstashClient = new QStashClient({
 });
 
 export const sendEmail = async({email, subject, message}: {email: string; subject: string; message: string;}) => {
+  try {
+    console.log("📧 Sending email via QStash:", {
+      to: email,
+      subject: subject.substring(0, 50) + "...",
+      hasToken: !!config.env.resendToken,
+      hasQStashToken: !!config.env.upstash.qstashToken
+    });
 
-  await qstashClient.publishJSON({
-    api: {
-      name: "email",
-      provider: resend({ token: config.env.resendToken }),
-    },
-    body: {
-      from: "Smart Library <contact@lemoroquias.online>",
-      to: [email],
-      subject,
-      html: message,
-    },
-  });
-}
+    const result = await qstashClient.publishJSON({
+      api: {
+        name: "email",
+        provider: resend({ token: config.env.resendToken }),
+      },
+      body: {
+        from: "Smart Library <contact@lemoroquias.online>",
+        to: [email],
+        subject,
+        html: message,
+      },
+    });
+    
+    console.log("✅ Email queued successfully:", {
+      messageId: result.messageId,
+      to: email
+    });
+    
+    return result;
+  } catch (error) {
+    console.error("❌ Email sending failed:", {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      email,
+      subject
+    });
+    throw error;
+  }
+};
 
  

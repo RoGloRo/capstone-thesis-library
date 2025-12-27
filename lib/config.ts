@@ -18,6 +18,7 @@ const config = {
       qstashToken: process.env.QSTASH_TOKEN!,
     },
     resendToken: process.env.RESEND_TOKEN!,
+    baseUrl: process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'),
   },
 }
 
