@@ -2,24 +2,33 @@
 
 ## 📧 Overview
 
-The library has three automated email notification systems:
+The library has a consolidated automated email notification system that runs once daily to handle all email checks:
 
-### 1. **Overdue Book Penalties** 
-- **Trigger**: Books with due date < today
+### **Consolidated Daily Email System**
 - **Schedule**: Daily at 9:00 AM UTC
-- **Endpoint**: `POST /api/workflows/daily-overdue-penalties`
+- **Endpoint**: `POST /api/workflows/consolidated-daily-emails`
+- **Function**: Runs all three email checks in a single cron job:
+  1. **Overdue Book Penalties** - Books with due date < today
+  2. **Due Today Reminders** - Books with due date = today  
+  3. **Due Date Reminders** - Books with due date = tomorrow (1 day before)
+
+This consolidated approach uses only 1 Vercel cron job instead of 3, staying within free tier limits.
+
+### Individual Email Types:
+
+#### 1. **Overdue Book Penalties** 
+- **Trigger**: Books with due date < today
+- **Internal Endpoint**: `POST /api/workflows/daily-overdue-penalties`
 - **Email**: Overdue penalty notification with fine calculation ($0.50/day)
 
-### 2. **Due Today Reminders**
+#### 2. **Due Today Reminders**
 - **Trigger**: Books with due date = today
-- **Schedule**: Daily at 8:00 AM UTC
-- **Endpoint**: `POST /api/workflows/daily-due-today-reminders`
+- **Internal Endpoint**: `POST /api/workflows/daily-due-today-reminders`
 - **Email**: Urgent reminder that book is due today
 
-### 3. **Due Date Reminders (1 Day Before)**
+#### 3. **Due Date Reminders (1 Day Before)**
 - **Trigger**: Books with due date = tomorrow
-- **Schedule**: Daily at 10:00 AM UTC
-- **Endpoint**: `POST /api/check-due-date-reminders`
+- **Internal Endpoint**: `POST /api/check-due-date-reminders`
 - **Email**: Friendly reminder that book is due tomorrow
 
 ## ⚙️ Configuration
@@ -48,20 +57,14 @@ RESEND_TOKEN=your_resend_token
 {
   "crons": [
     {
-      "path": "/api/workflows/daily-overdue-penalties",
+      "path": "/api/workflows/consolidated-daily-emails",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/workflows/daily-due-today-reminders", 
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/check-due-date-reminders",
-      "schedule": "0 10 * * *"
     }
   ]
 }
 ```
+
+**Note**: This uses only 1 cron job (within Vercel free tier limit of 2) by consolidating all three email checks into a single endpoint.
 
 ## 🧪 Testing
 
@@ -115,9 +118,10 @@ Body: { "action": "due-tomorrow" }
 ### Automated Email Flow
 
 #### Daily Schedule (UTC):
-- **8:00 AM**: Due Today Reminders run
-- **9:00 AM**: Overdue Penalties run
-- **10:00 AM**: Due Date Reminders (1 day before) run
+- **9:00 AM**: Consolidated daily emails run (all three types in sequence)
+  1. Overdue Penalties
+  2. Due Today Reminders
+  3. Due Date Reminders (1 day before)
 
 #### Email Logic:
 
@@ -162,9 +166,8 @@ Monitor automated emails in Vercel Dashboard:
 2. Click on production deployment
 3. Go to Functions tab
 4. Check logs for:
-   - `/api/workflows/daily-overdue-penalties`
-   - `/api/workflows/daily-due-today-reminders`
-   - `/api/check-due-date-reminders`
+   - `/api/workflows/consolidated-daily-emails` (main cron job)
+   - Individual endpoints if manually triggered
 
 ### QStash Dashboard
 
@@ -193,13 +196,13 @@ Monitor actual email delivery:
 - [ ] Set `NEXT_PUBLIC_BASE_URL` in Vercel Dashboard
 - [ ] Verify all environment variables in Vercel
 - [ ] Deploy to Vercel
-- [ ] Check Vercel Cron Jobs are enabled
+- [ ] Check Vercel Cron Jobs are enabled (should see 1 cron job)
 - [ ] Run diagnostic: `GET https://your-domain.vercel.app/api/test-helpers/automated-emails-diagnostic`
-- [ ] Manually trigger emails using POST endpoint
+- [ ] Manually trigger consolidated emails: `POST https://your-domain.vercel.app/api/workflows/consolidated-daily-emails`
 - [ ] Check Vercel function logs
 - [ ] Check QStash dashboard
 - [ ] Check Resend dashboard
-- [ ] Verify email received
+- [ ] Verify emails received
 
 ## 🐛 Troubleshooting
 
