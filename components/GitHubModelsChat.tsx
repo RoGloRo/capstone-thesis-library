@@ -116,7 +116,7 @@ const GitHubModelsChat: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-[700px] sm:h-[600px] md:h-[700px] max-w-4xl mx-auto border border-gray-200 rounded-xl bg-white shadow-lg overflow-hidden px-2 sm:px-0">
+    <div className="flex flex-col h-[700px] sm:h-[600px] md:h-[700px] max-w-4xl mx-auto border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 shadow-lg overflow-hidden px-2 sm:px-0">
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-800 to-emerald-600 text-white p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
         <div>
@@ -139,26 +139,26 @@ const GitHubModelsChat: React.FC = () => {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gradient-to-b from-gray-50 to-white">
+      <div className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-3 sm:space-y-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
         {messages.length === 0 ? (
           <div className="text-center mt-4 sm:mt-8 px-2">
             <Bot className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-emerald-400" />
-            <h3 className="text-lg sm:text-xl font-medium text-gray-700 mb-2">
+            <h3 className="text-lg sm:text-xl font-medium text-gray-700 dark:text-gray-200 mb-2">
               Welcome to Smart Library AI
             </h3>
-            <p className="text-sm sm:text-base text-gray-500 mb-4 sm:mb-6">
+            <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6">
               Ask me anything about books, library services, or get recommendations!
             </p>
             
             {/* Suggested prompts */}
             <div className="max-w-2xl mx-auto">
-              <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">Try these suggestions:</p>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-2 sm:mb-3">Try these suggestions:</p>
               <div className="grid grid-cols-1 gap-2">
                 {suggestedPrompts.map((prompt, index) => (
                   <button
                     key={index}
                     onClick={() => handleSuggestionClick(prompt)}
-                    className="p-2 sm:p-3 text-left bg-white border border-gray-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition-colors text-xs sm:text-sm touch-manipulation"
+                    className="p-2 sm:p-3 text-left bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-xs sm:text-sm text-gray-900 dark:text-gray-100 touch-manipulation"
                     disabled={isLoading}
                   >
                     {prompt}
@@ -178,7 +178,7 @@ const GitHubModelsChat: React.FC = () => {
                   className={`max-w-[85%] sm:max-w-[75%] p-3 sm:p-4 rounded-2xl ${
                     message.role === "user"
                       ? "bg-gradient-to-r from-emerald-800 to-emerald-600 text-white rounded-br-md"
-                      : "bg-white text-gray-800 rounded-bl-md shadow-sm border border-gray-200"
+                      : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700"
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -194,7 +194,7 @@ const GitHubModelsChat: React.FC = () => {
                       </p>
                       <p 
                         className={`text-[10px] sm:text-xs mt-1 sm:mt-2 ${
-                          message.role === "user" ? "text-green-100" : "text-gray-500"
+                          message.role === "user" ? "text-green-100" : "text-gray-500 dark:text-gray-400"
                         }`}
                       >
                         {formatTime(message.timestamp)}
@@ -208,9 +208,9 @@ const GitHubModelsChat: React.FC = () => {
             {/* Loading indicator */}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white p-3 sm:p-4 rounded-2xl rounded-bl-md shadow-sm border border-gray-200 max-w-[85%] sm:max-w-[75%]">
-                  <div className="flex items-center gap-2 sm:gap-3 text-gray-600">
-                    <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700" />
+                <div className="bg-white dark:bg-gray-800 p-3 sm:p-4 rounded-2xl rounded-bl-md shadow-sm border border-gray-200 dark:border-gray-700 max-w-[85%] sm:max-w-[75%]">
+                  <div className="flex items-center gap-2 sm:gap-3 text-gray-600 dark:text-gray-300">
+                    <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700 dark:text-emerald-400" />
                     <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                     <span className="text-xs sm:text-sm">Smart Library AI is thinking...</span>
                   </div>
@@ -224,21 +224,21 @@ const GitHubModelsChat: React.FC = () => {
 
       {/* Error Display */}
       {error && (
-        <div className="bg-red-50 border-t border-red-200 p-2 sm:p-3">
-          <p className="text-red-700 text-xs sm:text-sm">
+        <div className="bg-red-50 dark:bg-red-900/20 border-t border-red-200 dark:border-red-800 p-2 sm:p-3">
+          <p className="text-red-700 dark:text-red-300 text-xs sm:text-sm">
             <strong>Error:</strong> {error}
           </p>
         </div>
       )}
 
       {/* Input Form */}
-      <form onSubmit={sendMessage} className="border-t border-gray-200 p-2 sm:p-4 bg-white">
+      <form onSubmit={sendMessage} className="border-t border-gray-200 dark:border-gray-700 p-2 sm:p-4 bg-white dark:bg-gray-900">
         <div className="flex gap-2 sm:gap-3">
           <textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder="Type your message here... (Press Shift+Enter for new line)"
-            className="flex-1 p-2 sm:p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none min-h-[44px] sm:min-h-[48px] max-h-24 sm:max-h-32 text-sm sm:text-base touch-manipulation"
+            className="flex-1 p-2 sm:p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:border-transparent resize-none min-h-[44px] sm:min-h-[48px] max-h-24 sm:max-h-32 text-sm sm:text-base touch-manipulation"
             disabled={isLoading}
             maxLength={2000}
             rows={1}
@@ -261,7 +261,7 @@ const GitHubModelsChat: React.FC = () => {
             )}
           </button>
         </div>
-        <div className="flex justify-between items-center mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500">
+        <div className="flex justify-between items-center mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
           <span className="truncate">Powered by Smart Library AI</span>
           <span className="ml-2">{inputMessage.length}/2000</span>
         </div>
