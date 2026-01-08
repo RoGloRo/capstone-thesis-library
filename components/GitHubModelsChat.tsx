@@ -106,8 +106,8 @@ const GitHubModelsChat: React.FC = () => {
   };
 
   const suggestedPrompts = [
-    "What is Smart Library AI?",
-    "How can I use Smart Library AI?",
+    "What is LiVro AI?",
+    "How can I use LiVro?",
   ];
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -122,7 +122,7 @@ const GitHubModelsChat: React.FC = () => {
         <div>
           <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
             <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
-            Smart Library AI
+            LiVro
           </h2>
           <p className="text-emerald-100 text-xs sm:text-sm mt-1">
             Your Intelligent Library Assistant
@@ -144,7 +144,8 @@ const GitHubModelsChat: React.FC = () => {
           <div className="text-center mt-4 sm:mt-8 px-2">
             <Bot className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-emerald-400" />
             <h3 className="text-lg sm:text-xl font-medium text-gray-700 dark:text-gray-200 mb-2">
-              Welcome to Smart Library AI
+              Hi, I'm LiVro, Your Library Bro!
+              <br />(Library Virtual Robot Assistant) 
             </h3>
             <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-4 sm:mb-6">
               Ask me anything about books, library services, or get recommendations!
@@ -212,7 +213,7 @@ const GitHubModelsChat: React.FC = () => {
                   <div className="flex items-center gap-2 sm:gap-3 text-gray-600 dark:text-gray-300">
                     <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-700 dark:text-emerald-400" />
                     <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                    <span className="text-xs sm:text-sm">Smart Library AI is thinking...</span>
+                    <span className="text-xs sm:text-sm">LiVro is thinking...</span>
                   </div>
                 </div>
               </div>

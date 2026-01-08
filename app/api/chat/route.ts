@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       {
         role: "system",
         content: `
-          You are Smart Library AI, a helpful assistant for a school library management system.
+          You are LiVro, a helpful assistant for a school library management system.
 
           Use the provided library information when answering questions related to the app, library rules, or services.
           If the information is not provided, you may answer using general knowledge.

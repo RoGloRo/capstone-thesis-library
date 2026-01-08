@@ -1,7 +1,16 @@
-CREATE TYPE "public"."borrow_status" AS ENUM('BORROWED', 'RETURNED', 'OVERDUE');--> statement-breakpoint
-CREATE TYPE "public"."role" AS ENUM('USER', 'ADMIN');--> statement-breakpoint
-CREATE TYPE "public"."status" AS ENUM('PENDING', 'APPROVED', 'REJECTED');--> statement-breakpoint
-CREATE TABLE "books" (
+DO $$ BEGIN
+	CREATE TYPE "public"."borrow_status" AS ENUM('BORROWED', 'RETURNED', 'OVERDUE');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+	CREATE TYPE "public"."role" AS ENUM('USER', 'ADMIN');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+	CREATE TYPE "public"."status" AS ENUM('PENDING', 'APPROVED', 'REJECTED');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "books" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" varchar(255) NOT NULL,
 	"author" varchar(255) NOT NULL,
@@ -18,7 +27,7 @@ CREATE TABLE "books" (
 	CONSTRAINT "books_id_unique" UNIQUE("id")
 );
 --> statement-breakpoint
-CREATE TABLE "borrow_records" (
+CREATE TABLE IF NOT EXISTS "borrow_records" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"book_id" uuid NOT NULL,
@@ -30,7 +39,7 @@ CREATE TABLE "borrow_records" (
 	CONSTRAINT "borrow_records_id_unique" UNIQUE("id")
 );
 --> statement-breakpoint
-CREATE TABLE "saved_books" (
+CREATE TABLE IF NOT EXISTS "saved_books" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"book_id" uuid NOT NULL,
@@ -39,7 +48,7 @@ CREATE TABLE "saved_books" (
 	CONSTRAINT "saved_books_id_unique" UNIQUE("id")
 );
 --> statement-breakpoint
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"full_name" varchar(255) NOT NULL,
 	"email" text NOT NULL,
@@ -55,8 +64,32 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_univeristy_id_unique" UNIQUE("univeristy_id")
 );
 --> statement-breakpoint
-ALTER TABLE "borrow_records" ADD CONSTRAINT "borrow_records_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "borrow_records" ADD CONSTRAINT "borrow_records_book_id_books_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "saved_books" ADD CONSTRAINT "saved_books_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "saved_books" ADD CONSTRAINT "saved_books_book_id_books_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+DO $$ BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'borrow_records_user_id_users_id_fk'
+	) THEN
+		ALTER TABLE "borrow_records" ADD CONSTRAINT "borrow_records_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'borrow_records_book_id_books_id_fk'
+	) THEN
+		ALTER TABLE "borrow_records" ADD CONSTRAINT "borrow_records_book_id_books_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'saved_books_user_id_users_id_fk'
+	) THEN
+		ALTER TABLE "saved_books" ADD CONSTRAINT "saved_books_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'saved_books_book_id_books_id_fk'
+	) THEN
+		ALTER TABLE "saved_books" ADD CONSTRAINT "saved_books_book_id_books_id_fk" FOREIGN KEY ("book_id") REFERENCES "public"."books"("id") ON DELETE no action ON UPDATE no action;
+	END IF;
+END $$;--> statement-breakpoint
 CREATE UNIQUE INDEX "saved_books_user_book_idx" ON "saved_books" USING btree ("user_id","book_id");

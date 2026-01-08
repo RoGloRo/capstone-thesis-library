@@ -109,7 +109,7 @@ const FloatingChat: React.FC = () => {
   };
 
   const suggestedPrompts = [
-    "What is Smart Library AI?",
+    "What is LiVro AI?",
     "How can I borrow a book?",
     "Recommend me a good book",
     "How do I return a book?",
@@ -158,9 +158,9 @@ const FloatingChat: React.FC = () => {
             <div className="flex items-center gap-2">
               <MessageSquare className="w-5 h-5" />
               <div>
-                <h3 className="font-semibold text-sm">Smart Library AI</h3>
+                <h3 className="font-semibold text-sm">LiVro</h3>
                 {!isMinimized && (
-                  <p className="text-emerald-100 text-xs">Your Intelligent Assistant</p>
+                  <p className="text-emerald-100 text-xs">Your Intelligent Assistant Bro!</p>
                 )}
               </div>
             </div>
@@ -194,7 +194,7 @@ const FloatingChat: React.FC = () => {
                   <div className="text-center py-4">
                     <Bot className="w-10 h-10 mx-auto mb-3 text-emerald-400" />
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                      Welcome to Smart Library AI
+                      Welcome wormies! I'm LiVro
                     </h4>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                       Ask me anything about books or library services!

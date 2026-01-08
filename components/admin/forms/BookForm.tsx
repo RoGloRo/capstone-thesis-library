@@ -43,6 +43,7 @@ const BookForm = ({
   coverColor = "#012B48",
   videoUrl = "",
   summary = ""
+  ,controlNumber = ""
 }: BookFormProps) => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +61,7 @@ const BookForm = ({
       coverColor: coverColor || "#000000",
       videoUrl: videoUrl || "",
       summary: summary || "",
+      controlNumber: controlNumber || "",
     },
   });
 
@@ -134,6 +136,25 @@ const BookForm = ({
                       <FormControl>
                         <Input placeholder="Enter author name" {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Control Number (optional) */}
+                <FormField
+                  control={form.control}
+                  name="controlNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        Control Number
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="SL-YYYY-XXXXXX (optional)" {...field} />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">Leave blank to auto-generate.</p>
                       <FormMessage />
                     </FormItem>
                   )}

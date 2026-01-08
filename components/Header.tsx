@@ -151,7 +151,7 @@ const Header = ({session}: {session: Session}) => {
             ? "text-emerald-700 bg-emerald-50/80 shadow-sm" 
             : "text-gray-700 hover:text-emerald-600 hover:bg-emerald-50/60"
         )}>
-          <span className="relative z-10">AI</span>
+          <span className="relative z-10">LiVro</span>
           <div className={cn(
             "absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-full transition-all duration-300 ease-out",
             pathname.startsWith("/chat") ? "w-6" : "w-0 group-hover:w-4"

@@ -39,6 +39,11 @@ export const adminSideBarLinks = [
     text: "Borrow Records",
   },
   {
+    img: "/icons/admin/receipt.svg",
+    route: "/admin/reports",
+    text: "Reports",
+  },
+  {
     img: "/icons/admin/user.svg",
     route: "/admin/account-requests",
     text: "Account Requests",

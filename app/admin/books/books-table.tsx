@@ -117,6 +117,13 @@ export function BooksTable({ data }: BooksTableProps) {
 
   const columns: ColumnDef<Book>[] = [
     {
+      accessorKey: "controlNumber",
+      header: "Control Number",
+      cell: ({ row }) => (
+        <div className="font-mono text-sm">{row.getValue("controlNumber") || '—'}</div>
+      ),
+    },
+    {
       accessorKey: "title",
       header: "Title",
       cell: ({ row }) => (

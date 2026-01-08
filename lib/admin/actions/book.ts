@@ -4,6 +4,7 @@
 import { books } from "@/database/schema";
 import { db } from "@/database/drizzle";
 import { eq } from "drizzle-orm";
+import crypto from "crypto";
 
 export const getBookById = async (id: string) => {
   try {
@@ -28,10 +29,31 @@ export const getBookById = async (id: string) => {
 };
 export const createBook = async (params: BookParams) => {
   try {
+    // If controlNumber provided, validate uniqueness
+    if (params.controlNumber) {
+      const existing = await db
+        .select()
+        .from(books)
+        .where(eq(books.controlNumber, params.controlNumber))
+        .limit(1);
+
+      if (existing.length > 0) {
+        return { success: false, message: "Control number already in use" };
+      }
+    }
+
+    // Ensure controlNumber exists: generate if missing
+    let controlNumber = params.controlNumber ?? null;
+    if (!controlNumber) {
+      // try to generate a unique control number with retries
+      controlNumber = await generateUniqueControlNumber();
+    }
+
     const newBook = await db
       .insert(books)
       .values({
         ...params,
+        controlNumber,
         availableCopies: params.totalCopies,
       })
       .returning();
@@ -68,11 +90,34 @@ export const updateBook = async (id: string, params: BookParams) => {
       currentBook.availableCopies + (params.totalCopies - currentBook.totalCopies)
     );
 
+    // Determine control number behavior: do not change existing control numbers.
+    let controlNumberToSet = currentBook.controlNumber ?? null;
+
+    if (!controlNumberToSet) {
+      // if current book has no control number, accept provided value (if any) after uniqueness check
+      if (params.controlNumber) {
+        const existing = await db
+          .select()
+          .from(books)
+          .where(eq(books.controlNumber, params.controlNumber))
+          .limit(1);
+
+        if (existing.length > 0) {
+          return { success: false, message: "Control number already in use" };
+        }
+        controlNumberToSet = params.controlNumber;
+      } else {
+        // generate one
+        controlNumberToSet = await generateUniqueControlNumber();
+      }
+    }
+
     // Update the book
     const [updatedBook] = await db
       .update(books)
       .set({
         ...params,
+        controlNumber: controlNumberToSet,
         availableCopies: newAvailableCopies,
       })
       .where(eq(books.id, id))
@@ -90,3 +135,31 @@ export const updateBook = async (id: string, params: BookParams) => {
     };
   }
 };
+
+// Helper: generate unique control number of format SL-YYYY-XXXXXX
+async function generateUniqueControlNumber(): Promise<string> {
+  const prefix = "SL";
+  const year = new Date().getFullYear();
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    // generate random 6-digit number
+    const rand = crypto.randomInt(0, 1000000);
+    const suffix = String(rand).padStart(6, "0");
+    const candidate = `${prefix}-${year}-${suffix}`;
+
+    const existing = await db
+      .select()
+      .from(books)
+      .where(eq(books.controlNumber, candidate))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return candidate;
+    }
+    // otherwise loop and try again
+  }
+
+  // worst-case fallback: use timestamp-based suffix
+  const fallback = `${prefix}-${year}-${String(Date.now()).slice(-6)}`;
+  return fallback;
+}

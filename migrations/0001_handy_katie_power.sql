@@ -8,7 +8,10 @@ ALTER TABLE "borrow_records" ALTER COLUMN "status" TYPE text;
 DROP TYPE IF EXISTS "borrow_status";
 
 -- Create the new enum type with the correct values
-CREATE TYPE "public"."borrow_status" AS ENUM('BORROWED', 'STATUS');
+DO $$ BEGIN
+  CREATE TYPE "public"."borrow_status" AS ENUM('BORROWED', 'STATUS');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
 
 -- Update the column to use the new enum type
 ALTER TABLE "borrow_records" 

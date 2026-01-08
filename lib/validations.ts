@@ -29,4 +29,5 @@ export const bookSchema = z.object({
     .regex(/^#[0-9A-F]{6}$/i),
   videoUrl: z.string().nonempty(),
   summary: z.string().trim().min(10),
+  controlNumber: z.string().trim().max(64).optional(),
 });
