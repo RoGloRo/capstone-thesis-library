@@ -6,9 +6,10 @@ import { handleSignOut } from "@/lib/actions/auth-actions";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React, { FormEvent, useState, useEffect } from "react";
+import React, { FormEvent, useState, useEffect, useRef } from "react";
 import { LogOut, Menu, X, Home, Library, Bell, User, MessageSquare, Info } from "lucide-react";
 import NotificationDropdown from "@/components/NotificationDropdown";
+import LogoutConfirmation from "@/components/ui/logout-confirmation";
 
 const Header = ({session}: {session: Session}) => {
   const pathname = usePathname();
@@ -20,6 +21,10 @@ const Header = ({session}: {session: Session}) => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const currentLogoutFormRef = useRef<HTMLFormElement | null>(null);
+  const desktopLogoutFormRef = useRef<HTMLFormElement | null>(null);
+  const mobileLogoutFormRef = useRef<HTMLFormElement | null>(null);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -136,6 +141,16 @@ const Header = ({session}: {session: Session}) => {
       document.body.style.overflow = 'unset';
     };
   }, [isMobileMenuOpen, isMobileSearchOpen]);
+
+  const handleConfirmedLogout = () => {
+    setIsLogoutOpen(false);
+    try {
+      // submit the selected hidden form which uses the server action
+      currentLogoutFormRef.current?.requestSubmit();
+    } catch (err) {
+      currentLogoutFormRef.current?.submit();
+    }
+  };
 
   return <>
     <header className="my-10 flex items-center justify-between gap-5">
@@ -298,15 +313,20 @@ const Header = ({session}: {session: Session}) => {
         />
         
         {/* Logout Button */}
-        <form action={handleSignOut}>
-          <button 
-            type="submit" 
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 border border-gray-300 hover:border-red-300 rounded-lg transition-all duration-300 group"
-            title="Sign Out"
-          >
-            <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+        <button
+          onClick={() => {
+            currentLogoutFormRef.current = desktopLogoutFormRef.current;
+            setIsLogoutOpen(true);
+          }}
+          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 border border-gray-300 hover:border-red-300 rounded-lg transition-all duration-300 group"
+          title="Sign Out"
+        >
+          <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
+        {/* Hidden form to trigger server action for desktop logout */}
+        <form ref={desktopLogoutFormRef} action={handleSignOut} className="hidden">
+          <button type="submit" />
         </form>
         
         {/* User Profile */}
@@ -529,14 +549,19 @@ const Header = ({session}: {session: Session}) => {
               </div>
 
               {/* Logout Button in Navigation */}
-              <form action={handleSignOut} className="w-full">
-                <button 
-                  type="submit" 
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-300 active:scale-95 w-full text-left"
-                >
-                  <LogOut className="w-5 h-5" />
-                  <span>Sign Out</span>
-                </button>
+              <button
+                onClick={() => {
+                  currentLogoutFormRef.current = mobileLogoutFormRef.current;
+                  setIsLogoutOpen(true);
+                  closeMobileMenu();
+                }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 hover:border-red-300 transition-all duration-300 active:scale-95 w-full text-left"
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Sign Out</span>
+              </button>
+              <form ref={mobileLogoutFormRef} action={handleSignOut} className="hidden">
+                <button type="submit" />
               </form>
 
               {/* Full Search Bar for Mobile */}
@@ -593,6 +618,8 @@ const Header = ({session}: {session: Session}) => {
         </div>
       </div>
     )}
+
+    <LogoutConfirmation open={isLogoutOpen} onOpenChange={setIsLogoutOpen} onConfirm={handleConfirmedLogout} />
   </>;
 }
 export default Header

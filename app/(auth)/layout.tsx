@@ -24,9 +24,9 @@ const Layout = async ({ children }: { children: ReactNode }) => {
             <div className="text-sm text-slate-400">
               <span>© Smart Library</span>
               <span className="mx-2">|</span>
-              <Link href="/about" className="text-slate-300 hover:text-slate-100 hover:underline transition-colors duration-150">About</Link>
+              <Link href="/about-us" className="text-slate-300 hover:text-slate-100 hover:underline transition-colors duration-150">About</Link>
               <span className="mx-2">|</span>
-              <Link href="/about" className="text-slate-300 hover:text-slate-100 hover:underline transition-colors duration-150">Contact</Link>
+              <Link href="/about-us" className="text-slate-300 hover:text-slate-100 hover:underline transition-colors duration-150">Contact</Link>
             </div>
           </div>
         </div>
