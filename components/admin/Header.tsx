@@ -16,6 +16,7 @@ const Header = ({ session }: { session: Session }) => {
     try { logoutFormRef.current?.requestSubmit(); } catch { logoutFormRef.current?.submit(); }
   };
   return (
+    <>
     <header className="admin-header flex justify-between items-center bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors">
       <div>
         <h2 className="text-2xl font-semibold text-gray-900 dark:text-white transition-colors">
@@ -63,6 +64,7 @@ const Header = ({ session }: { session: Session }) => {
       </div>
     </header>
     <LogoutConfirmation open={isLogoutOpen} onOpenChange={setIsLogoutOpen} onConfirm={handleConfirmed} />
+    </>
   );
 };
 export default Header;
