@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { FormEvent, useState, useEffect } from "react";
-import { LogOut, Menu, X, Home, Library, Bell, User, MessageSquare } from "lucide-react";
+import { LogOut, Menu, X, Home, Library, Bell, User, MessageSquare, Info } from "lucide-react";
 import NotificationDropdown from "@/components/NotificationDropdown";
 
 const Header = ({session}: {session: Session}) => {
@@ -261,6 +261,19 @@ const Header = ({session}: {session: Session}) => {
           )}></div>
         </Link>
 
+        <Link href="/about-us" className={cn(
+          "relative px-4 py-2 text-base font-medium capitalize rounded-lg transition-all duration-300 ease-out group",
+          pathname.startsWith("/about-us")
+            ? "text-amber-600 bg-amber-50/80 shadow-sm"
+            : "text-gray-700 hover:text-amber-600 hover:bg-amber-50/60"
+        )}>
+          <span className="relative z-10">About</span>
+          <div className={cn(
+            "absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300 ease-out",
+            pathname.startsWith("/about-us") ? "w-8" : "w-0 group-hover:w-6"
+          )}></div>
+        </Link>
+
         {/* Admin Panel Link - Only show for admin users on desktop */}
         {isAdmin && (
           <Link href="/admin" className={cn(
@@ -439,6 +452,20 @@ const Header = ({session}: {session: Session}) => {
               >
                 <Library className="w-5 h-5" />
                 <span>Library</span>
+              </Link>
+
+              <Link 
+                href="/about-us" 
+                onClick={closeMobileMenu}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 hover:bg-amber-50 active:scale-95",
+                  pathname.startsWith("/about-us") 
+                    ? "text-amber-600 bg-amber-50 border border-amber-200" 
+                    : "text-gray-700 hover:text-amber-600"
+                )}
+              >
+                <Info className="w-5 h-5" />
+                <span>About</span>
               </Link>
 
               {/* AI Assistant Link */}

@@ -1,3 +1,4 @@
+import Footer from "@/components/Footer";
 import GitHubModelsChat from "@/components/GitHubModelsChat";
 import { MessageSquare, Sparkles, BookOpen, Users } from "lucide-react";
 import React from "react";
@@ -54,6 +55,7 @@ export default function Page() {
           </div>
           <GitHubModelsChat />
         </div>
+        <Footer />
       </div>
     </main>
   );
