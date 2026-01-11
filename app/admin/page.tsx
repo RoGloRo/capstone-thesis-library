@@ -1,8 +1,7 @@
 import { Book, User, Clock, AlertCircle, CheckCircle } from "lucide-react";
 import { KPICard } from "@/components/admin/KPICard";
-import { BorrowingTrendsChart } from "@/components/admin/BorrowingTrendsChart";
-import { TopGenresChart } from "@/components/admin/TopGenresChart";
-import { ActiveBooksChart } from "@/components/admin/ActiveBooksChart";
+import ClientCharts from "@/components/admin/ClientCharts";
+import ActiveBooksChartClient from "@/components/admin/ActiveBooksChartClient";
 import { RecentlyBorrowedTable } from "@/components/admin/RecentlyBorrowedTable";
 import { RecentlyReturnedTable } from "@/components/admin/RecentlyReturnedTable";
 import { OverdueBooksTable } from "@/components/admin/OverdueBooksTable";
@@ -102,19 +101,12 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <BorrowingTrendsChart data={borrowingTrends} />
-        </div>
-        <div>
-          <TopGenresChart data={topGenres} />
-        </div>
-      </div>
+      <ClientCharts borrowingTrends={borrowingTrends} topGenres={topGenres} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ActiveBooksChart 
-          totalBooks={totalBooks} 
-          borrowedBooks={currentlyBorrowed} 
+        <ActiveBooksChartClient
+          totalBooks={totalBooks}
+          borrowedBooks={currentlyBorrowed}
         />
         <TopBorrowersList data={topBorrowers} />
       </div>

@@ -22,6 +22,8 @@ export const signInWithCredentials = async (params: Pick<AuthCredentials, "email
 
   if(!success) return redirect("/too-fast");
 
+  const GENERIC_SIGNIN_ERROR = "Sign-in failed. Please check your email and password and try again.";
+
   try {
     console.log("🔐 Attempting to sign in user:", email);
     
@@ -35,7 +37,7 @@ export const signInWithCredentials = async (params: Pick<AuthCredentials, "email
 
     if(result?.error) {
       console.error("❌ Sign in failed:", result.error);
-      return {success: false, error: result.error};
+      return {success: false, error: GENERIC_SIGNIN_ERROR};
     }
     
     console.log("✅ Sign in successful for:", email);
@@ -43,11 +45,7 @@ export const signInWithCredentials = async (params: Pick<AuthCredentials, "email
   } catch (error) {
     console.error("❌ Sign in exception:", error);
     
-    if (error instanceof Error) {
-      return { success: false, error: `Sign in failed: ${error.message}` };
-    }
-    
-    return { success: false, error: "Sign in error"};
+    return { success: false, error: GENERIC_SIGNIN_ERROR };
   }
 };
 
@@ -167,9 +165,9 @@ export const signUp = async (params: AuthCredentials) => {
     
     if (!signInResult.success) {
       console.error("❌ Sign in failed after signup:", signInResult.error);
-      return { 
-        success: false, 
-        error: `Account created but sign in failed: ${signInResult.error}` 
+      return {
+        success: false,
+        error: "Sign-in failed. Please check your email and password and try again.",
       };
     }
     

@@ -61,15 +61,15 @@ export function ManualEmailTriggers() {
 
       switch (type) {
         case "due-today":
-          endpoint = "/api/workflows/daily-due-today-reminders";
+          endpoint = "/api/workflows/manual-due-today-reminders";
           emailType = "Due Today";
           break;
         case "overdue":
-          endpoint = "/api/workflows/daily-overdue-penalties";
+          endpoint = "/api/workflows/manual-overdue-notices";
           emailType = "Overdue";
           break;
         case "due-reminder":
-          endpoint = "/api/check-due-date-reminders";
+          endpoint = "/api/workflows/manual-due-date-reminders";
           emailType = "Due Date Reminder";
           break;
       }
@@ -82,11 +82,13 @@ export function ManualEmailTriggers() {
       const result = await response.json();
 
       if (response.ok) {
-        const emailsSent = result.emailsSent || result.sent || 0;
+        // Prefer explicit fields returned by manual endpoints
+        const total = result.totalRecipients || result.total || result.sent || result.emailsSent || 0;
+        const triggerId = result.triggerId || result.id;
         toast.success(`${emailType} emails triggered successfully`, {
-          description: `Sent ${emailsSent} email(s) to users`,
+          description: `Queued ${total} email(s)${triggerId ? ` (trigger: ${triggerId})` : ""}`,
         });
-        
+
         // Refresh the page after a short delay to show updated logs
         setTimeout(() => {
           window.location.reload();

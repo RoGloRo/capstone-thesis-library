@@ -116,10 +116,11 @@ export async function sendBorrowConfirmationEmail(
 }
 
 export async function sendDueReminderEmail(
-  email: string, 
-  userName: string, 
-  message: string, 
-  bookTitle: string
+  email: string,
+  userName: string,
+  message: string,
+  bookTitle: string,
+  extraMetadata?: Record<string, any>
 ) {
   return sendEmailWithLogging({
     email,
@@ -127,19 +128,21 @@ export async function sendDueReminderEmail(
     message,
     emailType: "DUE_REMINDER",
     recipientName: userName,
-    metadata: { 
+    metadata: {
       bookTitle,
-      reminderType: "one_day_before"
-    }
+      reminderType: "one_day_before",
+      ...(extraMetadata || {}),
+    },
   });
 }
 
 export async function sendOverdueNoticeEmail(
-  email: string, 
-  userName: string, 
-  message: string, 
+  email: string,
+  userName: string,
+  message: string,
   bookTitle: string,
-  daysOverdue: number
+  daysOverdue: number,
+  extraMetadata?: Record<string, any>
 ) {
   return sendEmailWithLogging({
     email,
@@ -147,11 +150,12 @@ export async function sendOverdueNoticeEmail(
     message,
     emailType: "OVERDUE_NOTICE",
     recipientName: userName,
-    metadata: { 
+    metadata: {
       bookTitle,
       daysOverdue,
-      noticeDate: new Date().toISOString()
-    }
+      noticeDate: new Date().toISOString(),
+      ...(extraMetadata || {}),
+    },
   });
 }
 
@@ -175,10 +179,11 @@ export async function sendReturnConfirmationEmail(
 }
 
 export async function sendDueTodayEmail(
-  email: string, 
-  userName: string, 
-  message: string, 
-  bookTitle: string
+  email: string,
+  userName: string,
+  message: string,
+  bookTitle: string,
+  extraMetadata?: Record<string, any>
 ) {
   return sendEmailWithLogging({
     email,
@@ -186,9 +191,10 @@ export async function sendDueTodayEmail(
     message,
     emailType: "DUE_TODAY",
     recipientName: userName,
-    metadata: { 
+    metadata: {
       bookTitle,
-      urgencyLevel: "high"
-    }
+      urgencyLevel: "high",
+      ...(extraMetadata || {}),
+    },
   });
 }

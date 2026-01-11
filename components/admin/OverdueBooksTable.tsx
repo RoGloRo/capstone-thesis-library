@@ -41,16 +41,19 @@ export function OverdueBooksTable({ data }: OverdueBooksTableProps) {
   const handleSendOverdueEmails = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/workflows/daily-overdue-penalties', {
+      const response = await fetch('/api/workflows/manual-overdue-notices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
       
       if (response.ok) {
-        toast.success(`Overdue email notifications sent to ${data.length} borrowers`);
+        const result = await response.json().catch(() => ({}));
+        const queued = result.totalRecipients || data.length;
+        toast.success(`Overdue email notifications queued for ${queued} borrower(s)`);
         setShowModal(false);
       } else {
-        toast.error('Failed to send overdue emails');
+        const err = await response.json().catch(() => ({}));
+        toast.error(err?.error || 'Failed to queue overdue emails');
       }
     } catch (error) {
       console.error('Failed to send overdue emails:', error);
