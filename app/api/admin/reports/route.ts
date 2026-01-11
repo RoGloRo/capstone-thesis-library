@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { action = 'preview', reportType = 'borrowing', filters = {}, page = 1, pageSize = 25 } = body;
 
-    const { startDate, endDate, status, category, userId } = filters;
+    const { startDate, endDate, status, category, userId, search } = filters;
 
     const start = startDate ? dayjs(startDate).startOf('day').toDate() : null;
     const end = endDate ? dayjs(endDate).endOf('day').toDate() : null;
@@ -38,6 +38,10 @@ export async function POST(request: Request) {
             if (end) clauses.push(lt(borrowRecords.borrowDate, dayjs(end).add(1, 'day').toDate()));
             if (status) clauses.push(eq(borrowRecords.status, status));
             if (userId) clauses.push(eq(borrowRecords.userId, userId));
+            if (search && typeof search === 'string' && search.trim() !== '') {
+              const pattern = `%${search.trim().toLowerCase()}%`;
+              clauses.push(sql`(LOWER(${books.title}) LIKE ${pattern} OR LOWER(${users.fullName}) LIKE ${pattern})`);
+            }
             return clauses.length ? and(...clauses) : undefined;
           })
           .orderBy(borrowRecords.borrowDate)
@@ -61,7 +65,16 @@ export async function POST(request: Request) {
           .from(borrowRecords)
           .leftJoin(books, eq(borrowRecords.bookId, books.id))
           .leftJoin(users, eq(borrowRecords.userId, users.id))
-          .where(and(lt(borrowRecords.dueDate, today), sql`${borrowRecords}.status <> 'RETURNED'`))
+          .where((qb) => {
+            const clauses: any[] = [];
+            clauses.push(lt(borrowRecords.dueDate, today));
+            clauses.push(sql`${borrowRecords}.status <> 'RETURNED'`);
+            if (search && typeof search === 'string' && search.trim() !== '') {
+              const pattern = `%${search.trim().toLowerCase()}%`;
+              clauses.push(sql`(LOWER(${books.title}) LIKE ${pattern} OR LOWER(${users.fullName}) LIKE ${pattern})`);
+            }
+            return and(...clauses);
+          })
           .orderBy(borrowRecords.dueDate)
           .limit(pageSize)
           .offset(offset);
@@ -79,6 +92,13 @@ export async function POST(request: Request) {
             controlNumber: books.controlNumber,
           })
           .from(books)
+          .where((qb) => {
+            if (search && typeof search === 'string' && search.trim() !== '') {
+              const pattern = `%${search.trim().toLowerCase()}%`;
+              return sql`LOWER(${books.title}) LIKE ${pattern}`;
+            }
+            return undefined;
+          })
           .orderBy(books.title)
           .limit(pageSize)
           .offset(offset);
@@ -96,6 +116,13 @@ export async function POST(request: Request) {
           .from(users)
           .leftJoin(borrowRecords, eq(borrowRecords.userId, users.id))
           .groupBy(users.id)
+          .where((qb) => {
+            if (search && typeof search === 'string' && search.trim() !== '') {
+              const pattern = `%${search.trim().toLowerCase()}%`;
+              return sql`LOWER(${users.fullName}) LIKE ${pattern}`;
+            }
+            return undefined;
+          })
           .orderBy(sql`COUNT(${borrowRecords.id}) DESC`)
           .limit(pageSize)
           .offset(offset);
@@ -123,6 +150,18 @@ export async function POST(request: Request) {
           .from(borrowRecords)
           .leftJoin(books, eq(borrowRecords.bookId, books.id))
           .leftJoin(users, eq(borrowRecords.userId, users.id))
+          .where((qb) => {
+            const clauses: any[] = [];
+            if (start) clauses.push(gte(borrowRecords.borrowDate, start));
+            if (end) clauses.push(lt(borrowRecords.borrowDate, dayjs(end).add(1, 'day').toDate()));
+            if (status) clauses.push(eq(borrowRecords.status, status));
+            if (userId) clauses.push(eq(borrowRecords.userId, userId));
+            if (search && typeof search === 'string' && search.trim() !== '') {
+              const pattern = `%${search.trim().toLowerCase()}%`;
+              clauses.push(sql`(LOWER(${books.title}) LIKE ${pattern} OR LOWER(${users.fullName}) LIKE ${pattern})`);
+            }
+            return clauses.length ? and(...clauses) : undefined;
+          })
           .orderBy(borrowRecords.borrowDate);
 
         csv += 'id,bookTitle,userName,borrowDate,dueDate,returnDate,status\n';
@@ -145,7 +184,16 @@ export async function POST(request: Request) {
           .from(borrowRecords)
           .leftJoin(books, eq(borrowRecords.bookId, books.id))
           .leftJoin(users, eq(borrowRecords.userId, users.id))
-          .where(and(lt(borrowRecords.dueDate, today), sql`${borrowRecords}.status <> 'RETURNED'`))
+          .where((qb) => {
+            const clauses: any[] = [];
+            clauses.push(lt(borrowRecords.dueDate, today));
+            clauses.push(sql`${borrowRecords}.status <> 'RETURNED'`);
+            if (search && typeof search === 'string' && search.trim() !== '') {
+              const pattern = `%${search.trim().toLowerCase()}%`;
+              clauses.push(sql`(LOWER(${books.title}) LIKE ${pattern} OR LOWER(${users.fullName}) LIKE ${pattern})`);
+            }
+            return and(...clauses);
+          })
           .orderBy(borrowRecords.dueDate);
 
         csv += 'id,bookTitle,userName,borrowDate,dueDate,status\n';
@@ -164,6 +212,13 @@ export async function POST(request: Request) {
             controlNumber: books.controlNumber,
           })
           .from(books)
+          .where((qb) => {
+            if (search && typeof search === 'string' && search.trim() !== '') {
+              const pattern = `%${search.trim().toLowerCase()}%`;
+              return sql`LOWER(${books.title}) LIKE ${pattern}`;
+            }
+            return undefined;
+          })
           .orderBy(books.title);
 
         csv += 'id,title,totalCopies,availableCopies,controlNumber\n';
@@ -182,6 +237,13 @@ export async function POST(request: Request) {
           .from(users)
           .leftJoin(borrowRecords, eq(borrowRecords.userId, users.id))
           .groupBy(users.id)
+          .where((qb) => {
+            if (search && typeof search === 'string' && search.trim() !== '') {
+              const pattern = `%${search.trim().toLowerCase()}%`;
+              return sql`LOWER(${users.fullName}) LIKE ${pattern}`;
+            }
+            return undefined;
+          })
           .orderBy(sql`COUNT(${borrowRecords.id}) DESC`);
 
         csv += 'userId,userName,borrowedCount\n';

@@ -14,6 +14,8 @@ export default function ReportsPage() {
   const [endDate, setEndDate] = useState('');
   const [status, setStatus] = useState('');
   const [userId, setUserId] = useState('');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const fetchPreview = async (p = 1) => {
     setLoading(true);
@@ -26,7 +28,7 @@ export default function ReportsPage() {
           reportType,
           page: p,
           pageSize,
-          filters: { startDate, endDate, status, userId },
+            filters: { startDate, endDate, status, userId, search: debouncedSearch },
         }),
       });
 
@@ -45,13 +47,25 @@ export default function ReportsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reportType]);
 
+  // debounce search input to avoid excessive requests
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 500);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // refetch when debounced search or filters change
+  useEffect(() => {
+    fetchPreview(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, startDate, endDate, status, userId]);
+
   const downloadCsv = async () => {
     setLoading(true);
     try {
       const res = await fetch('/api/admin/reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'csv', reportType, filters: { startDate, endDate, status, userId } }),
+        body: JSON.stringify({ action: 'csv', reportType, filters: { startDate, endDate, status, userId, search: debouncedSearch } }),
       });
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -104,8 +118,13 @@ export default function ReportsPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm text-muted-foreground">User ID</label>
-          <input placeholder="user id" value={userId} onChange={(e) => setUserId(e.target.value)} className="px-2 py-1 rounded border" />
+          <label className="block text-sm text-muted-foreground">Search</label>
+          <input
+            placeholder="Search by book title or user name"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-2 py-1 rounded border w-64"
+          />
         </div>
         <div>
           <button onClick={() => fetchPreview(1)} className="bg-gray-200 px-3 py-2 rounded">Apply</button>
