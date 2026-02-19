@@ -12,7 +12,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   providers: [
     CredentialsProvider({
-      // ✅ REQUIRED (you were missing this)
+      
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
