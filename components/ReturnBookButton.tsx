@@ -64,7 +64,7 @@ export function ReturnBookButton({
 
   return (
     <Button
-      className="book-overview_btn bg-red-600 hover:bg-red-700"
+      className="book-overview_btn bg-red-600 hover:bg-red-700 flex-1"
       onClick={handleReturn}
       disabled={isReturning}
     >
