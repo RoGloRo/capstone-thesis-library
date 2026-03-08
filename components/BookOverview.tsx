@@ -115,19 +115,18 @@ const hasBorrowedBook = await checkIfUserHasBorrowedBook(userId, id);
         <p className="book-description">{description}</p>
 
         {user && (
-          <div className="flex gap-3">
-            <BorrowBook
-              bookId={id}
-              userId={userId}
-              borrowingEligibility={borrowingEligibility}
-            />
+          <BorrowBook
+            bookId={id}
+            userId={userId}
+            borrowingEligibility={borrowingEligibility}
+          >
             {hasBorrowedBook && (
-              <ReturnBookButton 
+              <ReturnBookButton
                 bookId={id}
                 userId={userId}
               />
             )}
-          </div>
+          </BorrowBook>
         )}
       </div>
 
