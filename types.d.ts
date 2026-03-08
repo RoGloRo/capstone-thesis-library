@@ -43,4 +43,5 @@ interface BookParams {
 interface BorrowBookParams {
   bookId: string;
   userId: string;
+  borrowDays?: number; // 1–30 days; defaults to 7 if not provided
 }

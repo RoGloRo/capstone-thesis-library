@@ -7,6 +7,7 @@ import { and, eq } from "drizzle-orm";
 
 export const borrowBook = async (params: BorrowBookParams) => {
   const { userId, bookId } = params;
+  const borrowDays = Math.min(30, Math.max(1, params.borrowDays ?? 7));
 
   try {
     // Check if user already has an active borrowing record for this book
@@ -43,7 +44,7 @@ export const borrowBook = async (params: BorrowBookParams) => {
     }
 
     const borrowDate = dayjs().toDate();
-    const dueDate = dayjs().add(7, "day").toDate();
+    const dueDate = dayjs().add(borrowDays, "day").toDate();
     const dueDateString = dueDate.toDateString();
 
     const [record] = await db.insert(borrowRecords).values({
@@ -104,7 +105,7 @@ export const borrowBook = async (params: BorrowBookParams) => {
                 month: "long",
                 day: "numeric",
               }),
-              loanDuration: 7,
+              loanDuration: borrowDays,
             })
           );
 
