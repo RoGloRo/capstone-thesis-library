@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import SearchBar from "@/components/SearchBar";
 import Link from "next/link";
+import { auth } from "@/auth";
+import { getUserSavedBookIds } from "@/lib/actions/book";
 
 interface SearchParams {
   searchParams: Promise<{
@@ -24,6 +26,11 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
   const genre = params?.genre && params.genre !== 'all' ? params.genre : undefined;
   const search = params?.search;
   const sort = params?.sort || 'title';
+
+  const session = await auth();
+  const userId = session?.user?.id as string | undefined;
+  const savedIds = userId ? await getUserSavedBookIds(userId) : [];
+  const savedSet = new Set(savedIds);
   
   // Get all unique authors and genres for filter dropdowns
   const [authorsResult, genresResult] = await Promise.all([
@@ -176,7 +183,12 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 p-3 sm:p-6 rounded-2xl border border-white/10">
             {filteredBooks.map((book) => (
-              <BookCard key={book.id} {...book} />
+              <BookCard
+                key={book.id}
+                {...book}
+                userId={userId}
+                isSaved={savedSet.has(book.id)}
+              />
             ))}
           </div>
         )}

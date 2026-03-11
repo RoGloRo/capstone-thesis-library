@@ -12,10 +12,14 @@ interface Props {
     email: string;
     universityId?: number;
   };
+  // Save feature
+  userId?: string;
+  savedBookIds?: string[];
 }
 
-const BookList = ({ title, books, containerClassName, userData }: Props) => {
+const BookList = ({ title, books, containerClassName, userData, userId, savedBookIds }: Props) => {
   if (!books || books.length === 0) return null;
+  const savedSet = new Set(savedBookIds ?? []);
   return (
     <section className={containerClassName}>
       <h2 className="font-bebas-neue text-4xl text-light-100">{title}</h2>
@@ -28,6 +32,8 @@ const BookList = ({ title, books, containerClassName, userData }: Props) => {
             userName={userData?.fullName}
             userEmail={userData?.email}
             universityId={userData?.universityId}
+            userId={userId}
+            isSaved={savedSet.has(book.id)}
           />
         ))}
       </div>

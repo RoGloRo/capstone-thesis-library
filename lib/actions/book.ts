@@ -1,9 +1,9 @@
 "use server";
 
 import { db } from "@/database/drizzle";
-import { books, borrowRecords, users } from "@/database/schema";
+import { books, borrowRecords, users, savedBooks } from "@/database/schema";
 import dayjs from "dayjs";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 export const borrowBook = async (params: BorrowBookParams) => {
   const { userId, bookId } = params;
@@ -295,5 +295,73 @@ export const returnBook = async (params: { borrowRecordId: string; bookId: strin
       success: false,
       error: error instanceof Error ? error.message : 'Failed to return book'
     };
+  }
+};
+
+// ─── Saved Books ────────────────────────────────────────────────────────────
+
+export const toggleSaveBook = async (params: { userId: string; bookId: string }) => {
+  const { userId, bookId } = params;
+
+  try {
+    const [existing] = await db
+      .select({ id: savedBooks.id })
+      .from(savedBooks)
+      .where(and(eq(savedBooks.userId, userId), eq(savedBooks.bookId, bookId)))
+      .limit(1);
+
+    if (existing) {
+      await db.delete(savedBooks).where(eq(savedBooks.id, existing.id));
+      return { success: true, saved: false };
+    }
+
+    await db.insert(savedBooks).values({ userId, bookId });
+    return { success: true, saved: true };
+  } catch (error) {
+    console.error("Error toggling saved book:", error);
+    return { success: false, error: "Failed to update saved status" };
+  }
+};
+
+export const getUserSavedBookIds = async (userId: string): Promise<string[]> => {
+  try {
+    const rows = await db
+      .select({ bookId: savedBooks.bookId })
+      .from(savedBooks)
+      .where(eq(savedBooks.userId, userId));
+    return rows.map((r) => r.bookId);
+  } catch {
+    return [];
+  }
+};
+
+export const getUserSavedBooks = async (userId: string): Promise<Book[]> => {
+  try {
+    const savedIds = await getUserSavedBookIds(userId);
+    if (savedIds.length === 0) return [];
+
+    const rows = await db
+      .select()
+      .from(books)
+      .where(inArray(books.id, savedIds));
+
+    return rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      author: r.author,
+      genre: r.genre,
+      rating: r.rating,
+      totalCopies: r.totalCopies,
+      availableCopies: r.availableCopies,
+      description: r.description,
+      coverUrl: r.coverUrl,
+      coverColor: r.coverColor,
+      videoUrl: r.videoUrl,
+      summary: r.summary,
+      controlNumber: r.controlNumber ?? null,
+      isLoanedBook: false,
+    }));
+  } catch {
+    return [];
   }
 };

@@ -8,6 +8,8 @@ import { users, borrowRecords } from "@/database/schema";
 import { eq } from "drizzle-orm";
 import { ReturnBookButton } from "./ReturnBookButton";
 import { and } from "drizzle-orm";
+import { getUserSavedBookIds } from "@/lib/actions/book";
+import SaveBookButton from "./SaveBookButton";
 
 interface Props extends Book {
   userId: string;
@@ -61,12 +63,24 @@ const checkIfUserHasBorrowedBook = async (userId: string, bookId: string) => {
 
 // Then call it in the component
 const hasBorrowedBook = await checkIfUserHasBorrowedBook(userId, id);
+const savedIds = userId ? await getUserSavedBookIds(userId) : [];
+const isSaved = savedIds.includes(id);
   return (
     <section className="book-overview">
       <div className="flex flex-1 flex-col gap-5">
-        <Link href={`/books/${id}`} className="hover:opacity-80 transition-opacity">
-          <h1 className="text-3xl font-bold text-white hover:underline">{title}</h1>
-        </Link>
+        <div className="flex items-start gap-3">
+          <Link href={`/books/${id}`} className="hover:opacity-80 transition-opacity flex-1">
+            <h1 className="text-3xl font-bold text-white hover:underline">{title}</h1>
+          </Link>
+          {user && (
+            <SaveBookButton
+              userId={userId}
+              bookId={id}
+              initialIsSaved={isSaved}
+              className="mt-1 h-9 w-9 bg-dark-300/60 hover:bg-dark-300 border border-white/10 rounded-full shrink-0"
+            />
+          )}
+        </div>
 
         <div className="book-info">
           <p>
@@ -115,19 +129,18 @@ const hasBorrowedBook = await checkIfUserHasBorrowedBook(userId, id);
         <p className="book-description">{description}</p>
 
         {user && (
-          <div className="flex gap-3">
-            <BorrowBook
-              bookId={id}
-              userId={userId}
-              borrowingEligibility={borrowingEligibility}
-            />
+          <BorrowBook
+            bookId={id}
+            userId={userId}
+            borrowingEligibility={borrowingEligibility}
+          >
             {hasBorrowedBook && (
-              <ReturnBookButton 
+              <ReturnBookButton
                 bookId={id}
                 userId={userId}
               />
             )}
-          </div>
+          </BorrowBook>
         )}
       </div>
 

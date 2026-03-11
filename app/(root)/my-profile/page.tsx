@@ -6,8 +6,12 @@ import React from "react";
 import { db } from "@/database/drizzle";
 import { borrowRecords, books, users } from "@/database/schema";
 import { eq, and } from "drizzle-orm";
-import { User, Calendar, BookOpen, Clock, CreditCard, Mail, Hash, Shield } from "lucide-react";
+import { User, Calendar, BookOpen, Clock, CreditCard, Mail, Hash, Shield, Bookmark } from "lucide-react";
 import Image from "next/image";
+import { getUserSavedBooks } from "@/lib/actions/book";
+import SaveBookButton from "@/components/SaveBookButton";
+import BookCover from "@/components/BookCover";
+import Link from "next/link";
 
 // Simple card components since shadcn/ui might not be installed
 const Card = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -177,6 +181,9 @@ const Page = async () => {
     return <p className="text-light-100">User not found.</p>;
   }
 
+  // Fetch saved books
+  const savedBooks = await getUserSavedBooks(session.user.id as string);
+
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-US', {
@@ -337,7 +344,7 @@ const Page = async () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
               <div className="text-center p-3 sm:p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                 <div className="text-xl sm:text-2xl font-bold text-emerald-400 mb-1">{borrowedBooks.length}</div>
                 <div className="text-xs sm:text-sm text-emerald-200">Currently Borrowed</div>
@@ -346,11 +353,68 @@ const Page = async () => {
                 <div className="text-xl sm:text-2xl font-bold text-green-400 mb-1">{returnedBooks.length}</div>
                 <div className="text-xs sm:text-sm text-green-200">Books Returned</div>
               </div>
+              <div className="text-center p-3 sm:p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                <div className="text-xl sm:text-2xl font-bold text-amber-400 mb-1">{savedBooks.length}</div>
+                <div className="text-xs sm:text-sm text-amber-200">Saved Books</div>
+              </div>
               <div className="text-center p-3 sm:p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
                 <div className="text-xl sm:text-2xl font-bold text-purple-400 mb-1">{borrowedBooks.length + returnedBooks.length}</div>
                 <div className="text-xs sm:text-sm text-purple-200">Total Books Read</div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Saved Books Section */}
+        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+              <Bookmark className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
+              Saved Books
+              <span className="ml-auto text-sm font-normal text-amber-300">{savedBooks.length} book{savedBooks.length !== 1 ? 's' : ''}</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {savedBooks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+                <Bookmark className="h-12 w-12 text-amber-400/40" />
+                <p className="text-light-200 text-base">You haven&apos;t saved any books yet.</p>
+                <p className="text-sm text-light-400">
+                  Browse the{" "}
+                  <Link href="/library" className="text-amber-400 hover:underline">library</Link>{" "}
+                  and click the bookmark icon to save books for later.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {savedBooks.map((book) => (
+                  <div key={book.id} className="relative group flex flex-col items-center gap-2">
+                    {/* Unsave overlay button */}
+                    <div className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <SaveBookButton
+                        userId={session.user!.id as string}
+                        bookId={book.id}
+                        initialIsSaved={true}
+                        className="h-7 w-7 bg-dark-300/90 hover:bg-dark-300 shadow border border-white/10 rounded-full"
+                      />
+                    </div>
+                    <Link href={`/books/${book.id}`} className="block hover:opacity-90 transition-opacity">
+                      <BookCover
+                        coverColor={book.coverColor}
+                        coverImage={book.coverUrl}
+                        className=""
+                      />
+                    </Link>
+                    <div className="text-center w-full px-1">
+                      <Link href={`/books/${book.id}`}>
+                        <p className="text-xs sm:text-sm font-medium text-white line-clamp-2 hover:text-amber-300 transition-colors">{book.title}</p>
+                      </Link>
+                      <p className="text-xs text-light-400 truncate">{book.author}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

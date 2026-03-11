@@ -1,9 +1,10 @@
 import BookList from "@/components/BookList";
 import BookOverview from "@/components/BookOverview";
 import { db } from "@/database/drizzle";
-import { books, borrowRecords } from "@/database/schema";
+import { books, borrowRecords, users } from "@/database/schema";
 import { auth } from "@/auth";
 import { and, desc, eq, inArray, not, sql, gt, count } from "drizzle-orm";
+import { getUserSavedBookIds } from "@/lib/actions/book";
 
 interface UserPreferences {
   genres: { genre: string; weight: number }[];
@@ -42,13 +43,58 @@ const getRecommendedBooks = async (userId: string) => {
       .where(eq(borrowRecords.userId, userId))
       .orderBy(desc(borrowRecords.borrowDate)); // Most recent first
 
-    // If no user data available, fall back to popular books
+    // New user: no borrow history → use preferred genres if set
     if (readingHistory.length === 0) {
+      const [userData] = await db
+        .select({ preferredGenres: users.preferredGenres })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      const preferredGenres: string[] = userData?.preferredGenres
+        ? JSON.parse(userData.preferredGenres)
+        : [];
+
+      if (preferredGenres.length > 0) {
+        const genreBooks = (await db
+          .select()
+          .from(books)
+          .where(inArray(books.genre, preferredGenres))
+          .orderBy(desc(books.rating), desc(books.createdAt))
+          .limit(6)) as unknown as Book[];
+
+        if (genreBooks.length >= 3) return genreBooks;
+        // supplement if too few matches
+        const supplement = await getPopularBooks(genreBooks.map(b => b.id), 6 - genreBooks.length);
+        return [...genreBooks, ...supplement];
+      }
+
       return await getPopularBooks([], 6);
     }
 
-    // Analyze user preferences with advanced weighting
+    // Existing user: analyze reading history
     const preferences = analyzeUserPreferences(readingHistory);
+
+    // If preferred genres exist, blend them with borrow-derived preferences (lower weight)
+    const [userData] = await db
+      .select({ preferredGenres: users.preferredGenres })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const preferredGenres: string[] = userData?.preferredGenres
+      ? JSON.parse(userData.preferredGenres)
+      : [];
+
+    if (preferredGenres.length > 0) {
+      const borrowedGenreNames = preferences.genres.map(g => g.genre);
+      for (const genre of preferredGenres) {
+        if (!borrowedGenreNames.includes(genre)) {
+          // Add with low weight so borrow history still dominates
+          preferences.genres.push({ genre, weight: 0.5 });
+        }
+      }
+    }
 
     // Get personalized recommendations
     const recommendedBooks = await getPersonalizedRecommendations(preferences);
@@ -319,6 +365,9 @@ const Home = async () => {
     6
   );
 
+  // Saved book IDs for the current user
+  const savedIds = userId ? await getUserSavedBookIds(userId) : [];
+
   const firstSection = 'mt-28';
   const secondSection = 'mt-16';
   const thirdSection = 'mt-16';
@@ -332,6 +381,8 @@ const Home = async () => {
           title="Recommended For You"
           books={recommendedBooks}
           containerClassName={firstSection}
+          userId={userId}
+          savedBookIds={savedIds}
         />
       )}
 
@@ -340,6 +391,8 @@ const Home = async () => {
           title={recommendedBooks.length > 0 ? "Trending Now" : "Popular Books"}
           books={trendingBooks}
           containerClassName={recommendedBooks.length > 0 ? secondSection : firstSection}
+          userId={userId}
+          savedBookIds={savedIds}
         />
       )}
 
@@ -353,6 +406,8 @@ const Home = async () => {
               ? secondSection 
               : firstSection
         }
+        userId={userId}
+        savedBookIds={savedIds}
       />
     </>
   );

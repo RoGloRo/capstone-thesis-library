@@ -1,5 +1,5 @@
 
-import { integer, text, boolean, pgTable, uuid, varchar, pgEnum, date, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { integer, text, boolean, pgTable, uuid, varchar, pgEnum, date, timestamp, uniqueIndex, index } from "drizzle-orm/pg-core";
 
 export const STATUS_ENUM = pgEnum("status", ["PENDING", "APPROVED", "REJECTED"]);
 export const ROLE_ENUM = pgEnum("role", ["USER", "ADMIN"]);
@@ -32,6 +32,8 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", {
     withTimezone: true,
   }).defaultNow(),
+  preferredGenres: text("preferred_genres"), // JSON array of genre strings
+  onboardingCompleted: boolean("onboarding_completed").default(false),
 });
 
 export const books = pgTable("books", {
@@ -68,6 +70,20 @@ export const borrowRecords = pgTable("borrow_records", {
   reminderSent: boolean("reminder_sent").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
+
+export const savedBooks = pgTable("saved_books", {
+  id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  bookId: uuid("book_id")
+    .references(() => books.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  userBookUnique: uniqueIndex("saved_books_user_book_unique").on(table.userId, table.bookId),
+  userIdx: index("saved_books_user_idx").on(table.userId),
+}));
 
 export const emailLogs = pgTable("email_logs", {
   id: uuid("id").notNull().primaryKey().defaultRandom().unique(),

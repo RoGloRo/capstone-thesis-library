@@ -56,7 +56,11 @@ function AuthForm({
 
         // Small delay to show the success message before navigation
         setTimeout(() => {
-          router.push("/");
+          if (!isSignIn && (result as any).isNewUser) {
+            router.push("/select-preferred-genres");
+          } else {
+            router.push("/");
+          }
         }, 1000);
       } else {
         toast("Error", {

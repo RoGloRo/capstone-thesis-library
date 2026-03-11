@@ -14,6 +14,7 @@ interface Props {
     isEligible: boolean;
     message: string;
   };
+  children?: React.ReactNode;
 }
 
 const MAX_DAYS = 30;
@@ -22,6 +23,7 @@ const BorrowBook = ({
   userId,
   bookId,
   borrowingEligibility: { isEligible, message },
+  children,
 }: Props) => {
   const router = useRouter();
   const [borrowing, setBorrowing] = useState(false);
@@ -114,17 +116,26 @@ const BorrowBook = ({
         </div>
       </div>
 
-      {/* Borrow Button */}
-      <Button
-        className="book-overview_btn"
-        onClick={handleBorrowBook}
-        disabled={borrowing}
-      >
-        <Image src="/icons/book.svg" alt="book" width={20} height={20} />
-        <p className="font-bebas-neue text-xl text-dark-100">
-          {borrowing ? "Borrowing ..." : "Borrow Book"}
-        </p>
-      </Button>
+      {/* Buttons Row */}
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <Button
+            className="book-overview_btn !w-full !mt-0"
+            onClick={handleBorrowBook}
+            disabled={borrowing}
+          >
+            <Image src="/icons/book.svg" alt="book" width={20} height={20} />
+            <p className="font-bebas-neue text-xl text-dark-100">
+              {borrowing ? "Borrowing ..." : "Borrow Book"}
+            </p>
+          </Button>
+        </div>
+        {children && (
+          <div className="flex-1 [&_button]:!w-full [&_button]:!mt-0">
+            {children}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

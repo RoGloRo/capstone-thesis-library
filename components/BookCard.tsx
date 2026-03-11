@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { Download, Eye, EyeOff, Calendar, Clock, CheckCircle } from "lucide-react";
 import { generatePDFReceipt, calculateLoanDuration, determineLoanStatus, formatDisplayDate } from "@/lib/pdf-receipt";
 import { toast } from "sonner";
+import SaveBookButton from "./SaveBookButton";
 
 const formatDate = (iso?: string | null) => {
   if (!iso) return "";
@@ -29,6 +30,9 @@ interface BookCardProps extends Book {
   userName?: string;
   userEmail?: string;
   universityId?: number;
+  // Save feature
+  userId?: string;
+  isSaved?: boolean;
 }
 
 const BookCard = ({ 
@@ -46,7 +50,9 @@ const BookCard = ({
   totalCopies,
   userName,
   userEmail,
-  universityId
+  universityId,
+  userId,
+  isSaved = false,
 }: BookCardProps) => {
   const [showDetails, setShowDetails] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -114,8 +120,19 @@ const BookCard = ({
   return (
     <div className={cn(
       isLoanedBook && "xs:w-52 w-full",
-      "sm:group sm:transition-all sm:duration-300 sm:hover:scale-105"
+      "sm:group sm:transition-all sm:duration-300 sm:hover:scale-105 relative"
     )}> 
+      {/* Save Button Overlay */}
+      {userId && !isLoanedBook && (
+        <div className="absolute top-2 right-2 z-10">
+          <SaveBookButton
+            userId={userId}
+            bookId={id}
+            initialIsSaved={isSaved}
+            className="h-8 w-8 bg-dark-300/80 hover:bg-dark-300 shadow-md backdrop-blur-sm rounded-full"
+          />
+        </div>
+      )}
       <Link 
         href={`/books/${id}`} 
         className={cn(

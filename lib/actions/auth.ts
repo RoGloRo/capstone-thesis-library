@@ -6,7 +6,7 @@ import { users } from "@/database/schema";
 import { hash } from "bcryptjs";
 
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import ratelimit from "../ratelimit";
 import { redirect } from "next/navigation";
 import { workflowClient } from "../workflow";
@@ -172,7 +172,7 @@ export const signUp = async (params: AuthCredentials) => {
     }
     
     console.log("✅ Signup process completed successfully for:", email);
-    return { success: true };
+    return { success: true, isNewUser: true };
     
   } catch (error) {
     console.error("❌ Signup error:", error);
@@ -189,5 +189,37 @@ export const signUp = async (params: AuthCredentials) => {
     }
     
     return { success: false, error: "Signup error - please try again" };
+  }
+};
+
+export const savePreferredGenres = async (params: { userId: string; genres: string[] }) => {
+  const { userId, genres } = params;
+  if (!genres || genres.length === 0) {
+    return { success: false, error: "Please select at least one genre" };
+  }
+  try {
+    await db
+      .update(users)
+      .set({
+        preferredGenres: JSON.stringify(genres),
+        onboardingCompleted: true,
+      })
+      .where(eq(users.id, userId));
+
+    // Set a short-lived bypass cookie so the middleware allows the very next
+    // navigation even before the JWT can be refreshed.
+    const cookieStore = await cookies();
+    cookieStore.set("onboarding-done", "1", {
+      maxAge: 300, // 5 minutes — enough for the immediate redirect
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error saving preferred genres:", error);
+    return { success: false, error: "Failed to save preferences" };
   }
 };

@@ -42,6 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user[0].id.toString(),
           email: user[0].email,
           name: user[0].fullName,
+          onboardingCompleted: user[0].onboardingCompleted ?? false,
         } as User;
       },
     }),
@@ -52,10 +53,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // Refresh specific fields when session.update() is called client-side
+      if (trigger === "update" && session?.onboardingCompleted !== undefined) {
+        token.onboardingCompleted = session.onboardingCompleted;
+      }
       if (user) {
         token.id = user.id;
         token.name = user.name;
+        token.onboardingCompleted = (user as any).onboardingCompleted ?? false;
       }
       return token;
     },
@@ -64,6 +70,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string;
         session.user.name = token.name as string;
+        (session.user as any).onboardingCompleted = token.onboardingCompleted ?? false;
       }
       return session;
     },
