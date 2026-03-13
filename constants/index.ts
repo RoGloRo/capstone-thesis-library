@@ -48,6 +48,11 @@ export const adminSideBarLinks = [
     route: "/admin/account-requests",
     text: "Account Requests",
   },
+  {
+    img: "/icons/admin/calendar.svg",
+    route: "/admin/visit-logs",
+    text: "Visit Logs",
+  },
   
 ];
 

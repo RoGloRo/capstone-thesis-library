@@ -6,12 +6,13 @@ import React from "react";
 import { db } from "@/database/drizzle";
 import { borrowRecords, books, users } from "@/database/schema";
 import { eq, and } from "drizzle-orm";
-import { User, Calendar, BookOpen, Clock, CreditCard, Mail, Hash, Shield, Bookmark } from "lucide-react";
+import { User, Calendar, BookOpen, Clock, Mail, Hash, Shield, Bookmark, QrCode } from "lucide-react";
 import Image from "next/image";
 import { getUserSavedBooks } from "@/lib/actions/book";
 import SaveBookButton from "@/components/SaveBookButton";
 import BookCover from "@/components/BookCover";
 import Link from "next/link";
+import UserQRCode from "@/components/UserQRCode";
 
 // Simple card components since shadcn/ui might not be installed
 const Card = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -284,53 +285,34 @@ const Page = async () => {
                 </p>
                 <p className="font-medium text-white text-sm sm:text-base">{formatDate(userData.lastActivityDate)}</p>
               </div>
+              {userData.universityCard && (
+                <div className="flex items-end justify-end">
+                  <Image
+                    src={userData.universityCard}
+                    alt="University ID Card"
+                    width={300}
+                    height={200}
+                    className="rounded-lg border border-white/20 shadow-md object-contain w-full h-auto"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* University Card */}
+          {/* University Card / QR Code */}
           <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
-                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
-                University Card
+                <QrCode className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
+                My Library QR Code
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              {userData.universityCard ? (
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="relative aspect-[1.586/1] bg-gradient-to-br from-emerald-600 to-green-700 rounded-xl p-3 sm:p-4 text-white shadow-lg">
-                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
-                      </div>
-                    </div>
-                    <div className="flex flex-col h-full justify-between">
-                      <div>
-                        <p className="text-[10px] sm:text-xs opacity-75 mb-1">STUDENT ID</p>
-                        <p className="text-sm sm:text-lg font-bold">{userData.universityId}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] sm:text-xs opacity-75 mb-1">STUDENT NAME</p>
-                        <p className="font-medium text-xs sm:text-sm truncate">{userData.fullName}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <Image 
-                      src={userData.universityCard} 
-                      alt="University ID Card" 
-                      width={300}
-                      height={200}
-                      className="w-full rounded-lg border border-white/20 shadow-md object-cover max-h-48 sm:max-h-none"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-6 sm:py-8">
-                  <CreditCard className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
-                  <p className="text-gray-400 text-sm sm:text-base">No university card uploaded</p>
-                </div>
-              )}
+            <CardContent className="flex justify-center py-2">
+              <UserQRCode
+                userId={userData.id}
+                userName={userData.fullName}
+                universityId={userData.universityId}
+              />
             </CardContent>
           </Card>
         </div>

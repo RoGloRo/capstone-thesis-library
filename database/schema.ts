@@ -96,3 +96,16 @@ export const emailLogs = pgTable("email_logs", {
   sentAt: timestamp("sent_at", { withTimezone: true }).defaultNow(),
   metadata: text("metadata"), // JSON string for additional data
 });
+
+export const visitLogs = pgTable("visit_logs", {
+  id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  visitDate: date("visit_date").notNull(),
+  visitTime: varchar("visit_time", { length: 10 }).notNull(), // e.g. "09:12 AM"
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+}, (table) => ({
+  userIdx: index("visit_logs_user_idx").on(table.userId),
+  visitDateIdx: index("visit_logs_date_idx").on(table.visitDate),
+}));
