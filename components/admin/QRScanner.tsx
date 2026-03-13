@@ -5,9 +5,8 @@ import { Html5Qrcode } from "html5-qrcode";
 import { Camera, CameraOff, RefreshCw, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { recordVisit } from "@/lib/actions/visit-logs";
 import { parseQRCode } from "@/lib/qr-utils";
-import Image from "next/image";
 
-type ScanState = "idle" | "scanning" | "processing" | "success" | "error" | "duplicate";
+type ScanState = "idle" | "starting" | "scanning" | "processing" | "success" | "error" | "duplicate";
 
 interface ScannedUser {
   id: string;
@@ -25,46 +24,65 @@ export default function QRScanner({ onVisitRecorded }: QRScannerProps) {
   const [scanState, setScanState] = useState<ScanState>("idle");
   const [message, setMessage] = useState("");
   const [scannedUser, setScannedUser] = useState<ScannedUser | null>(null);
-  const [cameraActive, setCameraActive] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const scannerDivId = "qr-scanner-div";
+  // Use a ref (not state) for the camera-active flag so stop callbacks never
+  // capture a stale closure value.
+  const cameraActiveRef = useRef(false);
   const isProcessingRef = useRef(false);
+  const scannerDivId = "qr-scanner-div";
 
   const stopScanner = useCallback(async () => {
-    if (scannerRef.current && cameraActive) {
+    if (scannerRef.current && cameraActiveRef.current) {
       try {
         await scannerRef.current.stop();
       } catch {
         // ignore stop errors
       }
     }
-    setCameraActive(false);
-  }, [cameraActive]);
+    cameraActiveRef.current = false;
+  }, []);
 
   const startScanner = useCallback(async () => {
-    setScanState("scanning");
+    setScanState("starting");
     setScannedUser(null);
     setMessage("");
     isProcessingRef.current = false;
 
+    // Yield to the browser so React can commit the new state and the scanner
+    // div is guaranteed to be rendered (and visible) before html5-qrcode
+    // tries to measure it.
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+
     try {
+      // Tear down any previous scanner instance and clear leftover DOM nodes
+      // that html5-qrcode may have injected so the div is pristine.
+      if (scannerRef.current && cameraActiveRef.current) {
+        try {
+          await scannerRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+      const container = document.getElementById(scannerDivId);
+      if (container) container.innerHTML = "";
+
       const scanner = new Html5Qrcode(scannerDivId);
       scannerRef.current = scanner;
 
       await scanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
         async (decodedText) => {
           if (isProcessingRef.current) return;
           isProcessingRef.current = true;
 
-          // Stop scanning once a code is read
+          // Stop the camera stream before processing
           try {
             await scanner.stop();
           } catch {
             // ignore
           }
-          setCameraActive(false);
+          cameraActiveRef.current = false;
           setScanState("processing");
 
           // Validate QR format
@@ -82,7 +100,7 @@ export default function QRScanner({ onVisitRecorded }: QRScannerProps) {
             setMessage(result.message);
             setScannedUser(result.user ?? null);
             onVisitRecorded?.();
-          } else if (result.message.includes("already recorded")) {
+          } else if (result.message.toLowerCase().includes("already recorded")) {
             setScanState("duplicate");
             setMessage(result.message);
             setScannedUser(result.user ?? null);
@@ -92,18 +110,25 @@ export default function QRScanner({ onVisitRecorded }: QRScannerProps) {
           }
         },
         () => {
-          // QR not detected yet — silent
+          // QR not yet detected in this frame — silent
         }
       );
 
-      setCameraActive(true);
+      cameraActiveRef.current = true;
+      setScanState("scanning");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Camera access denied or unavailable.";
+      cameraActiveRef.current = false;
+      const msg = err instanceof Error ? err.message : "";
+      const isDenied =
+        msg.toLowerCase().includes("permission") ||
+        msg.toLowerCase().includes("notallowed") ||
+        msg.toLowerCase().includes("notfounderror");
       setScanState("error");
-      setMessage(msg.includes("permission") || msg.includes("NotAllowed")
-        ? "Camera permission denied. Please allow camera access and try again."
-        : "Unable to start camera. Please ensure a camera is connected and permissions are granted.");
-      setCameraActive(false);
+      setMessage(
+        isDenied
+          ? "Camera access denied. Please allow camera access and try again."
+          : "Unable to start camera. Ensure a camera is connected and permissions are granted."
+      );
     }
   }, [onVisitRecorded]);
 
@@ -115,37 +140,47 @@ export default function QRScanner({ onVisitRecorded }: QRScannerProps) {
     isProcessingRef.current = false;
   }, [stopScanner]);
 
-  // Cleanup on unmount
+  // Stop the camera stream when this component is unmounted
   useEffect(() => {
     return () => {
-      if (scannerRef.current) {
+      if (scannerRef.current && cameraActiveRef.current) {
         scannerRef.current.stop().catch(() => {});
       }
     };
   }, []);
 
+  const isCameraActive = scanState === "scanning" || scanState === "starting";
+
   return (
     <div className="flex flex-col gap-6">
       {/* Camera viewport */}
-      <div className="relative bg-gray-900 rounded-2xl overflow-hidden border-2 border-emerald-500/30 min-h-[320px] flex items-center justify-center">
-        {/* The div that html5-qrcode mounts into */}
-        <div
-          id={scannerDivId}
-          className={`w-full ${cameraActive ? "block" : "hidden"}`}
-          style={{ minHeight: 300 }}
-        />
+      {/*
+        IMPORTANT: the scanner div must always be present in the DOM and never
+        have display:none when html5-qrcode calls start().  If the element is
+        hidden (zero dimensions), the library cannot create the video stream.
+        We therefore keep the div always visible and layer overlay content on
+        top of it using absolute positioning.
+      */}
+      <div className="relative bg-gray-900 rounded-2xl overflow-hidden border-2 border-emerald-500/30 min-h-[320px]">
+        {/* The div html5-qrcode mounts its video stream into — always in DOM */}
+        <div id={scannerDivId} className="w-full" style={{ minHeight: 320 }} />
 
-        {/* Overlay UI when camera is not active */}
-        {!cameraActive && (
-          <div className="flex flex-col items-center justify-center gap-4 p-8 text-center">
+        {/* Solid overlay that hides the (empty) scanner div when not in use */}
+        {!isCameraActive && (
+          <div className="absolute inset-0 bg-gray-900 flex flex-col items-center justify-center gap-4 p-8 text-center">
             {scanState === "idle" && (
               <>
                 <Camera className="h-16 w-16 text-emerald-400/40" />
-                <p className="text-gray-400 text-sm">Camera is off. Press "Start Scanner" to begin.</p>
+                <p className="text-gray-400 text-sm">
+                  Camera is off. Press &quot;Start Scanner&quot; to begin.
+                </p>
               </>
             )}
             {scanState === "processing" && (
-              <Loader2 className="h-12 w-12 text-emerald-400 animate-spin" />
+              <>
+                <Loader2 className="h-12 w-12 text-emerald-400 animate-spin" />
+                <p className="text-gray-400 text-sm">Processing QR code…</p>
+              </>
             )}
             {scanState === "success" && (
               <CheckCircle className="h-16 w-16 text-emerald-400 animate-bounce" />
@@ -159,13 +194,28 @@ export default function QRScanner({ onVisitRecorded }: QRScannerProps) {
           </div>
         )}
 
-        {/* Scanning overlay frame */}
-        {cameraActive && (
+        {/* Semi-transparent overlay while the camera stream is starting */}
+        {scanState === "starting" && (
+          <div className="absolute inset-0 bg-gray-900/80 flex flex-col items-center justify-center gap-3">
+            <Loader2 className="h-10 w-10 text-emerald-400 animate-spin" />
+            <p className="text-gray-300 text-sm">Starting camera…</p>
+          </div>
+        )}
+
+        {/* Scanning guide frame shown once the stream is live */}
+        {scanState === "scanning" && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
             <div className="w-60 h-60 border-4 border-emerald-400 rounded-2xl opacity-70 animate-pulse" />
           </div>
         )}
       </div>
+
+      {/* Live scanning status label */}
+      {scanState === "scanning" && (
+        <p className="text-center text-emerald-400 text-sm font-medium animate-pulse">
+          Scanning for QR code…
+        </p>
+      )}
 
       {/* Result message */}
       {message && (
@@ -217,7 +267,7 @@ export default function QRScanner({ onVisitRecorded }: QRScannerProps) {
             Start Scanner
           </button>
         )}
-        {scanState === "scanning" && (
+        {(scanState === "scanning" || scanState === "starting") && (
           <button
             onClick={reset}
             className="flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
