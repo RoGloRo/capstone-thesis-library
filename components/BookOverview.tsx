@@ -67,10 +67,10 @@ const savedIds = userId ? await getUserSavedBookIds(userId) : [];
 const isSaved = savedIds.includes(id);
   return (
     <section className="book-overview">
-      <div className="flex flex-1 flex-col gap-5">
+      <div className="flex flex-1 flex-col gap-5 w-full min-w-0">
         <div className="flex items-start gap-3">
           <Link href={`/books/${id}`} className="hover:opacity-80 transition-opacity flex-1">
-            <h1 className="text-3xl font-bold text-white hover:underline">{title}</h1>
+            <h1 className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white hover:underline">{title}</h1>
           </Link>
           {user && (
             <SaveBookButton
@@ -144,7 +144,7 @@ const isSaved = savedIds.includes(id);
         )}
       </div>
 
-      <div className="relative flex flex-1 justify-center">
+      <div className="relative flex flex-1 justify-center min-w-0">
         <div className="relative">
           <Link href={`/books/${id}`} className="block hover:opacity-90 transition-opacity">
             <BookCover
@@ -155,7 +155,7 @@ const isSaved = savedIds.includes(id);
             />
           </Link>
 
-          <div className="absolute left-16 top-10 rotate-12 opacity-40 max-sm:hidden">
+          <div className="absolute left-16 top-10 rotate-12 opacity-40 max-lg:hidden">
             <Link href={`/books/${id}`} className="block">
               <BookCover
                 variant="wide"

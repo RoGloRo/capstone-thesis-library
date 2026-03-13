@@ -24,7 +24,7 @@ const BookList = ({ title, books, containerClassName, listClassName, userData, u
   const savedSet = new Set(savedBookIds ?? []);
   return (
     <section className={containerClassName}>
-      <h2 className="font-bebas-neue text-4xl text-light-100">{title}</h2>
+      <h2 className="font-bebas-neue text-2xl xs:text-3xl md:text-4xl text-light-100">{title}</h2>
 
       <div className={listClassName ?? "book-list"}>
         {books.map((book) => (

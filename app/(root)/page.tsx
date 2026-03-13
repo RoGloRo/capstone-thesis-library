@@ -52,9 +52,9 @@ const Home = async () => {
   // Saved book IDs for the current user
   const savedIds = userId ? await getUserSavedBookIds(userId) : [];
 
-  const firstSection = 'mt-28';
-  const secondSection = 'mt-16';
-  const thirdSection = 'mt-16';
+  const firstSection = 'mt-8 xs:mt-12 sm:mt-16 md:mt-24 lg:mt-28';
+  const secondSection = 'mt-6 xs:mt-8 sm:mt-10 md:mt-14 lg:mt-16';
+  const thirdSection = 'mt-6 xs:mt-8 sm:mt-10 md:mt-14 lg:mt-16';
 
   return (
     <>
@@ -65,7 +65,7 @@ const Home = async () => {
           title="Recommended For You"
           books={recommendedBooks}
           containerClassName={firstSection}
-          listClassName="mt-10 flex gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-track-dark-300 scrollbar-thumb-green-500"
+          listClassName="mt-10 flex flex-wrap gap-5 xs:gap-6 xs:flex-nowrap xs:overflow-x-auto xs:pb-4 scrollbar-thin scrollbar-track-dark-300 scrollbar-thumb-green-500"
           userId={userId}
           savedBookIds={savedIds}
         />

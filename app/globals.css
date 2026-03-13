@@ -76,6 +76,10 @@
   .hide-scrollbar::-webkit-scrollbar-thumb:hover {
     background: transparent;
   }
+
+  html, body {
+    overflow-x: hidden;
+  }
 }
 
 @layer components {
@@ -131,7 +135,7 @@
   }
 
   .book-cover_wide {
-    @apply xs:w-[296px] w-[256px] xs:h-[404px] h-[354px];
+    @apply w-[200px] h-[273px] xs:w-[252px] xs:h-[344px] sm:w-[296px] sm:h-[404px];
   }
 
   /* Book List */
@@ -148,23 +152,26 @@
 
   /* Book Overview */
   .book-overview {
-    @apply flex flex-col-reverse items-center gap-12 sm:gap-32 xl:flex-row xl:gap-8;
+    @apply flex flex-col-reverse items-center gap-8 sm:gap-12 lg:flex-row lg:items-start lg:gap-12 xl:gap-16;
   }
 
+  /* h1 font-size is set via responsive inline classes in BookOverview.tsx;
+     Tailwind @layer utilities always overrides @layer components, so text-size
+     utilities here have no effect. */
   .book-overview h1 {
-    @apply text-5xl font-semibold text-white md:text-7xl;
+    @apply font-bold text-white;
   }
 
   .book-info {
-    @apply mt-7 flex flex-row flex-wrap gap-4 text-xl text-light-100;
+    @apply mt-7 flex flex-row flex-wrap gap-3 sm:gap-4 text-base sm:text-xl text-light-100;
   }
 
   .book-copies {
-    @apply flex flex-row flex-wrap gap-4 mt-1;
+    @apply flex flex-row flex-wrap gap-3 sm:gap-4 mt-1;
   }
 
   .book-copies p {
-    @apply text-xl text-light-100;
+    @apply text-base sm:text-xl text-light-100;
   }
 
   .book-copies p span {
@@ -172,7 +179,7 @@
   }
 
   .book-description {
-    @apply mt-2 text-justify text-xl text-light-100;
+    @apply mt-2 text-justify text-sm lg:text-xl text-light-100;
   }
 
   .book-overview_btn {
@@ -315,7 +322,7 @@
 
   /* Root */
   .root-container {
-    @apply flex min-h-screen flex-1 flex-col bg-pattern bg-cover bg-top bg-dark-100 px-5 xs:px-10 md:px-16;
+    @apply flex min-h-screen flex-1 flex-col bg-pattern bg-cover bg-top bg-dark-100 px-5 xs:px-10 md:px-16 overflow-x-hidden;
   }
 
   /* Book Details */

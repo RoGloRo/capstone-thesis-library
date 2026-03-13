@@ -101,6 +101,9 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
+      {/* AI Analytics Section */}
+      <AiLibraryInsights />
+
       {/* Charts Section */}
       <ClientCharts borrowingTrends={borrowingTrends} topGenres={topGenres} />
 
@@ -122,8 +125,7 @@ export default async function AdminDashboard() {
         <OverdueBooksTable data={overdueBooksData} />
       )}
 
-      {/* AI Analytics Section */}
-      <AiLibraryInsights />
+      
     </div>
   );
 }

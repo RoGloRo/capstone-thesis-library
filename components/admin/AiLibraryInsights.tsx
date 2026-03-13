@@ -45,11 +45,11 @@ export default function AiLibraryInsights() {
   };
 
   return (
-    <Card className="border-green-500/30 bg-dark-300/40">
+    <Card className="border-green-500/30 bg-white dark:bg-dark-300/40">
       <CardHeader className="flex flex-row items-center justify-between gap-4 pb-4">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-green-500" />
-          <CardTitle className="text-xl text-light-100">AI Library Insights</CardTitle>
+          <CardTitle className="text-xl text-gray-900 dark:text-light-100">AI Library Insights</CardTitle>
         </div>
         <Button
           onClick={fetchInsights}
@@ -86,7 +86,7 @@ export default function AiLibraryInsights() {
 
         {/* Error state */}
         {error && (
-          <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             {error}
           </div>
@@ -98,7 +98,7 @@ export default function AiLibraryInsights() {
             {Array.from({ length: 5 }).map((_, i) => (
               <div
                 key={i}
-                className="h-10 animate-pulse rounded-lg bg-dark-400/60"
+                className="h-10 animate-pulse rounded-lg bg-gray-200 dark:bg-dark-400/60"
                 style={{ opacity: 1 - i * 0.15 }}
               />
             ))}
@@ -111,7 +111,7 @@ export default function AiLibraryInsights() {
             {insights.map((insight, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 rounded-lg border border-white/5 bg-dark-400/50 px-4 py-3 text-sm text-light-100"
+                className="flex items-start gap-3 rounded-lg border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-dark-400/50 px-4 py-3 text-sm text-gray-800 dark:text-light-100"
               >
                 <span className="text-base leading-snug">{insight}</span>
               </div>
@@ -119,7 +119,7 @@ export default function AiLibraryInsights() {
 
             {/* Quick-stats bar */}
             {meta && (
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 border-t border-white/10 pt-4">
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 border-t border-gray-200 dark:border-white/10 pt-4">
                 {[
                   { label: "Borrows (30d)", value: meta.recentBorrows },
                   { label: "Overdue", value: meta.overdueCount },
@@ -127,7 +127,7 @@ export default function AiLibraryInsights() {
                 ].map((stat) => (
                   <div
                     key={stat.label}
-                    className="rounded-lg bg-dark-400/40 px-3 py-2 text-center"
+                    className="rounded-lg bg-gray-100 dark:bg-dark-400/40 px-3 py-2 text-center"
                   >
                     <p className="text-lg font-bold text-green-400">{stat.value}</p>
                     <p className="text-xs text-muted-foreground">{stat.label}</p>
