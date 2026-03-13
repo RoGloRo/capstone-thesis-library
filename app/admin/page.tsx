@@ -6,6 +6,7 @@ import { RecentlyBorrowedTable } from "@/components/admin/RecentlyBorrowedTable"
 import { RecentlyReturnedTable } from "@/components/admin/RecentlyReturnedTable";
 import { OverdueBooksTable } from "@/components/admin/OverdueBooksTable";
 import { TopBorrowersList } from "@/components/admin/TopBorrowersList";
+import AiLibraryInsights from "@/components/admin/AiLibraryInsights";
 import { 
   getAdminDashboardStats, 
   getBorrowingTrends, 
@@ -120,6 +121,9 @@ export default async function AdminDashboard() {
       {overdueBooksData.length > 0 && (
         <OverdueBooksTable data={overdueBooksData} />
       )}
+
+      {/* AI Analytics Section */}
+      <AiLibraryInsights />
     </div>
   );
 }
