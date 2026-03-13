@@ -122,17 +122,6 @@ const BookCard = ({
       isLoanedBook && "xs:w-52 w-full",
       "sm:group sm:transition-all sm:duration-300 sm:hover:scale-105 relative"
     )}> 
-      {/* Save Button Overlay */}
-      {userId && !isLoanedBook && (
-        <div className="absolute top-2 right-2 z-10">
-          <SaveBookButton
-            userId={userId}
-            bookId={id}
-            initialIsSaved={isSaved}
-            className="h-8 w-8 bg-dark-300/80 hover:bg-dark-300 shadow-md backdrop-blur-sm rounded-full"
-          />
-        </div>
-      )}
       <Link 
         href={`/books/${id}`} 
         className={cn(
@@ -141,8 +130,19 @@ const BookCard = ({
         )}
       >
 
-        <div className="sm:relative sm:transition-transform sm:duration-300 sm:group-hover:scale-105">
+        <div className="relative sm:transition-transform sm:duration-300 sm:group-hover:scale-105">
           <BookCover coverColor={coverColor} coverImage={coverUrl} className={""} />
+          {/* Save Button — sits on top of the cover, does not trigger navigation */}
+          {userId && !isLoanedBook && (
+            <div className="absolute top-2 right-2 z-10">
+              <SaveBookButton
+                userId={userId}
+                bookId={id}
+                initialIsSaved={isSaved}
+                className="h-8 w-8 bg-dark-300/80 hover:bg-dark-300 shadow-md backdrop-blur-sm rounded-full"
+              />
+            </div>
+          )}
         </div>
 
         <div className={cn("mt-4", !isLoanedBook && "xs:max-w-40 max-w-28")}>

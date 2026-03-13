@@ -6,6 +6,8 @@ interface Props {
   title: string;
   books: Book[]; 
   containerClassName?: string;
+  /** Override the inner list div's class (e.g. for horizontal scroll). Defaults to "book-list". */
+  listClassName?: string;
   // User data for PDF receipts (only needed for loaned books)
   userData?: {
     fullName: string;
@@ -17,14 +19,14 @@ interface Props {
   savedBookIds?: string[];
 }
 
-const BookList = ({ title, books, containerClassName, userData, userId, savedBookIds }: Props) => {
+const BookList = ({ title, books, containerClassName, listClassName, userData, userId, savedBookIds }: Props) => {
   if (!books || books.length === 0) return null;
   const savedSet = new Set(savedBookIds ?? []);
   return (
     <section className={containerClassName}>
       <h2 className="font-bebas-neue text-4xl text-light-100">{title}</h2>
 
-      <div className="book-list">
+      <div className={listClassName ?? "book-list"}>
         {books.map((book) => (
           <BookCard 
             key={book.title} 

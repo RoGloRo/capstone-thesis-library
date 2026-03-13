@@ -1,347 +1,12 @@
 import BookList from "@/components/BookList";
 import BookOverview from "@/components/BookOverview";
 import { db } from "@/database/drizzle";
-import { books, borrowRecords, users } from "@/database/schema";
+import { books, users } from "@/database/schema";
 import { auth } from "@/auth";
-import { and, desc, eq, inArray, not, sql, gt, count } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { getUserSavedBookIds } from "@/lib/actions/book";
-
-interface UserPreferences {
-  genres: { genre: string; weight: number }[];
-  authors: { author: string; weight: number }[];
-  avgRating: number;
-  excludeBookIds: string[];
-}
-
-/**
- * Enhanced Book Recommendation System
- * 
- * This system analyzes reading history to provide personalized recommendations:
- * 1. Reading History: All borrowed books (returned and currently borrowed)
- * 2. User Behavior Patterns: Completion rates, rating preferences, genre diversity
- * 
- * Recommendation Logic:
- * - Weighted preferences based on user actions (completed > borrowed)
- * - Time-decay for older interactions to prioritize recent interests
- * - Multi-criteria matching (genre, author, rating similarity)
- * - Fallback to trending/popular books for new users
- */
-const getRecommendedBooks = async (userId: string) => {
-  try {
-    // Get user's complete reading history
-    const readingHistory = await db
-      .select({
-        genre: books.genre,
-        author: books.author,
-        rating: books.rating,
-        bookId: books.id,
-        returnDate: borrowRecords.returnDate,
-        borrowDate: borrowRecords.borrowDate,
-      })
-      .from(borrowRecords)
-      .innerJoin(books, eq(borrowRecords.bookId, books.id))
-      .where(eq(borrowRecords.userId, userId))
-      .orderBy(desc(borrowRecords.borrowDate)); // Most recent first
-
-    // New user: no borrow history → use preferred genres if set
-    if (readingHistory.length === 0) {
-      const [userData] = await db
-        .select({ preferredGenres: users.preferredGenres })
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-
-      const preferredGenres: string[] = userData?.preferredGenres
-        ? JSON.parse(userData.preferredGenres)
-        : [];
-
-      if (preferredGenres.length > 0) {
-        const genreBooks = (await db
-          .select()
-          .from(books)
-          .where(inArray(books.genre, preferredGenres))
-          .orderBy(desc(books.rating), desc(books.createdAt))
-          .limit(6)) as unknown as Book[];
-
-        if (genreBooks.length >= 3) return genreBooks;
-        // supplement if too few matches
-        const supplement = await getPopularBooks(genreBooks.map(b => b.id), 6 - genreBooks.length);
-        return [...genreBooks, ...supplement];
-      }
-
-      return await getPopularBooks([], 6);
-    }
-
-    // Existing user: analyze reading history
-    const preferences = analyzeUserPreferences(readingHistory);
-
-    // If preferred genres exist, blend them with borrow-derived preferences (lower weight)
-    const [userData] = await db
-      .select({ preferredGenres: users.preferredGenres })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    const preferredGenres: string[] = userData?.preferredGenres
-      ? JSON.parse(userData.preferredGenres)
-      : [];
-
-    if (preferredGenres.length > 0) {
-      const borrowedGenreNames = preferences.genres.map(g => g.genre);
-      for (const genre of preferredGenres) {
-        if (!borrowedGenreNames.includes(genre)) {
-          // Add with low weight so borrow history still dominates
-          preferences.genres.push({ genre, weight: 0.5 });
-        }
-      }
-    }
-
-    // Get personalized recommendations
-    const recommendedBooks = await getPersonalizedRecommendations(preferences);
-
-    return recommendedBooks;
-  } catch (error) {
-    console.error('Error getting recommended books:', error);
-    // Fallback to popular books on error
-    return await getPopularBooks([], 6);
-  }
-};
-
-const analyzeUserPreferences = (
-  readingHistory: Array<{
-    genre: string;
-    author: string;
-    rating: number;
-    bookId: string;
-    returnDate?: string | null;
-    borrowDate?: Date;
-  }>
-): UserPreferences => {
-  // Use reading history for book interactions with different weights
-  const allBooks = [...readingHistory];
-  
-  // Advanced weighting system
-  const weightedBooks = allBooks.map(book => {
-    let weight = 1; // Base weight for borrowed books
-    
-    // Higher weight for completed books (returned books)
-    if ('returnDate' in book && book.returnDate) {
-      weight += 1; // Completed books get +1 weight
-    }
-    
-    // Weight based on rating (higher rated books get more weight)
-    if (book.rating >= 4) {
-      weight += 0.5;
-    }
-    
-    return {
-      ...book,
-      weight
-    };
-  });
-
-  // Analyze genre preferences with decay for older interactions
-  const genreMap = new Map<string, number>();
-  weightedBooks.forEach(book => {
-    const current = genreMap.get(book.genre) || 0;
-    
-    // Apply time decay for reading history (more recent = higher weight)
-    let timeWeight = 1;
-    if ('returnDate' in book && book.returnDate) {
-      const daysSinceReturn = Math.floor(
-        (Date.now() - new Date(book.returnDate).getTime()) / (1000 * 60 * 60 * 24)
-      );
-      timeWeight = Math.max(0.3, 1 - (daysSinceReturn / 365)); // Decay over a year
-    }
-    
-    genreMap.set(book.genre, current + (book.weight * timeWeight));
-  });
-
-  const genres = Array.from(genreMap.entries())
-    .map(([genre, weight]) => ({ genre, weight }))
-    .filter(g => g.weight > 0.5) // Filter out very low weights
-    .sort((a, b) => b.weight - a.weight);
-
-  // Analyze author preferences
-  const authorMap = new Map<string, number>();
-  weightedBooks.forEach(book => {
-    const current = authorMap.get(book.author) || 0;
-    
-    // Authors get higher weight if user has multiple books by them
-    const authorBookCount = weightedBooks.filter(b => b.author === book.author).length;
-    const authorMultiplier = Math.min(2, 1 + (authorBookCount - 1) * 0.3);
-    
-    authorMap.set(book.author, current + (book.weight * authorMultiplier));
-  });
-
-  const authors = Array.from(authorMap.entries())
-    .map(([author, weight]) => ({ author, weight }))
-    .filter(a => a.weight > 0.8) // Filter out very low weights
-    .sort((a, b) => b.weight - a.weight);
-
-  // Calculate weighted average rating preference
-  const totalWeight = weightedBooks.reduce((sum, book) => sum + book.weight, 0);
-  const weightedRatingSum = weightedBooks.reduce((sum, book) => sum + (book.rating * book.weight), 0);
-  const avgRating = totalWeight > 0 ? weightedRatingSum / totalWeight : 4;
-
-  // Books to exclude (already read)
-  const excludeBookIds = Array.from(new Set(allBooks.map(book => book.bookId)));
-
-  return {
-    genres,
-    authors,
-    avgRating,
-    excludeBookIds
-  };
-};
-
-const getPersonalizedRecommendations = async (preferences: UserPreferences): Promise<Book[]> => {
-  const { genres, authors, avgRating, excludeBookIds } = preferences;
-
-  // Get multiple recommendation sets and merge them
-  const recommendationSets = [];
-
-  // 1. Genre-based recommendations (strongest signal)
-  if (genres.length > 0) {
-    const topGenres = genres.slice(0, 3).map(g => g.genre);
-    const genreBooks = (await db
-      .select()
-      .from(books)
-      .where(
-        and(
-          gt(books.availableCopies, 0),
-          not(inArray(books.id, excludeBookIds)),
-          inArray(books.genre, topGenres),
-          sql`${books.rating} >= ${Math.max(3, Math.floor(avgRating) - 1)}`
-        )
-      )
-      .orderBy(desc(books.rating))
-      .limit(4)) as unknown as Book[];
-    
-    recommendationSets.push(...genreBooks);
-  }
-
-  // 2. Author-based recommendations
-  if (authors.length > 0) {
-    const topAuthors = authors.slice(0, 2).map(a => a.author);
-    const authorBooks = (await db
-      .select()
-      .from(books)
-      .where(
-        and(
-          gt(books.availableCopies, 0),
-          not(inArray(books.id, excludeBookIds)),
-          inArray(books.author, topAuthors)
-        )
-      )
-      .orderBy(desc(books.rating))
-      .limit(3)) as unknown as Book[];
-    
-    recommendationSets.push(...authorBooks);
-  }
-
-  // 3. Rating-based recommendations (similar rating range)
-  const ratingRange = {
-    min: Math.max(1, Math.floor(avgRating) - 1),
-    max: Math.min(5, Math.ceil(avgRating) + 1)
-  };
-
-  const ratingBooks = (await db
-    .select()
-    .from(books)
-    .where(
-      and(
-        gt(books.availableCopies, 0),
-        not(inArray(books.id, excludeBookIds)),
-        sql`${books.rating} BETWEEN ${ratingRange.min} AND ${ratingRange.max}`
-      )
-    )
-    .orderBy(desc(books.rating), desc(books.createdAt))
-    .limit(3)) as unknown as Book[];
-
-  recommendationSets.push(...ratingBooks);
-
-  // Remove duplicates while preserving order (first occurrence kept)
-  const uniqueRecommendations = recommendationSets.filter(
-    (book, index, arr) => arr.findIndex(b => b.id === book.id) === index
-  );
-
-  // If we have enough recommendations, return top ones
-  if (uniqueRecommendations.length >= 6) {
-    return uniqueRecommendations.slice(0, 6);
-  }
-
-  // Supplement with popular books that match user preferences
-  const supplementalBooks = await getPopularBooks(
-    [...excludeBookIds, ...uniqueRecommendations.map(b => b.id)], 
-    6 - uniqueRecommendations.length
-  );
-
-  return [...uniqueRecommendations, ...supplementalBooks].slice(0, 6);
-};
-
-const getPopularBooks = async (excludeIds: string[] = [], limit: number = 6): Promise<Book[]> => {
-  // Get popular books based on recent borrow activity and rating
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  // Try to get trending books (most borrowed in last 30 days)
-  const trendingBooksQuery = db
-    .select({
-      id: books.id,
-      title: books.title,
-      author: books.author,
-      genre: books.genre,
-      rating: books.rating,
-      coverUrl: books.coverUrl,
-      coverColor: books.coverColor,
-      description: books.description,
-      totalCopies: books.totalCopies,
-      availableCopies: books.availableCopies,
-      videoUrl: books.videoUrl,
-      summary: books.summary,
-      createdAt: books.createdAt,
-      borrowCount: count(borrowRecords.id)
-    })
-    .from(books)
-    .leftJoin(borrowRecords, 
-      and(
-        eq(borrowRecords.bookId, books.id),
-        sql`${borrowRecords.borrowDate} >= ${thirtyDaysAgo.toISOString()}`
-      )
-    )
-    .where(
-      excludeIds.length > 0 
-        ? and(gt(books.availableCopies, 0), not(inArray(books.id, excludeIds)))
-        : gt(books.availableCopies, 0)
-    )
-    .groupBy(books.id)
-    .orderBy(desc(sql`COUNT(${borrowRecords.id})`), desc(books.rating))
-    .limit(limit);
-
-  const trendingBooks = (await trendingBooksQuery) as unknown as Book[];
-
-  // If we have enough trending books, return them
-  if (trendingBooks.length >= limit) {
-    return trendingBooks;
-  }
-
-  // Otherwise, supplement with highly rated books
-  const conditions = [gt(books.availableCopies, 0)];
-  
-  if (excludeIds.length > 0) {
-    conditions.push(not(inArray(books.id, excludeIds)));
-  }
-
-  const remainingBooks = (await db
-    .select()
-    .from(books)
-    .where(and(...conditions))
-    .orderBy(desc(books.rating), desc(books.createdAt))
-    .limit(limit - trendingBooks.length)) as unknown as Book[];
-
-  return [...trendingBooks, ...remainingBooks];
-};
+import { getAiEnhancedRecommendations } from "@/lib/recommendations";
+import { getAiTrendingBooks } from "@/lib/trending-books";
 
 const Home = async () => {
   const session = await auth();
@@ -355,13 +20,32 @@ const Home = async () => {
     .limit(10)) as unknown as Book[];
 
   // Get recommended books if user is logged in
-  const recommendedBooks = userId 
-    ? await getRecommendedBooks(userId) 
+  // Uses AI (GPT-4o-mini) first; falls back to existing logic automatically
+  const recommendedBooks = userId
+    ? await getAiEnhancedRecommendations(userId)
     : [];
 
-  // Get trending/popular books for all users
-  const trendingBooks = await getPopularBooks(
-    userId ? recommendedBooks.map(book => book.id) : [],
+  // Preferred genres for personalised trending
+  let preferredGenres: string[] = [];
+  if (userId) {
+    const [userData] = await db
+      .select({ preferredGenres: users.preferredGenres })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (userData?.preferredGenres) {
+      try {
+        preferredGenres = JSON.parse(userData.preferredGenres);
+      } catch {
+        // ignore malformed JSON
+      }
+    }
+  }
+
+  // AI-ranked trending books; falls back to borrow-count logic automatically
+  const trendingBooks = await getAiTrendingBooks(
+    recommendedBooks.map((book) => book.id),
+    preferredGenres,
     6
   );
 
@@ -381,6 +65,7 @@ const Home = async () => {
           title="Recommended For You"
           books={recommendedBooks}
           containerClassName={firstSection}
+          listClassName="mt-10 flex gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-track-dark-300 scrollbar-thumb-green-500"
           userId={userId}
           savedBookIds={savedIds}
         />

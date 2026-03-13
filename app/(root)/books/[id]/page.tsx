@@ -1,12 +1,15 @@
 import React from "react";
 import { db } from "@/database/drizzle";
 import { books } from "@/database/schema";
-import { eq, and, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import BookOverview from "@/components/BookOverview";
 import BookVideo from "@/components/BookVideo";
 import BookList from "@/components/BookList";
+import AiBookSummary from "@/components/AiBookSummary";
+import { getAiSimilarBooks, getBorrowedBookIds } from "@/lib/book-match";
+import { getUserSavedBookIds } from "@/lib/actions/book";
 
 const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const id = (await params).id;
@@ -21,17 +24,24 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
 
   if (!bookDetails) redirect("/404");
 
-  // Fetch similar books (same genre, excluding the current book)
-  const similarBooks = await db
-    .select()
-    .from(books)
-    .where(
-      and(
-        eq(books.genre, bookDetails.genre),
-        ne(books.id, bookDetails.id) // Exclude the current book
-      )
-    )
-    .limit(4); // Limit to 4 similar books
+  // Exclude books the user already borrowed from similar-book results
+  const [excludeBookIds, savedIds] = await Promise.all([
+    session?.user?.id ? getBorrowedBookIds(session.user.id) : Promise.resolve([]),
+    session?.user?.id ? getUserSavedBookIds(session.user.id) : Promise.resolve([]),
+  ]);
+
+  // AI-powered similar books with automatic fallback to genre-based logic
+  const similarBooks = await getAiSimilarBooks(
+    {
+      id: bookDetails.id,
+      title: bookDetails.title,
+      author: bookDetails.author,
+      genre: bookDetails.genre,
+      description: bookDetails.description,
+    },
+    excludeBookIds,
+    5
+  );
 
   return (
     <>
@@ -53,14 +63,25 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
               ))}
             </div>
           </section>
+
+          <section className="mt-10">
+            <AiBookSummary
+              title={bookDetails.title}
+              author={bookDetails.author}
+              description={bookDetails.description}
+            />
+          </section>
         </div>
 
         {/* Similar Books */}
         <div className="flex-1">
-          <BookList 
-            title="Similar Books" 
-            books={similarBooks} 
+          <BookList
+            title="Similar Books"
+            books={similarBooks}
             containerClassName="sticky top-6"
+            listClassName="mt-10 ml-5 grid grid-cols-2 gap-5"
+            userId={session?.user?.id}
+            savedBookIds={savedIds}
           />
         </div>
       </div>
