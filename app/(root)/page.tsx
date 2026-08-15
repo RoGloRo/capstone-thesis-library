@@ -20,7 +20,7 @@ const Home = async () => {
     .limit(10)) as unknown as Book[];
 
   // Get recommended books if user is logged in
-  // Uses AI (GPT-4o-mini) first; falls back to existing logic automatically
+  // Uses AI assistance first; falls back to existing logic automatically
   const recommendedBooks = userId
     ? await getAiEnhancedRecommendations(userId)
     : [];

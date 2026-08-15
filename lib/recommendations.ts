@@ -1,5 +1,6 @@
 import { db } from "@/database/drizzle";
 import { books, borrowRecords, users, savedBooks } from "@/database/schema";
+import { callOpenRouterChat } from "@/lib/openrouter";
 import { and, desc, eq, gt, inArray, not, sql, count } from "drizzle-orm";
 
 interface UserPreferences {
@@ -287,14 +288,10 @@ export const getRecommendedBooks = async (userId: string): Promise<Book[]> => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AI Enhancement Layer
-// Attempts GPT-4o-mini first; falls back to getRecommendedBooks on any failure.
+// Attempts AI assistance first; falls back to getRecommendedBooks on any failure.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getAiEnhancedRecommendations = async (userId: string): Promise<Book[]> => {
-  if (!process.env.GITHUB_TOKEN) {
-    return getRecommendedBooks(userId);
-  }
-
   try {
     // Gather user context in parallel
     const [userDataResult, borrowHistory, savedBooksResult] = await Promise.all([
@@ -364,33 +361,24 @@ Example: ["id1","id2","id3","id4","id5","id6"]`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
 
-    let aiResponse: Response;
+    let aiResult;
     try {
-      aiResponse = await fetch("https://models.inference.ai.azure.com/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
-          model: "gpt-4o-mini",
-          temperature: 0.3,
-          max_tokens: 150,
-        }),
+      aiResult = await callOpenRouterChat({
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        maxTokens: 150,
         signal: controller.signal,
       });
     } finally {
       clearTimeout(timeout);
     }
 
-    if (!aiResponse.ok) {
+    if (!aiResult.ok) {
       console.warn("AI recommendations API error, falling back to existing logic.");
       return getRecommendedBooks(userId);
     }
 
-    const aiData = await aiResponse.json();
-    const rawContent: string = aiData.choices?.[0]?.message?.content?.trim() ?? "";
+    const rawContent: string = aiResult.content;
 
     // Parse and validate the returned IDs
     let recommendedIds: string[] = [];

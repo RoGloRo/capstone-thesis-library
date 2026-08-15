@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { db } from "@/database/drizzle";
 import { books, users, borrowRecords, savedBooks } from "@/database/schema";
+import { callOpenRouterChat } from "@/lib/openrouter";
 import { and, count, desc, eq, sql, not } from "drizzle-orm";
 import { subDays, startOfDay } from "date-fns";
 
 export async function GET() {
   try {
-    if (!process.env.GITHUB_TOKEN) {
-      return NextResponse.json(
-        { error: "AI API not configured" },
-        { status: 503 }
-      );
-    }
-
     const thirtyDaysAgo = startOfDay(subDays(new Date(), 30));
     const sixtyDaysAgo = startOfDay(subDays(new Date(), 60));
 
@@ -89,7 +83,7 @@ export async function GET() {
           )
         ),
 
-      // Top saved books
+      // Top saved books lesssgooow
       db
         .select({
           title: books.title,
@@ -143,41 +137,27 @@ Example format: ["📊 Insight one here.", "📈 Insight two here."]`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
 
-    let aiResponse: Response;
+    let aiResult;
     try {
-      aiResponse = await fetch(
-        "https://models.inference.ai.azure.com/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messages: [{ role: "user", content: prompt }],
-            model: "gpt-4o-mini",
-            temperature: 0.5,
-            max_tokens: 600,
-          }),
-          signal: controller.signal,
-        }
-      );
+      aiResult = await callOpenRouterChat({
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.5,
+        maxTokens: 600,
+        signal: controller.signal,
+      });
     } finally {
       clearTimeout(timeout);
     }
 
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("AI library-insights API error:", errText);
+    if (!aiResult.ok) {
+      console.error("AI library-insights API error:", aiResult.error, aiResult.details);
       return NextResponse.json(
-        { error: "AI service returned an error" },
-        { status: 502 }
+        { error: "I’m sorry, I couldn’t generate insights right now. Please try again in a moment." },
+        { status: aiResult.status ?? 502 }
       );
     }
 
-    const aiData = await aiResponse.json();
-    const rawContent: string =
-      aiData.choices?.[0]?.message?.content?.trim() ?? "";
+    const rawContent: string = aiResult.content;
 
     let insights: string[] = [];
     try {

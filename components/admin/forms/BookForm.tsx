@@ -149,7 +149,7 @@ const BookForm = ({
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <User className="h-4 w-4" />
-                        Control Number
+                        Call Number
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="SL-YYYY-XXXXXX (optional)" {...field} />

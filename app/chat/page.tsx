@@ -1,5 +1,5 @@
 import Footer from "@/components/Footer";
-import GitHubModelsChat from "@/components/GitHubModelsChat";
+import ChatWidget from "@/components/GitHubModelsChat";
 import { MessageSquare, Sparkles, BookOpen, Users } from "lucide-react";
 import React from "react";
 
@@ -53,7 +53,7 @@ export default function Page() {
               Use this expanded interface for longer conversations or when you need more screen space.
             </p>
           </div>
-          <GitHubModelsChat />
+          <ChatWidget />
         </div>
         <Footer />
       </div>

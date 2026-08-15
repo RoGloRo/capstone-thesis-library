@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database/drizzle";
 import { books, users } from "@/database/schema";
+import { callOpenRouterChat } from "@/lib/openrouter";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,14 +11,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Message is required" },
         { status: 400 }
-      );
-    }
-
-    if (!process.env.GITHUB_TOKEN) {
-      console.error("GitHub token not found");
-      return NextResponse.json(
-        { error: "API configuration error" },
-        { status: 500 }
       );
     }
 
@@ -31,7 +24,7 @@ export async function POST(request: NextRequest) {
       role: users.role
     }).from(users);
 
-    // Call GitHub Models API with GPT-4o-mini
+    // Call the shared OpenRouter client
     const messages = [
       {
         role: "system",
@@ -112,48 +105,32 @@ export async function POST(request: NextRequest) {
       }
     ];
 
-    const response = await fetch("https://models.inference.ai.azure.com/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messages,
-        model: "gpt-4o-mini",
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
+    const chatResult = await callOpenRouterChat({
+      messages,
+      temperature: 0.7,
+      maxTokens: 1000,
     });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("GitHub Models API error:", response.status, errorData);
+    if (!chatResult.ok) {
+      console.error("OpenRouter chat API error:", chatResult.error, chatResult.details);
       return NextResponse.json(
-        { error: "Failed to get response from AI service" },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
-
-    if (!aiResponse) {
-      console.error("No response content from GitHub Models:", data);
-      return NextResponse.json(
-        { error: "No response from AI service" },
-        { status: 500 }
+        {
+          success: false,
+          error: "Sorry, I’m having trouble responding right now. Please try again in a moment.",
+          model: process.env.OPENROUTER_MODEL || "google/gemma-4-26b-a4b-it:free"
+        },
+        { status: chatResult.status ?? 500 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      response: aiResponse,
-      model: "gpt-4o-mini"
+      response: chatResult.content,
+      model: chatResult.model
     });
 
   } catch (error) {
-    console.error("GitHub Models chat API error:", error);
+    console.error("OpenRouter chat API error:", error);
     return NextResponse.json(
       { 
         error: "Internal server error",

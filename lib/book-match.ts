@@ -1,5 +1,6 @@
 import { db } from "@/database/drizzle";
 import { books, borrowRecords } from "@/database/schema";
+import { callOpenRouterChat } from "@/lib/openrouter";
 import { and, desc, eq, inArray, ne, not } from "drizzle-orm";
 
 interface CurrentBook {
@@ -39,7 +40,7 @@ const getFallbackSimilarBooks = async (
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AI-enhanced: GPT-4o-mini semantic matching, falls back automatically
+// AI-enhanced semantic matching, falls back automatically
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getAiSimilarBooks = async (
@@ -47,14 +48,13 @@ export const getAiSimilarBooks = async (
   excludeBookIds: string[] = [],
   limit = 5
 ): Promise<Book[]> => {
-  if (!process.env.GITHUB_TOKEN) {
-    return getFallbackSimilarBooks(
+  const fallbackResult = () =>
+    getFallbackSimilarBooks(
       currentBook.id,
       currentBook.genre,
       excludeBookIds,
       limit
     );
-  }
 
   try {
     // Fetch candidate books (exclude current + already-borrowed)
@@ -73,68 +73,38 @@ export const getAiSimilarBooks = async (
       .limit(80);
 
     if (candidates.length === 0) {
-      return getFallbackSimilarBooks(
-        currentBook.id,
-        currentBook.genre,
-        excludeBookIds,
-        limit
-      );
+      return fallbackResult();
     }
 
-    const prompt = `You are a library book recommendation engine.
+    if (!process.env.OPENROUTER_API_KEY?.trim() || !process.env.OPENROUTER_MODEL?.trim()) {
+      return fallbackResult();
+    }
 
-Selected Book:
-Title: ${currentBook.title}
-Author: ${currentBook.author}
-Genre: ${currentBook.genre}
-Description: ${currentBook.description}
-
-Library Catalogue (id | title | author | genre):
-${candidates.map((b) => `${b.id} | ${b.title} | ${b.author} | ${b.genre}`).join("\n")}
-
-From the catalogue above, select the ${limit} books that are most similar in topic, subject, or concept to the selected book.
-Return ONLY a JSON array of the matching book IDs, ordered by relevance.
-Example: ["id1","id2","id3","id4","id5"]`;
+    const prompt = `Find the ${limit} books most similar to: ${currentBook.title} by ${currentBook.author} (${currentBook.genre}). Return ONLY a JSON array of matching book IDs.\n${candidates
+      .slice(0, 20)
+      .map((b) => `${b.id} | ${b.title} | ${b.author} | ${b.genre}`)
+      .join("\n")}`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 7000);
 
-    let aiResponse: Response;
+    let aiResult;
     try {
-      aiResponse = await fetch(
-        "https://models.inference.ai.azure.com/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messages: [{ role: "user", content: prompt }],
-            model: "gpt-4o-mini",
-            temperature: 0.2,
-            max_tokens: 150,
-          }),
-          signal: controller.signal,
-        }
-      );
+      aiResult = await callOpenRouterChat({
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        maxTokens: 150,
+        signal: controller.signal,
+      });
     } finally {
       clearTimeout(timeout);
     }
 
-    if (!aiResponse.ok) {
-      console.warn("AI book-match API error, falling back to genre logic.");
-      return getFallbackSimilarBooks(
-        currentBook.id,
-        currentBook.genre,
-        excludeBookIds,
-        limit
-      );
+    if (!aiResult.ok) {
+      return fallbackResult();
     }
 
-    const aiData = await aiResponse.json();
-    const rawContent: string =
-      aiData.choices?.[0]?.message?.content?.trim() ?? "";
+    const rawContent: string = aiResult.content;
 
     let recommendedIds: string[] = [];
     try {
@@ -142,13 +112,7 @@ Example: ["id1","id2","id3","id4","id5"]`;
       recommendedIds = JSON.parse(cleaned);
       if (!Array.isArray(recommendedIds)) throw new Error("Not an array");
     } catch {
-      console.warn("Failed to parse AI book-match response, falling back.");
-      return getFallbackSimilarBooks(
-        currentBook.id,
-        currentBook.genre,
-        excludeBookIds,
-        limit
-      );
+      return fallbackResult();
     }
 
     const validIds = recommendedIds.filter((id) =>
@@ -156,12 +120,7 @@ Example: ["id1","id2","id3","id4","id5"]`;
     );
 
     if (validIds.length === 0) {
-      return getFallbackSimilarBooks(
-        currentBook.id,
-        currentBook.genre,
-        excludeBookIds,
-        limit
-      );
+      return fallbackResult();
     }
 
     const matchedBooks = (await db
@@ -188,12 +147,7 @@ Example: ["id1","id2","id3","id4","id5"]`;
     return ordered;
   } catch (error) {
     console.error("AI book-match failed, using fallback:", error);
-    return getFallbackSimilarBooks(
-      currentBook.id,
-      currentBook.genre,
-      excludeBookIds,
-      limit
-    );
+    return fallbackResult();
   }
 };
 

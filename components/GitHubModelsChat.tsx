@@ -17,7 +17,7 @@ interface ApiResponse {
   model?: string;
 }
 
-const GitHubModelsChat: React.FC = () => {
+const ChatWidget: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -64,12 +64,21 @@ const GitHubModelsChat: React.FC = () => {
       const data: ApiResponse = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || `HTTP ${response.status}`);
+        const friendlyMessage = data.error || "Sorry, I’m having trouble responding right now. Please try again in a moment.";
+        setError(friendlyMessage);
+        const assistantMessage: Message = {
+          id: `assistant-${Date.now()}`,
+          content: friendlyMessage,
+          role: "assistant",
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+        return;
       }
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
-        content: data.response || "Sorry, I couldn't generate a response.",
+        content: data.response || "Sorry, I’m having trouble responding right now. Please try again in a moment.",
         role: "assistant",
         timestamp: new Date(),
       };
@@ -271,4 +280,4 @@ const GitHubModelsChat: React.FC = () => {
   );
 };
 
-export default GitHubModelsChat;
+export default ChatWidget;

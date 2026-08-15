@@ -1,5 +1,6 @@
 import { db } from "@/database/drizzle";
 import { books, borrowRecords, savedBooks } from "@/database/schema";
+import { callOpenRouterChat } from "@/lib/openrouter";
 import { and, count, desc, eq, gt, inArray, not, sql } from "drizzle-orm";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -95,7 +96,7 @@ export const getTrendingCandidates = async (
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AI-enhanced trending: GPT-4o-mini ranks candidates; falls back automatically
+// AI-enhanced trending: AI ranks candidates; falls back automatically
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getAiTrendingBooks = async (
@@ -104,10 +105,6 @@ export const getAiTrendingBooks = async (
   limit = 6
 ): Promise<Book[]> => {
   const { getPopularBooks } = await import("@/lib/recommendations");
-
-  if (!process.env.GITHUB_TOKEN) {
-    return getPopularBooks(excludeIds, limit);
-  }
 
   try {
     const candidates = await getTrendingCandidates(excludeIds, 40);
@@ -150,39 +147,33 @@ Return ONLY a JSON array of the ${limit} book IDs ordered from most to least tre
 Example: ["id1","id2","id3","id4","id5","id6"]`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 15000);
 
-    let aiResponse: Response;
+    let aiResult;
     try {
-      aiResponse = await fetch(
-        "https://models.inference.ai.azure.com/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messages: [{ role: "user", content: prompt }],
-            model: "gpt-4o-mini",
-            temperature: 0.2,
-            max_tokens: 150,
-          }),
-          signal: controller.signal,
-        }
-      );
+      aiResult = await callOpenRouterChat({
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        maxTokens: 150,
+        signal: controller.signal,
+      });
+    } catch (err: any) {
+      if (err && err.name === "AbortError") {
+        console.warn("AI trending-books request timed out, falling back.");
+        return getPopularBooks(excludeIds, limit);
+      }
+      console.warn("AI trending-books API error, falling back.", err?.message ?? err);
+      return getPopularBooks(excludeIds, limit);
     } finally {
       clearTimeout(timeout);
     }
 
-    if (!aiResponse.ok) {
-      console.warn("AI trending-books API error, falling back.");
+    if (!aiResult || !aiResult.ok) {
+      console.warn("AI trending-books returned no result or failed, falling back.");
       return getPopularBooks(excludeIds, limit);
     }
 
-    const aiData = await aiResponse.json();
-    const rawContent: string =
-      aiData.choices?.[0]?.message?.content?.trim() ?? "";
+    const rawContent: string = aiResult.content;
 
     let rankedIds: string[] = [];
     try {
