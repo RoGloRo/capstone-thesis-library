@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       role: users.role
     }).from(users);
 
-    // Call the shared OpenRouter client
+    // Call the shared Groq client
     const messages = [
       {
         role: "system",
@@ -112,12 +112,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (!chatResult.ok) {
-      console.error("OpenRouter chat API error:", chatResult.error, chatResult.details);
+      console.error("Groq chat API error:", chatResult.error, chatResult.details);
       return NextResponse.json(
         {
           success: false,
           error: "Sorry, I’m having trouble responding right now. Please try again in a moment.",
-          model: process.env.OPENROUTER_MODEL || "google/gemma-4-26b-a4b-it:free"
+          model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile"
         },
         { status: chatResult.status ?? 500 }
       );
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("OpenRouter chat API error:", error);
+    console.error("Groq chat API error:", error);
     return NextResponse.json(
       { 
         error: "Internal server error",

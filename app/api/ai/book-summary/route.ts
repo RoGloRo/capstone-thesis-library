@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!chatResult.ok) {
-      console.error("OpenRouter book-summary error:", chatResult.error, chatResult.details);
+      console.error("Groq book-summary error:", chatResult.error, chatResult.details);
       return NextResponse.json(
         { error: "I’m sorry, I couldn’t generate a summary right now. Please try again in a moment." },
         { status: chatResult.status ?? 502 }

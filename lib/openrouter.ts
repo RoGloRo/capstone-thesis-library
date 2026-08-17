@@ -1,3 +1,6 @@
+import { groq } from "@ai-sdk/groq";
+import { generateText } from "ai";
+
 type OpenRouterMessage = {
   role: string;
   content: string;
@@ -31,97 +34,43 @@ export async function callOpenRouterChat({
   if (typeof window !== "undefined") {
     return {
       ok: false,
-      error: "OpenRouter requests must be executed on the server.",
+      error: "Groq requests must be executed on the server.",
     };
   }
 
-  const apiKey = process.env.OPENROUTER_API_KEY?.trim();
-  const model = process.env.OPENROUTER_MODEL?.trim();
+  const apiKey = process.env.GROQ_API_KEY?.trim();
+  const modelName = process.env.GROQ_MODEL?.trim();
 
   if (!apiKey) {
     return {
       ok: false,
-      error: "OpenRouter API key is not configured.",
+      error: "Groq API key is not configured.",
       status: 500,
     };
   }
 
-  if (!model) {
+  if (!modelName) {
     return {
       ok: false,
-      error: "OpenRouter model is not configured.",
+      error: "Groq model is not configured.",
       status: 500,
     };
   }
 
   try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.NEXT_PUBLIC_API_ENDPOINT || "http://localhost:3000",
-        "X-Title": "Smart Library",
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature,
-        max_tokens: maxTokens,
-      }),
-      signal,
+    const model = groq(modelName) as any;
+
+    const { text } = await generateText({
+      model,
+      messages: messages as any,
+      temperature,
+      abortSignal: signal,
     });
-
-    const responseText = await response.text();
-    let payload: Record<string, unknown> | null = null;
-
-    if (responseText) {
-      try {
-        payload = JSON.parse(responseText) as Record<string, unknown>;
-      } catch {
-        payload = null;
-      }
-    }
-
-    if (!response.ok) {
-      const details = payload ?? responseText;
-      const errorMessage =
-        details && typeof details === "object" && "error" in details && details.error && typeof details.error === "object"
-          ? String((details.error as { message?: string }).message ?? "Failed to get response from AI service.")
-          : "Failed to get response from AI service.";
-
-      const isRateLimit =
-        response.status === 429 ||
-        (typeof details === "object" && details !== null && "error" in details && details.error && typeof details.error === "object" && (details.error as { code?: number }).code === 429);
-      const retryable = isRateLimit || response.status >= 500;
-
-      return {
-        ok: false,
-        error: isRateLimit
-          ? "The AI service is currently rate-limited. Please try again shortly."
-          : errorMessage,
-        status: response.status,
-        details,
-        retryable,
-      };
-    }
-
-    const content =
-      (payload?.choices as Array<{ message?: { content?: string } }> | undefined)?.[0]
-        ?.message?.content?.trim() ?? "";
-
-    if (!content) {
-      return {
-        ok: false,
-        error: "No response from AI service.",
-        status: 502,
-      };
-    }
 
     return {
       ok: true,
-      content,
-      model,
+      content: text,
+      model: modelName,
     };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -134,12 +83,28 @@ export async function callOpenRouterChat({
       };
     }
 
+    // Handle AI SDK errors
+    const isRateLimit =
+      (error instanceof Error && error.message.toLowerCase().includes("rate limit")) ||
+      (typeof error === "object" && error !== null && "status" in error && (error as any).status === 429);
+
+    const retryable =
+      isRateLimit ||
+      (typeof error === "object" && error !== null && "status" in error && (error as any).status >= 500);
+
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Unexpected AI request error.",
-      status: 500,
+      error: isRateLimit
+        ? "The AI service is currently rate-limited. Please try again shortly."
+        : error instanceof Error
+        ? error.message
+        : "Unexpected AI request error.",
+      status:
+        typeof error === "object" && error !== null && "status" in error
+          ? (error as any).status
+          : 500,
       details: error,
-      retryable: true,
+      retryable,
     };
   }
 }

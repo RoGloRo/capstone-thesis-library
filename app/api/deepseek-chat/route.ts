@@ -28,12 +28,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (!chatResult.ok) {
-      console.error("OpenRouter API error:", chatResult.error, chatResult.details);
+      console.error("Groq API error:", chatResult.error, chatResult.details);
       return NextResponse.json(
         {
           success: false,
           error: "Sorry, I’m having trouble responding right now. Please try again in a moment.",
-          model: process.env.OPENROUTER_MODEL || "google/gemma-4-26b-a4b-it:free"
+          model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile"
         },
         { status: chatResult.status ?? 500 }
       );

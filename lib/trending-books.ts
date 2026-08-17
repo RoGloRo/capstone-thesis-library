@@ -99,6 +99,45 @@ export const getTrendingCandidates = async (
 // AI-enhanced trending: AI ranks candidates; falls back automatically
 // ─────────────────────────────────────────────────────────────────────────────
 
+const parseTrendingIds = (content: string): string[] => {
+  const normalized = content
+    .replace(/```(?:json)?/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  const candidates = [
+    normalized,
+    normalized.match(/\[[\s\S]*\]/)?.[0],
+    normalized.match(/\{[\s\S]*"ids"\s*:\s*\[[\s\S]*\][\s\S]*\}/)?.[0],
+    normalized.match(/\{[\s\S]*"bookIds"\s*:\s*\[[\s\S]*\][\s\S]*\}/)?.[0],
+  ].filter((value): value is string => Boolean(value));
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((value): value is string => typeof value === "string");
+      }
+
+      if (parsed && Array.isArray((parsed as { ids?: unknown }).ids)) {
+        return (parsed as { ids: unknown[] }).ids.filter(
+          (value): value is string => typeof value === "string"
+        );
+      }
+
+      if (parsed && Array.isArray((parsed as { bookIds?: unknown }).bookIds)) {
+        return (parsed as { bookIds: unknown[] }).bookIds.filter(
+          (value): value is string => typeof value === "string"
+        );
+      }
+    } catch {
+      // Try the next extraction strategy.
+    }
+  }
+
+  return [];
+};
+
 export const getAiTrendingBooks = async (
   excludeIds: string[] = [],
   preferredGenres: string[] = [],
@@ -177,9 +216,10 @@ Example: ["id1","id2","id3","id4","id5","id6"]`;
 
     let rankedIds: string[] = [];
     try {
-      const cleaned = rawContent.replace(/```(?:json)?|```/g, "").trim();
-      rankedIds = JSON.parse(cleaned);
-      if (!Array.isArray(rankedIds)) throw new Error("Not an array");
+      rankedIds = parseTrendingIds(rawContent);
+      if (!Array.isArray(rankedIds) || rankedIds.length === 0) {
+        throw new Error("Parsed trending response did not contain a usable array");
+      }
     } catch {
       console.warn("Failed to parse AI trending response, falling back.");
       return getPopularBooks(excludeIds, limit);

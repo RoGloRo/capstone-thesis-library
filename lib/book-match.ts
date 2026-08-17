@@ -76,7 +76,7 @@ export const getAiSimilarBooks = async (
       return fallbackResult();
     }
 
-    if (!process.env.OPENROUTER_API_KEY?.trim() || !process.env.OPENROUTER_MODEL?.trim()) {
+    if (!process.env.GROQ_API_KEY?.trim() || !process.env.GROQ_MODEL?.trim()) {
       return fallbackResult();
     }
 
