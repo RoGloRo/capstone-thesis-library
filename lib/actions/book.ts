@@ -2,6 +2,7 @@
 
 import { db } from "@/database/drizzle";
 import { books, borrowRecords, users, savedBooks } from "@/database/schema";
+import { deleteCacheKey } from "@/lib/ai-cache";
 import dayjs from "dayjs";
 import { and, eq, inArray } from "drizzle-orm";
 
@@ -58,6 +59,10 @@ export const borrowBook = async (params: BorrowBookParams) => {
       .update(books)
       .set({ availableCopies: book[0].availableCopies - 1 })
       .where(eq(books.id, bookId));
+
+    // The user's borrow history changed → invalidate their personalized
+    // recommendation cache. Best-effort; Redis failures never affect the action.
+    await deleteCacheKey(`ai:recs:${userId}`);
 
     // Fetch user and book details for email notification
     const [user] = await db
@@ -199,6 +204,10 @@ export const returnBook = async (params: { borrowRecordId: string; bookId: strin
       })
       .where(eq(books.id, bookId));
 
+    // The user's borrowing state changed → invalidate their personalized
+    // recommendation cache. Best-effort; Redis failures never affect the action.
+    await deleteCacheKey(`ai:recs:${record.userId}`);
+
     // Fetch user and book details for return confirmation email
     const [user] = await db
       .select({
@@ -312,10 +321,16 @@ export const toggleSaveBook = async (params: { userId: string; bookId: string })
 
     if (existing) {
       await db.delete(savedBooks).where(eq(savedBooks.id, existing.id));
+      // Saved books are recommendation context → invalidate this user's cache.
+      // Best-effort; Redis failures never affect the action.
+      await deleteCacheKey(`ai:recs:${userId}`);
       return { success: true, saved: false };
     }
 
     await db.insert(savedBooks).values({ userId, bookId });
+    // Saved books are recommendation context → invalidate this user's cache.
+    // Best-effort; Redis failures never affect the action.
+    await deleteCacheKey(`ai:recs:${userId}`);
     return { success: true, saved: true };
   } catch (error) {
     console.error("Error toggling saved book:", error);

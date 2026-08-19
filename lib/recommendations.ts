@@ -1,5 +1,6 @@
 import { db } from "@/database/drizzle";
 import { books, borrowRecords, users, savedBooks } from "@/database/schema";
+import { getCacheJson, setCacheJson, type AiCacheValue } from "@/lib/ai-cache";
 import { callOpenRouterChat } from "@/lib/openrouter";
 import { and, desc, eq, gt, inArray, not, sql, count } from "drizzle-orm";
 
@@ -287,12 +288,88 @@ export const getRecommendedBooks = async (userId: string): Promise<Book[]> => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// AI recommendation result cache
+//
+// STRICTLY per-user. The cache key always contains the authenticated user's ID
+// (`ai:recs:{userId}`) so recommendations can never leak between users. Cached
+// value is the AI-ranked book ID list (AiCacheValue); full Book records are
+// always re-queried from Neon on a hit. TTL is a safety net only — user-action
+// invalidation is handled in a later step.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const RECOMMENDATIONS_CACHE_TTL_SECONDS = 3600; // 60 minutes
+const RECOMMENDATIONS_LIMIT = 6;
+
+const buildRecommendationsCacheKey = (userId: string): string =>
+  `ai:recs:${userId}`;
+
+const isValidCacheValue = (
+  value: AiCacheValue | null | undefined
+): value is AiCacheValue => {
+  return (
+    !!value &&
+    Array.isArray(value.ids) &&
+    value.ids.length > 0 &&
+    value.ids.every((id) => typeof id === "string")
+  );
+};
+
+/**
+ * Rehydrates cached AI-ranked IDs into fresh, current Book[] records.
+ * - Re-queries Neon for the cached IDs (fresh availability/rating/etc.).
+ * - Ignores IDs that no longer exist or are no longer available.
+ * - Preserves the cached AI ranking/order.
+ * - Fills any shortfall with the existing popular-book fallback (NO Groq call).
+ */
+const hydrateRecommendationsFromCache = async (
+  ids: string[],
+  excludeIds: string[] = []
+): Promise<Book[]> => {
+  const rows = (await db
+    .select()
+    .from(books)
+    .where(and(inArray(books.id, ids), gt(books.availableCopies, 0)))) as unknown as Book[];
+
+  const rowsById = new Map(rows.map((b) => [b.id, b]));
+
+  // Preserve the cached AI ranking/order.
+  const ordered = ids
+    .map((id) => rowsById.get(id))
+    .filter((b): b is Book => b !== undefined);
+
+  if (ordered.length >= RECOMMENDATIONS_LIMIT) {
+    return ordered.slice(0, RECOMMENDATIONS_LIMIT);
+  }
+
+  const supplement = await getPopularBooks(
+    [...excludeIds, ...ids, ...ordered.map((b) => b.id)],
+    RECOMMENDATIONS_LIMIT - ordered.length
+  );
+  return [...ordered, ...supplement].slice(0, RECOMMENDATIONS_LIMIT);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // AI Enhancement Layer
 // Attempts AI assistance first; falls back to getRecommendedBooks on any failure.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const getAiEnhancedRecommendations = async (userId: string): Promise<Book[]> => {
   try {
+    // ── Cache lookup (best-effort; miss/Redis failure → normal AI flow) ──
+    const cacheKey = buildRecommendationsCacheKey(userId);
+    const cached = await getCacheJson<AiCacheValue>(cacheKey);
+
+    if (isValidCacheValue(cached)) {
+      try {
+        return await hydrateRecommendationsFromCache(cached.ids);
+      } catch (error) {
+        console.warn(
+          "Recommendations cache hydration failed, running AI flow:",
+          error
+        );
+      }
+    }
+
     // Gather user context in parallel
     const [userDataResult, borrowHistory, savedBooksResult] = await Promise.all([
       db
@@ -397,6 +474,18 @@ Example: ["id1","id2","id3","id4","id5","id6"]`;
     );
 
     if (validIds.length === 0) return getRecommendedBooks(userId);
+
+    // Best-effort cache write of the AI-ranked IDs (only after AI success).
+    // Never caches fallback results; a cache failure must never break the
+    // recommendation result path.
+    await setCacheJson(
+      cacheKey,
+      {
+        ids: validIds.slice(0, RECOMMENDATIONS_LIMIT),
+        generatedAt: new Date().toISOString(),
+      },
+      RECOMMENDATIONS_CACHE_TTL_SECONDS
+    );
 
     const aiBooks = (await db
       .select()

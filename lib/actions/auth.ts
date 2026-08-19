@@ -3,6 +3,7 @@
 import { signIn } from "@/auth";
 import { db } from "@/database/drizzle";
 import { users } from "@/database/schema";
+import { deleteCacheKey } from "@/lib/ai-cache";
 import { hash } from "bcryptjs";
 
 import { eq } from "drizzle-orm";
@@ -205,6 +206,10 @@ export const savePreferredGenres = async (params: { userId: string; genres: stri
         onboardingCompleted: true,
       })
       .where(eq(users.id, userId));
+
+    // Preferred genres are recommendation context → invalidate this user's
+    // recommendation cache. Best-effort; Redis failures never affect the action.
+    await deleteCacheKey(`ai:recs:${userId}`);
 
     // Set a short-lived bypass cookie so the middleware allows the very next
     // navigation even before the JWT can be refreshed.

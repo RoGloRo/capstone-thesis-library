@@ -1,5 +1,6 @@
 import { db } from "@/database/drizzle";
 import { books, borrowRecords } from "@/database/schema";
+import { getCacheJson, setCacheJson, type AiCacheValue } from "@/lib/ai-cache";
 import { callOpenRouterChat } from "@/lib/openrouter";
 import { and, desc, eq, inArray, ne, not } from "drizzle-orm";
 

@@ -1,7 +1,9 @@
 import { db } from "@/database/drizzle";
 import { books, borrowRecords, savedBooks } from "@/database/schema";
+import { getCacheJson, setCacheJson, type AiCacheValue } from "@/lib/ai-cache";
 import { callOpenRouterChat } from "@/lib/openrouter";
 import { and, count, desc, eq, gt, inArray, not, sql } from "drizzle-orm";
+import { createHash } from "crypto";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Existing fallback: borrow-count + rating based popular books (unchanged)
@@ -138,12 +140,103 @@ const parseTrendingIds = (content: string): string[] => {
   return [];
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// AI trending result cache
+//
+// Shared across users (NOT per-user). The cache key is derived from `limit` and
+// the user's preferred genres only — `excludeIds` is intentionally left out so
+// the cache is not fragmented per user. Cached value is the AI-ranked book ID
+// list (AiCacheValue); full Book records are always re-queried from Neon.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TRENDING_CACHE_TTL_SECONDS = 1800; // 30 minutes
+
+const hashPreferredGenres = (preferredGenres: string[]): string =>
+  createHash("sha256")
+    .update(JSON.stringify(preferredGenres))
+    .digest("hex");
+
+const buildTrendingCacheKey = (
+  preferredGenres: string[],
+  limit: number
+): string => `ai:trending:${limit}:${hashPreferredGenres(preferredGenres)}`;
+
+const isValidCacheValue = (
+  value: AiCacheValue | null | undefined
+): value is AiCacheValue => {
+  return (
+    !!value &&
+    Array.isArray(value.ids) &&
+    value.ids.length > 0 &&
+    value.ids.every((id) => typeof id === "string")
+  );
+};
+
+/**
+ * Rehydrates cached AI-ranked IDs into fresh, current Book[] records.
+ * - Filters out the current request's `excludeIds` and unavailable books.
+ * - Preserves the cached AI ranking/order.
+ * - Fills any shortfall with the existing popular-book fallback (NO Groq call).
+ */
+const hydrateTrendingFromCache = async (
+  ids: string[],
+  excludeIds: string[],
+  limit: number
+): Promise<Book[]> => {
+  const { getPopularBooks } = await import("@/lib/recommendations");
+
+  const remainingIds = ids.filter((id) => !excludeIds.includes(id));
+
+  if (remainingIds.length === 0) {
+    return getPopularBooks(excludeIds, limit);
+  }
+
+  const rows = (await db
+    .select()
+    .from(books)
+    .where(
+      and(inArray(books.id, remainingIds), gt(books.availableCopies, 0))
+    )) as unknown as Book[];
+
+  const rowsById = new Map(rows.map((b) => [b.id, b]));
+
+  // Preserve the cached AI ranking/order.
+  const ordered = remainingIds
+    .map((id) => rowsById.get(id))
+    .filter((b): b is Book => b !== undefined);
+
+  if (ordered.length < limit) {
+    const supplement = await getPopularBooks(
+      [...excludeIds, ...ordered.map((b) => b.id)],
+      limit - ordered.length
+    );
+    return [...ordered, ...supplement];
+  }
+
+  return ordered.slice(0, limit);
+};
+
 export const getAiTrendingBooks = async (
   excludeIds: string[] = [],
   preferredGenres: string[] = [],
   limit = 6
 ): Promise<Book[]> => {
   const { getPopularBooks } = await import("@/lib/recommendations");
+
+  // ── Cache lookup (best-effort; miss/Redis failure → normal AI flow) ──
+  const cacheKey = buildTrendingCacheKey(preferredGenres, limit);
+  const cached = await getCacheJson<AiCacheValue>(cacheKey);
+
+  if (isValidCacheValue(cached)) {
+    try {
+      return await hydrateTrendingFromCache(cached.ids, excludeIds, limit);
+    } catch (error) {
+      console.warn(
+        "Trending cache hydration failed, running AI flow:",
+        error
+      );
+    }
+  }
 
   try {
     const candidates = await getTrendingCandidates(excludeIds, 40);
@@ -232,6 +325,15 @@ Example: ["id1","id2","id3","id4","id5","id6"]`;
     if (validIds.length === 0) {
       return getPopularBooks(excludeIds, limit);
     }
+
+    // Best-effort cache write of the AI-ranked IDs (only after AI success).
+    // Never caches fallback/popular results, and a cache failure must never
+    // break the AI result path.
+    await setCacheJson(
+      cacheKey,
+      { ids: validIds.slice(0, limit), generatedAt: new Date().toISOString() },
+      TRENDING_CACHE_TTL_SECONDS
+    );
 
     // Map candidates to full Book objects preserving AI order
     const ordered = validIds

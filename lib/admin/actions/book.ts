@@ -3,6 +3,7 @@
 
 import { books } from "@/database/schema";
 import { db } from "@/database/drizzle";
+import { deleteCachesByPattern } from "@/lib/ai-cache";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -57,6 +58,10 @@ export const createBook = async (params: BookParams) => {
         availableCopies: params.totalCopies,
       })
       .returning();
+
+    // A new book changes the trending candidate pool → refresh the shared
+    // trending cache. Best-effort; Redis failures never affect the action.
+    await deleteCachesByPattern("ai:trending:*");
 
     return {
       success: true,
@@ -122,6 +127,10 @@ export const updateBook = async (id: string, params: BookParams) => {
       })
       .where(eq(books.id, id))
       .returning();
+
+    // An edited book changes the trending candidate pool → refresh the shared
+    // trending cache. Best-effort; Redis failures never affect the action.
+    await deleteCachesByPattern("ai:trending:*");
 
     return {
       success: true,
