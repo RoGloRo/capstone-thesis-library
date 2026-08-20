@@ -41,6 +41,87 @@ const getFallbackSimilarBooks = async (
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Book Match result cache
+//
+// Shared across users (NOT per-user). The ranking is based on the current
+// book's metadata (title/author/genre) + the catalog candidate pool, so it is
+// identical for all viewers. The caller's borrowed books (excludeBookIds) are
+// handled at read time by filtering them out of the cached ranking.
+// Cached value is the AI-ranked book ID list (AiCacheValue) only; fresh Book
+// records are always re-queried from Neon on a hit.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BOOK_MATCH_CACHE_TTL_SECONDS = 1800; // 30 minutes
+
+const buildBookMatchCacheKey = (currentBookId: string, limit: number): string =>
+  `ai:book-match:${limit}:${currentBookId}`;
+
+const isValidCacheValue = (
+  value: AiCacheValue | null | undefined
+): value is AiCacheValue => {
+  return (
+    !!value &&
+    Array.isArray(value.ids) &&
+    value.ids.length > 0 &&
+    value.ids.every((id) => typeof id === "string")
+  );
+};
+
+/**
+ * Rehydrates cached AI-ranked IDs into fresh, current Book[] records.
+ * - Filters out the current book and the caller's borrowed/excluded book IDs.
+ * - Re-queries Neon WITHOUT any availability filter (Book Match intentionally
+ *   shows similar books regardless of availability — this must be preserved).
+ * - Ignores IDs that no longer exist (they are dropped during hydration).
+ * - Preserves the cached AI ranking/order.
+ * - Fills any shortfall with the existing genre-based fallback (NO Groq call).
+ */
+const hydrateBookMatchFromCache = async (
+  currentBookId: string,
+  currentBookGenre: string,
+  cachedIds: string[],
+  excludeBookIds: string[],
+  limit: number
+): Promise<Book[]> => {
+  const remainingIds = cachedIds.filter(
+    (id) => id !== currentBookId && !excludeBookIds.includes(id)
+  );
+
+  if (remainingIds.length === 0) {
+    return getFallbackSimilarBooks(
+      currentBookId,
+      currentBookGenre,
+      excludeBookIds,
+      limit
+    );
+  }
+
+  const rows = (await db
+    .select()
+    .from(books)
+    .where(inArray(books.id, remainingIds))) as unknown as Book[];
+
+  const rowsById = new Map(rows.map((b) => [b.id, b]));
+
+  // Preserve the cached AI ranking/order.
+  const ordered = remainingIds
+    .map((id) => rowsById.get(id))
+    .filter((b): b is Book => b !== undefined);
+
+  if (ordered.length >= limit) {
+    return ordered.slice(0, limit);
+  }
+
+  const fallback = await getFallbackSimilarBooks(
+    currentBookId,
+    currentBookGenre,
+    [...excludeBookIds, ...remainingIds],
+    limit - ordered.length
+  );
+  return [...ordered, ...fallback].slice(0, limit);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // AI-enhanced semantic matching, falls back automatically
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -56,6 +137,24 @@ export const getAiSimilarBooks = async (
       excludeBookIds,
       limit
     );
+
+  // ── Cache lookup (best-effort; miss/Redis failure → normal AI flow) ──
+  const cacheKey = buildBookMatchCacheKey(currentBook.id, limit);
+  const cached = await getCacheJson<AiCacheValue>(cacheKey);
+
+  if (isValidCacheValue(cached)) {
+    try {
+      return await hydrateBookMatchFromCache(
+        currentBook.id,
+        currentBook.genre,
+        cached.ids,
+        excludeBookIds,
+        limit
+      );
+    } catch (error) {
+      console.warn("Book-match cache hydration failed, running AI flow:", error);
+    }
+  }
 
   try {
     // Fetch candidate books (exclude current + already-borrowed)
@@ -123,6 +222,15 @@ export const getAiSimilarBooks = async (
     if (validIds.length === 0) {
       return fallbackResult();
     }
+
+    // Best-effort cache write of the AI-ranked IDs (only after genuine AI
+    // success). Never caches fallback-only or fallback-supplement results. A
+    // cache failure must never break the book-match result path.
+    await setCacheJson(
+      cacheKey,
+      { ids: validIds.slice(0, limit), generatedAt: new Date().toISOString() },
+      BOOK_MATCH_CACHE_TTL_SECONDS
+    );
 
     const matchedBooks = (await db
       .select()

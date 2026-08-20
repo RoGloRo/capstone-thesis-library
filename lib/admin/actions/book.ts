@@ -63,6 +63,10 @@ export const createBook = async (params: BookParams) => {
     // trending cache. Best-effort; Redis failures never affect the action.
     await deleteCachesByPattern("ai:trending:*");
 
+    // A new book also changes the similar-books candidate pool → refresh the
+    // shared book-match cache. Best-effort; Redis failures never affect action.
+    await deleteCachesByPattern("ai:book-match:*");
+
     return {
       success: true,
       data: JSON.parse(JSON.stringify(newBook[0])),
@@ -131,6 +135,11 @@ export const updateBook = async (id: string, params: BookParams) => {
     // An edited book changes the trending candidate pool → refresh the shared
     // trending cache. Best-effort; Redis failures never affect the action.
     await deleteCachesByPattern("ai:trending:*");
+
+    // An edited book also changes the similar-books candidate pool → refresh
+    // the shared book-match cache. Best-effort; Redis failures never affect
+    // the action.
+    await deleteCachesByPattern("ai:book-match:*");
 
     return {
       success: true,
