@@ -24,7 +24,7 @@ import FileUpload from "./FileUpload";
 interface Props {
   schema: ZodSchema<any>;
   defaultValues: Record<string, any>;
-  onSubmit: (data: any) => Promise<{ success: boolean; error?: string }>;
+  onSubmit: (data: any) => Promise<{ success: boolean; error?: string; role?: string }>;
   type: "SIGN_IN" | "SIGN_UP";
 }
 
@@ -59,7 +59,7 @@ function AuthForm({
           if (!isSignIn && (result as any).isNewUser) {
             router.push("/select-preferred-genres");
           } else {
-            router.push("/");
+            router.push(result.role === "ADMIN" ? "/admin" : "/");
           }
         }, 1000);
       } else {

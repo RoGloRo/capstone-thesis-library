@@ -42,7 +42,24 @@ export const signInWithCredentials = async (params: Pick<AuthCredentials, "email
     }
     
     console.log("✅ Sign in successful for:", email);
-    return {success: true};
+
+    // Fetch the user's role for post-login routing (ADMIN → /admin, USER → /).
+    // Fail-open to "USER" so a role lookup hiccup never breaks a successful login.
+    let role: "USER" | "ADMIN" = "USER";
+    try {
+      const [signedInUser] = await db
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      role = signedInUser?.role ?? "USER";
+    } catch {
+      // Role lookup failed — keep the login successful. Admin authorization is
+      // still re-verified against the DB by app/admin/layout.tsx on every request.
+    }
+
+    return { success: true, role };
   } catch (error) {
     console.error("❌ Sign in exception:", error);
     
