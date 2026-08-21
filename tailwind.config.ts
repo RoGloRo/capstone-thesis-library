@@ -95,6 +95,13 @@ export default {
   				'700': '#464F6F',
   				'800': '#1E2230'
   			},
+page: 'hsl(var(--page))',
+			surface: 'hsl(var(--surface))',
+			'surface-muted': 'hsl(var(--surface-muted))',
+			ink: 'hsl(var(--ink))',
+			'ink-muted': 'hsl(var(--ink-muted))',
+			line: 'hsl(var(--line))',
+			'accent-green': 'hsl(var(--accent-green))',
   			gray: {
   				'100': '#CBD5E1'
   			},

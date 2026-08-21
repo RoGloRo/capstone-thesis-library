@@ -28,9 +28,10 @@ const Layout = async ({ children }: { children: ReactNode }) => {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="system"
+      defaultTheme="light"
       enableSystem
-      storageKey="admin-theme"
+      disableTransitionOnChange
+      storageKey="smart-library-theme"
     >
       <main className="flex min-h-screen w-full flex-row bg-white dark:bg-gray-900 transition-colors">
         <Sidebar session={session} />

@@ -56,7 +56,7 @@ export default function SaveBookButton({ userId, bookId, initialIsSaved, classNa
           "h-5 w-5 transition-all duration-200",
           isSaved
             ? "fill-amber-400 text-amber-400 drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]"
-            : "text-light-200 hover:text-amber-300"
+            : "text-ink-muted hover:text-amber-600 dark:text-light-200 dark:hover:text-amber-300"
         )}
       />
     </button>

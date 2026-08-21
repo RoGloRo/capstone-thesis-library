@@ -63,10 +63,10 @@ const Page = async () => {
   // If no session, show nothing (or redirect to sign-in as desired)
   if (!session?.user?.id) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 rounded-2xl flex items-center justify-center">
+      <div className="min-h-screen bg-page dark:bg-gradient-to-br dark:from-slate-900 dark:via-blue-900 dark:to-slate-800 rounded-2xl flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Access Required</h2>
-          <p className="text-blue-200">Please sign in to view your profile.</p>
+          <h2 className="text-2xl font-bold text-ink dark:text-white mb-4">Access Required</h2>
+          <p className="text-blue-700 dark:text-blue-200">Please sign in to view your profile.</p>
         </div>
       </div>
     );
@@ -179,7 +179,7 @@ const Page = async () => {
     .limit(1);
 
   if (!userData) {
-    return <p className="text-light-100">User not found.</p>;
+    return <p className="text-ink dark:text-light-100">User not found.</p>;
   }
 
   // Fetch saved books
@@ -197,18 +197,18 @@ const Page = async () => {
   const userStatus = userData.status || 'PENDING';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-800 rounded-2xl">
+    <div className="min-h-screen bg-page dark:bg-gradient-to-br dark:from-slate-900 dark:via-emerald-900 dark:to-slate-800 rounded-2xl">
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold text-white mb-1 sm:mb-2">My Profile</h1>
-            <p className="text-emerald-200 text-sm sm:text-base">Manage your account and library activity</p>
+            <h1 className="text-2xl sm:text-4xl font-bold text-ink dark:text-white mb-1 sm:mb-2">My Profile</h1>
+            <p className="text-green-700 dark:text-emerald-200 text-sm sm:text-base">Manage your account and library activity</p>
           </div>
         </div>
 
         {/* Profile Overview Card */}
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+        <Card className="bg-surface border-line dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-sm">
           <CardHeader className="pb-4 sm:pb-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-emerald-400/50">
@@ -217,8 +217,8 @@ const Page = async () => {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <CardTitle className="text-2xl sm:text-3xl text-white mb-1 sm:mb-2">{userData.fullName}</CardTitle>
-                <div className="flex items-center gap-2 text-emerald-200 mb-1 sm:mb-2">
+                <CardTitle className="text-2xl sm:text-3xl text-ink dark:text-white mb-1 sm:mb-2">{userData.fullName}</CardTitle>
+                <div className="flex items-center gap-2 text-green-700 dark:text-emerald-200 mb-1 sm:mb-2">
                   <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
                   <span className="text-sm sm:text-base truncate">{userData.email}</span>
                 </div>
@@ -242,48 +242,48 @@ const Page = async () => {
         {/* Information Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Personal Information */}
-          <Card className="lg:col-span-2 bg-white/5 border-white/10 backdrop-blur-sm">
+          <Card className="lg:col-span-2 bg-surface border-line dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+              <CardTitle className="text-lg sm:text-xl text-ink dark:text-white flex items-center gap-2">
                 <User className="h-4 w-4 sm:h-5 sm:w-5" />
                 Personal Information
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1">
-                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
                   <User className="h-3 w-3 sm:h-4 sm:w-4" />
                   Full Name
                 </p>
-                <p className="font-medium text-white text-sm sm:text-base">{userData.fullName}</p>
+                <p className="font-medium text-ink dark:text-white text-sm sm:text-base">{userData.fullName}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
                   <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
                   Email
                 </p>
-                <p className="font-medium text-white text-sm sm:text-base break-all">{userData.email}</p>
+                <p className="font-medium text-ink dark:text-white text-sm sm:text-base break-all">{userData.email}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
                   <Hash className="h-3 w-3 sm:h-4 sm:w-4" />
                   University ID
                 </p>
-                <p className="font-medium text-white text-sm sm:text-base">{userData.universityId}</p>
+                <p className="font-medium text-ink dark:text-white text-sm sm:text-base">{userData.universityId}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                   Member Since
                 </p>
-                <p className="font-medium text-white text-sm sm:text-base">{formatDate(userData.createdAt)}</p>
+                <p className="font-medium text-ink dark:text-white text-sm sm:text-base">{formatDate(userData.createdAt)}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs sm:text-sm text-emerald-200 flex items-center gap-2">
+                <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
                   <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                   Last Active
                 </p>
-                <p className="font-medium text-white text-sm sm:text-base">{formatDate(userData.lastActivityDate)}</p>
+                <p className="font-medium text-ink dark:text-white text-sm sm:text-base">{formatDate(userData.lastActivityDate)}</p>
               </div>
               {userData.universityCard && (
                 <div className="flex items-end justify-end">
@@ -292,7 +292,7 @@ const Page = async () => {
                     alt="University ID Card"
                     width={300}
                     height={200}
-                    className="rounded-lg border border-white/20 shadow-md object-contain w-full h-auto"
+                    className="rounded-lg border border-line shadow-md dark:border-white/20 object-contain w-full h-auto"
                   />
                 </div>
               )}
@@ -300,9 +300,9 @@ const Page = async () => {
           </Card>
 
           {/* University Card / QR Code */}
-          <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+          <Card className="bg-surface border-line dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+              <CardTitle className="text-lg sm:text-xl text-ink dark:text-white flex items-center gap-2">
                 <QrCode className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
                 My Library QR Code
               </CardTitle>
@@ -318,9 +318,9 @@ const Page = async () => {
         </div>
 
         {/* Library Statistics */}
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+        <Card className="bg-surface border-line dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+            <CardTitle className="text-lg sm:text-xl text-ink dark:text-white flex items-center gap-2">
               <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
               Library Statistics
             </CardTitle>
@@ -328,42 +328,42 @@ const Page = async () => {
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
               <div className="text-center p-3 sm:p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                <div className="text-xl sm:text-2xl font-bold text-emerald-400 mb-1">{borrowedBooks.length}</div>
-                <div className="text-xs sm:text-sm text-emerald-200">Currently Borrowed</div>
+                <div className="text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-400 mb-1">{borrowedBooks.length}</div>
+                <div className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-200">Currently Borrowed</div>
               </div>
               <div className="text-center p-3 sm:p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-                <div className="text-xl sm:text-2xl font-bold text-green-400 mb-1">{returnedBooks.length}</div>
-                <div className="text-xs sm:text-sm text-green-200">Books Returned</div>
+                <div className="text-xl sm:text-2xl font-bold text-green-700 dark:text-green-400 mb-1">{returnedBooks.length}</div>
+                <div className="text-xs sm:text-sm text-green-800 dark:text-green-200">Books Returned</div>
               </div>
               <div className="text-center p-3 sm:p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                <div className="text-xl sm:text-2xl font-bold text-amber-400 mb-1">{savedBooks.length}</div>
-                <div className="text-xs sm:text-sm text-amber-200">Saved Books</div>
+                <div className="text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-400 mb-1">{savedBooks.length}</div>
+                <div className="text-xs sm:text-sm text-amber-800 dark:text-amber-200">Saved Books</div>
               </div>
               <div className="text-center p-3 sm:p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                <div className="text-xl sm:text-2xl font-bold text-purple-400 mb-1">{borrowedBooks.length + returnedBooks.length}</div>
-                <div className="text-xs sm:text-sm text-purple-200">Total Books Read</div>
+                <div className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-400 mb-1">{borrowedBooks.length + returnedBooks.length}</div>
+                <div className="text-xs sm:text-sm text-purple-800 dark:text-purple-200">Total Books Read</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Saved Books Section */}
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm">
+        <Card className="bg-surface border-line dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+            <CardTitle className="text-lg sm:text-xl text-ink dark:text-white flex items-center gap-2">
               <Bookmark className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
               Saved Books
-              <span className="ml-auto text-sm font-normal text-amber-300">{savedBooks.length} book{savedBooks.length !== 1 ? 's' : ''}</span>
+              <span className="ml-auto text-sm font-normal text-amber-700 dark:text-amber-300">{savedBooks.length} book{savedBooks.length !== 1 ? 's' : ''}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {savedBooks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
                 <Bookmark className="h-12 w-12 text-amber-400/40" />
-                <p className="text-light-200 text-base">You haven&apos;t saved any books yet.</p>
-                <p className="text-sm text-light-400">
+                <p className="text-ink dark:text-light-200 text-base">You haven&apos;t saved any books yet.</p>
+                <p className="text-sm text-ink-muted dark:text-light-400">
                   Browse the{" "}
-                  <Link href="/library" className="text-amber-400 hover:underline">library</Link>{" "}
+                  <Link href="/library" className="text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 hover:underline">library</Link>{" "}
                   and click the bookmark icon to save books for later.
                 </p>
               </div>
@@ -377,7 +377,7 @@ const Page = async () => {
                         userId={session.user!.id as string}
                         bookId={book.id}
                         initialIsSaved={true}
-                        className="h-7 w-7 bg-dark-300/90 hover:bg-dark-300 shadow border border-white/10 rounded-full"
+                        className="h-7 w-7 bg-white/70 hover:bg-white border border-line rounded-full dark:bg-dark-300/90 dark:hover:bg-dark-300 dark:border-white/10"
                       />
                     </div>
                     <Link href={`/books/${book.id}`} className="block hover:opacity-90 transition-opacity">
@@ -389,9 +389,9 @@ const Page = async () => {
                     </Link>
                     <div className="text-center w-full px-1">
                       <Link href={`/books/${book.id}`}>
-                        <p className="text-xs sm:text-sm font-medium text-white line-clamp-2 hover:text-amber-300 transition-colors">{book.title}</p>
+                        <p className="text-xs sm:text-sm font-medium text-ink line-clamp-2 hover:text-amber-600 dark:text-white dark:hover:text-amber-300 transition-colors">{book.title}</p>
                       </Link>
-                      <p className="text-xs text-light-400 truncate">{book.author}</p>
+                      <p className="text-xs text-ink-muted dark:text-light-400 truncate">{book.author}</p>
                     </div>
                   </div>
                 ))}
@@ -402,7 +402,7 @@ const Page = async () => {
 
         {/* Books Section */}
         <div className="space-y-6 sm:space-y-8">
-          <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10 backdrop-blur-sm">
+          <div className="bg-surface rounded-xl p-4 sm:p-6 border border-line dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-sm">
             <BookList 
               title="Currently Borrowed Books" 
               books={borrowedBooks} 
@@ -415,7 +415,7 @@ const Page = async () => {
             />
           </div>
           
-          <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10 backdrop-blur-sm">
+          <div className="bg-surface rounded-xl p-4 sm:p-6 border border-line dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-sm">
             <BookList 
               title="Reading History" 
               books={returnedBooks} 

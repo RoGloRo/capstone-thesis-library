@@ -29,7 +29,7 @@ export default function SearchBar({
   availableGenres
 }: SearchBarProps) {
   return (
-    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-8">
+    <div className="bg-white border border-line rounded-xl p-6 mb-8 shadow-sm dark:bg-white/5 dark:backdrop-blur-sm dark:border-white/10">
       {/* Main Search Bar */}
       <form method="GET" className="space-y-4">
         <div className="relative">
@@ -39,7 +39,7 @@ export default function SearchBar({
             type="text"
             placeholder="Search for books, authors, or genres..."
             defaultValue={currentSearch}
-            className="pl-10 pr-4 py-3 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:bg-white/15 focus:border-blue-400"
+            className="pl-10 pr-4 py-3 bg-surface border border-line text-ink placeholder:text-ink-muted focus:bg-surface focus:border-green-700 dark:bg-white/10 dark:border-white/20 dark:text-white dark:placeholder:text-gray-400 dark:focus:bg-white/15 dark:focus:border-blue-400"
           />
         </div>
         
@@ -49,7 +49,7 @@ export default function SearchBar({
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-gray-400" />
             <Select name="author" defaultValue={currentAuthor || "all"}>
-              <SelectTrigger className="w-[180px] bg-white/10 border-white/20 text-white">
+              <SelectTrigger className="w-[180px] bg-surface border-line text-ink dark:bg-white/10 dark:border-white/20 dark:text-white">
                 <SelectValue placeholder="All Authors" />
               </SelectTrigger>
               <SelectContent>
@@ -67,7 +67,7 @@ export default function SearchBar({
           <div className="flex items-center gap-2">
             <Tag className="h-4 w-4 text-gray-400" />
             <Select name="genre" defaultValue={currentGenre || "all"}>
-              <SelectTrigger className="w-[180px] bg-white/10 border-white/20 text-white">
+              <SelectTrigger className="w-[180px] bg-surface border-line text-ink dark:bg-white/10 dark:border-white/20 dark:text-white">
                 <SelectValue placeholder="All Genres" />
               </SelectTrigger>
               <SelectContent>
@@ -85,7 +85,7 @@ export default function SearchBar({
           <div className="flex items-center gap-2">
             <SortAsc className="h-4 w-4 text-gray-400" />
             <Select name="sort" defaultValue={currentSort || "title"}>
-              <SelectTrigger className="w-[160px] bg-white/10 border-white/20 text-white">
+              <SelectTrigger className="w-[160px] bg-surface border-line text-ink dark:bg-white/10 dark:border-white/20 dark:text-white">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>

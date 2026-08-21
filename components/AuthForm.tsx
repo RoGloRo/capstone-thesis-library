@@ -77,13 +77,13 @@ function AuthForm({
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold text-white">
+      <h1 className="text-2xl font-semibold text-ink dark:text-white">
         {isSignIn
           ? "Welcome back to Smart Library"
           : "Create your library account"}
       </h1>
 
-      <p className="text-light-100">
+      <p className="text-ink-muted dark:text-light-100">
         {isSignIn
           ? "Access the vast collections of resources, and stay updated"
           : "Please complete all fields and upload a valid university ID to gain access to the library"}
@@ -140,7 +140,7 @@ function AuthForm({
           : "Already have an account? "}
         <Link
           href={isSignIn ? "/sign-up" : "/sign-in"}
-          className="font-bold text-primary"
+          className="font-bold text-green-700 hover:text-green-800 dark:text-primary"
         >
           {isSignIn ? "Create an account" : "Sign in"}
         </Link>

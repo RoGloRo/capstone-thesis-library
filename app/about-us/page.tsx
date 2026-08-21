@@ -7,32 +7,32 @@ import { Info, Mail, Phone } from "lucide-react";
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-800 text-slate-50">
+    <main className="min-h-screen bg-page text-ink dark:bg-gradient-to-br dark:from-slate-900 dark:via-green-900 dark:to-slate-800 dark:text-slate-50">
       <div className="container mx-auto px-4 py-12">
         {/* Hero / Intro */}
         <section className="text-center max-w-3xl mx-auto py-8">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-4">About Smart Library</h1>
-          <p className="text-lg sm:text-xl text-slate-200 mb-6">A lightweight, accessible platform for managing school and community library resources.</p>
-          <p className="text-sm sm:text-base text-slate-300">Muntinlupa National High School Smart Library is a digital library management system designed to support students and staff in accessing educational resources more efficiently. It enhances traditional library services by providing an organized, user-friendly platform for browsing books, managing borrow records, and receiving important library updates.</p>
+          <p className="text-lg sm:text-xl text-slate-700 dark:text-slate-200 mb-6">A lightweight, accessible platform for managing school and community library resources.</p>
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Muntinlupa National High School Smart Library is a digital library management system designed to support students and staff in accessing educational resources more efficiently. It enhances traditional library services by providing an organized, user-friendly platform for browsing books, managing borrow records, and receiving important library updates.</p>
         </section>
 
         {/* About Section */}
         <section className="mt-8 max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-semibold mb-4">About Us</h2>
-          <p className="text-slate-300 leading-relaxed">Muntinlupa National High School or simply MNHS is one of the public schools in Muntinlupa, Philippines. Located in NBP Reservation, Brgy. Poblacion, Muntinlupa. The school, established in 1945, is now headed by Mr. Florante Marmeto. This high school is the biggest amongst the public high schools in the city.</p>
+          <p className="text-slate-600 dark:text-slate-300 leading-relaxed">Muntinlupa National High School or simply MNHS is one of the public schools in Muntinlupa, Philippines. Located in NBP Reservation, Brgy. Poblacion, Muntinlupa. The school, established in 1945, is now headed by Mr. Florante Marmeto. This high school is the biggest amongst the public high schools in the city.</p>
         </section>
 
          {/* Mission & Vision Section */}
         <section className="mt-14 max-w-4xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <h3 className="text-xl font-semibold text-slate-100 mb-2">Mission</h3>
-              <p className="text-slate-300 text-sm leading-relaxed">We, the stakeholders of Muntinlupa National High School shall relentlessly strive to provide equal and equitable access to quality education that respond to the cultural, environmental, financial, commercial, industrial, technical and technological demands of the progressively thriving City of Muntinlupa.</p>
+            <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-4">
+              <h3 className="text-xl font-semibold text-ink dark:text-slate-100 mb-2">Mission</h3>
+              <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">We, the stakeholders of Muntinlupa National High School shall relentlessly strive to provide equal and equitable access to quality education that respond to the cultural, environmental, financial, commercial, industrial, technical and technological demands of the progressively thriving City of Muntinlupa.</p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <h3 className="text-xl font-semibold text-slate-100 mb-2">Vision</h3>
-              <p className="text-slate-300 text-sm leading-relaxed">Muntinlupa National High School is a caring and friendly institution of learning transforming Filipino youths into God-loving, productive and lifelong learners in a technologically driven society strongly supported by all stakeholders.</p>
+            <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-4">
+              <h3 className="text-xl font-semibold text-ink dark:text-slate-100 mb-2">Vision</h3>
+              <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">Muntinlupa National High School is a caring and friendly institution of learning transforming Filipino youths into God-loving, productive and lifelong learners in a technologically driven society strongly supported by all stakeholders.</p>
             </div>
           </div>
         </section>
@@ -41,21 +41,21 @@ export default function AboutPage() {
         <section className="mt-12 max-w-4xl mx-auto px-4">
           <h2 className="text-2xl font-semibold mb-4 text-center">Core Values</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <h3 className="font-semibold text-slate-100 mb-2">Maka-Diyos (Pious)</h3>
-              <p className="text-slate-300 text-sm">the concept of being “Maka-Diyos ” refers to the act of the quality or state of being spiritually pure or virtuous.</p>
+            <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-4">
+              <h3 className="font-semibold text-ink dark:text-slate-100 mb-2">Maka-Diyos (Pious)</h3>
+              <p className="text-slate-600 dark:text-slate-300 text-sm">the concept of being “Maka-Diyos ” refers to the act of the quality or state of being spiritually pure or virtuous.</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <h3 className="font-semibold text-slate-100 mb-2">Makakalikasan</h3>
-              <p className="text-slate-300 text-sm">it refers to the ability of man to value our nature or environment.</p>
+            <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-4">
+              <h3 className="font-semibold text-ink dark:text-slate-100 mb-2">Makakalikasan</h3>
+              <p className="text-slate-600 dark:text-slate-300 text-sm">it refers to the ability of man to value our nature or environment.</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <h3 className="font-semibold text-slate-100 mb-2">Makabansa</h3>
-              <p className="text-slate-300 text-sm">the act of having full respect for the country</p>
+            <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-4">
+              <h3 className="font-semibold text-ink dark:text-slate-100 mb-2">Makabansa</h3>
+              <p className="text-slate-600 dark:text-slate-300 text-sm">the act of having full respect for the country</p>
             </div>
-            <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-              <h3 className="font-semibold text-slate-100 mb-2">Makatao</h3>
-              <p className="text-slate-300 text-sm">the concept of being “Makatao” refers to the act of being human or having a sense of humanity.</p>
+            <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-4">
+              <h3 className="font-semibold text-ink dark:text-slate-100 mb-2">Makatao</h3>
+              <p className="text-slate-600 dark:text-slate-300 text-sm">the concept of being “Makatao” refers to the act of being human or having a sense of humanity.</p>
             </div>
           </div>
         </section>
@@ -66,30 +66,30 @@ export default function AboutPage() {
 
           <div className="space-y-3">
             <Collapsible>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+              <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-3">
                 <CollapsibleTrigger asChild>
-                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-slate-100 font-medium">
+                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-ink dark:text-slate-100 font-medium">
                     <span>What is this library app?</span>
-                    <span className="text-slate-400">+</span>
+                    <span className="text-slate-500 dark:text-slate-400">+</span>
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="pt-2 text-slate-300">
+                  <div className="pt-2 text-slate-600 dark:text-slate-300">
                     <p>The library app allows users to browse and search for books, borrow and return them, and view their borrowing history.</p>
                   </div>
                 </CollapsibleContent>
               </div>
             </Collapsible>
             <Collapsible defaultOpen={false}>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+              <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-3">
                 <CollapsibleTrigger asChild>
-                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-slate-100 font-medium">
+                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-ink dark:text-slate-100 font-medium">
                     <span>How to borrow books</span>
-                    <span className="text-slate-400">+</span>
+                    <span className="text-slate-500 dark:text-slate-400">+</span>
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="pt-2 text-slate-300">
+                  <div className="pt-2 text-slate-600 dark:text-slate-300">
                     <p>You can borrow a book by browsing through the available books, click a book and clicking the "Borrow" button.</p>
                   </div>
                 </CollapsibleContent>
@@ -97,15 +97,15 @@ export default function AboutPage() {
             </Collapsible>
 
             <Collapsible>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+              <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-3">
                 <CollapsibleTrigger asChild>
-                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-slate-100 font-medium">
+                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-ink dark:text-slate-100 font-medium">
                     <span>Borrowing limits</span>
-                    <span className="text-slate-400">+</span>
+                    <span className="text-slate-500 dark:text-slate-400">+</span>
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="pt-2 text-slate-300">
+                  <div className="pt-2 text-slate-600 dark:text-slate-300">
                     <p>Users can only borrow a book if they have an account and if they are approved by the admin. And they can only borrow one book at a time.</p>
                   </div>
                 </CollapsibleContent>
@@ -113,15 +113,15 @@ export default function AboutPage() {
             </Collapsible>
 
             <Collapsible>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+              <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-3">
                 <CollapsibleTrigger asChild>
-                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-slate-100 font-medium">
+                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-ink dark:text-slate-100 font-medium">
                     <span>Due dates and penalties</span>
-                    <span className="text-slate-400">+</span>
+                    <span className="text-slate-500 dark:text-slate-400">+</span>
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="pt-2 text-slate-300">
+                  <div className="pt-2 text-slate-600 dark:text-slate-300">
                     <p> Return the books before the due date. Overdue books incur a penalty depending on the school policy.</p>
                   </div>
                 </CollapsibleContent>
@@ -129,15 +129,15 @@ export default function AboutPage() {
             </Collapsible>
 
             <Collapsible>
-              <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+              <div className="bg-surface border border-line rounded-lg dark:bg-white/5 dark:border-white/10 p-3">
                 <CollapsibleTrigger asChild>
-                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-slate-100 font-medium">
+                  <button className="w-full text-left flex items-center justify-between py-3 px-2 text-ink dark:text-slate-100 font-medium">
                     <span>Operating Hours</span>
-                    <span className="text-slate-400">+</span>
+                    <span className="text-slate-500 dark:text-slate-400">+</span>
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="pt-2 text-slate-300">
+                  <div className="pt-2 text-slate-600 dark:text-slate-300">
                     <p>The library is open from 8:00 AM to 4:00 PM, Monday to Friday.</p>
                   </div>
                 </CollapsibleContent>
@@ -149,7 +149,7 @@ export default function AboutPage() {
         {/* Contact Information Section */}
         <section className="mt-12 max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-semibold mb-4">Contact Information</h2>
-          <div className="space-y-3 text-slate-300">
+          <div className="space-y-3 text-slate-600 dark:text-slate-300">
             <p className="flex items-center justify-center gap-2">
               <Mail className="w-4 h-4 text-emerald-300" />
               <a href="mailto:OfficialMNHS@gmail.com" className="text-emerald-200 hover:underline">OfficialMNHS@gmail.com</a>

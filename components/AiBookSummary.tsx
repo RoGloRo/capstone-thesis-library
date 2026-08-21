@@ -58,7 +58,7 @@ export default function AiBookSummary({ title, author, description }: Props) {
 
       {summary && (
         <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4">
-          <p className="text-xl text-light-100 leading-relaxed">{summary}</p>
+          <p className="text-xl text-ink dark:text-light-100 leading-relaxed">{summary}</p>
         </div>
       )}
 
@@ -69,7 +69,7 @@ export default function AiBookSummary({ title, author, description }: Props) {
       <Button
         onClick={handleGenerate}
         disabled={loading}
-        className="flex w-fit items-center gap-2 rounded-lg bg-dark-300 px-5 py-2.5 text-sm font-medium text-light-100 hover:bg-dark-400 border border-green-500/30 hover:border-green-500/60 transition-colors disabled:opacity-60 max-md:w-full"
+        className="flex w-fit items-center gap-2 rounded-lg bg-surface px-5 py-2.5 text-sm font-medium text-ink hover:bg-surface-muted border border-line hover:border-green-500/60 transition-colors disabled:opacity-60 max-md:w-full dark:bg-dark-300 dark:text-light-100 dark:hover:bg-dark-400 dark:border-green-500/30 dark:hover:border-green-500/60"
       >
         {loading ? (
           <>

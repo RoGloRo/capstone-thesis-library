@@ -139,14 +139,14 @@ const BookCard = ({
                 userId={userId}
                 bookId={id}
                 initialIsSaved={isSaved}
-                className="h-8 w-8 bg-dark-300/80 hover:bg-dark-300 shadow-md backdrop-blur-sm rounded-full"
+                className="h-8 w-8 bg-white/70 hover:bg-white shadow-md backdrop-blur-sm rounded-full border border-line dark:bg-dark-300/80 dark:hover:bg-dark-300 dark:border-transparent"
               />
             </div>
           )}
         </div>
 
         <div className={cn("mt-4", !isLoanedBook && "xs:max-w-40 max-w-28")}>
-          <p className="book-title sm:group-hover:text-amber-300 sm:transition-colors sm:duration-300">{title}</p>
+          <p className="book-title sm:group-hover:text-amber-600 dark:sm:group-hover:text-amber-300 sm:transition-colors sm:duration-300">{title}</p>
           <p className="book-genre">{genre}</p>
           <p className="text-sm text-muted-foreground mt-1">
             <span className="sm:hidden">{availableCopies}/{totalCopies}</span>
@@ -158,7 +158,7 @@ const BookCard = ({
           <div className="mt-3 w-full">
             <div className="book-loaned">
               <Image src="/icons/calendar.svg" alt="calendar" width={18} height={18} className="object-contain" />
-              <p className="text-light-100 text-sm sm:text-base">{dueText}</p>
+              <p className="text-ink dark:text-light-100 text-sm sm:text-base">{dueText}</p>
             </div>
             <div className="mt-3 flex flex-col gap-3 w-full">
               {/* Download Receipt Button */}

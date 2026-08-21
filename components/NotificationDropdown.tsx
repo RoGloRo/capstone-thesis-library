@@ -172,10 +172,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-200/80 z-50 max-h-[70vh] sm:max-h-96 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200/80 dark:border-gray-700 z-50 max-h-[70vh] sm:max-h-96 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900">Notifications</h3>
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100 dark:border-gray-800">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
             <button
               onClick={onClose}
               className="p-1 rounded-lg hover:bg-gray-100 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center touch-manipulation"
@@ -210,7 +210,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 <p className="text-gray-400 text-xs sm:text-sm">You're all caught up!</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {notifications.map((notification) => {
                   const config = getNotificationConfig(notification.emailType);
                   const IconComponent = config.icon;
@@ -218,7 +218,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                   return (
                     <div
                       key={notification.id}
-                      className="p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer touch-manipulation"
+                      className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer touch-manipulation"
                     >
                       <div className="flex items-start gap-2 sm:gap-3">
                         <div className={cn(
@@ -242,7 +242,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                             </span>
                           </div>
                           
-                          <p className="text-xs sm:text-sm text-gray-900 font-medium line-clamp-2 break-words">
+                          <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium line-clamp-2 break-words">
                             {notification.subject}
                           </p>
                         </div>
@@ -256,7 +256,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="p-2 sm:p-3 border-t border-gray-100 bg-gray-50">
+            <div className="p-2 sm:p-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
               <button
                 onClick={() => {
                   // Optional: Navigate to full notifications page

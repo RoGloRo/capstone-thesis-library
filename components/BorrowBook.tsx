@@ -68,9 +68,9 @@ const BorrowBook = ({
   return (
     <div className="flex flex-col gap-4 w-full">
       {/* Borrow Duration Selector */}
-      <div className="rounded-xl bg-dark-300/60 border border-dark-600 p-4 flex flex-col gap-3">
+      <div className="rounded-xl bg-surface border border-line shadow-sm p-4 flex flex-col gap-3 dark:bg-dark-300/60 dark:border-dark-600">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-light-200">Borrow Duration</span>
+          <span className="text-sm font-medium text-ink dark:text-light-200">Borrow Duration</span>
           <span className="text-sm font-bold text-green-500">
             {borrowDays} {borrowDays === 1 ? "day" : "days"}
           </span>
@@ -85,16 +85,16 @@ const BorrowBook = ({
             value={borrowDays}
             onChange={(e) => setBorrowDays(Number(e.target.value))}
             disabled={!isEligible || borrowing}
-            className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-green-500 bg-dark-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-green-500 bg-gray-300 dark:bg-dark-600 disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <div className="flex justify-between text-xs text-light-500 mt-1 select-none">
+          <div className="flex justify-between text-xs text-ink-muted dark:text-light-500 mt-1 select-none">
             <span>1 day</span>
             <span>30 days</span>
           </div>
         </div>
 
         {/* Due Date Preview */}
-        <div className="flex items-center gap-2 rounded-lg bg-dark-400/50 px-3 py-2">
+        <div className="flex items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 dark:bg-dark-400/50">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-4 w-4 text-green-500 shrink-0"
@@ -109,7 +109,7 @@ const BorrowBook = ({
               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-          <p className="text-xs text-light-200">
+          <p className="text-xs text-ink dark:text-light-200">
             Due date:{" "}
             <span className="font-semibold text-green-400">{dueDateLabel}</span>
           </p>

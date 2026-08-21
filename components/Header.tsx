@@ -10,6 +10,7 @@ import React, { FormEvent, useState, useEffect, useRef } from "react";
 import { LogOut, Menu, X, Home, Library, Bell, User, MessageSquare, Info } from "lucide-react";
 import NotificationDropdown from "@/components/NotificationDropdown";
 import LogoutConfirmation from "@/components/ui/logout-confirmation";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 const Header = ({session}: {session: Session}) => {
   const pathname = usePathname();
@@ -305,6 +306,9 @@ const Header = ({session}: {session: Session}) => {
           </Link>
         )}
         
+        {/* Theme Toggle */}
+        <ModeToggle />
+
         {/* Notification Bell with Dropdown */}
         <NotificationDropdown
           isOpen={isNotificationOpen}
@@ -433,13 +437,16 @@ const Header = ({session}: {session: Session}) => {
           {/* Menu Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200/60">
             <h2 className="text-lg font-semibold text-gray-800">Navigation</h2>
-            <button
-              onClick={closeMobileMenu}
-              className="p-2 text-gray-600 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 rounded-lg"
-              aria-label="Close navigation menu"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-3">
+              <ModeToggle />
+              <button
+                onClick={closeMobileMenu}
+                className="p-2 text-gray-600 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 rounded-lg"
+                aria-label="Close navigation menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Menu Content */}

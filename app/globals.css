@@ -29,6 +29,15 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* Smart Library semantic theme tokens (light defaults) */
+    --page: 145 30% 97%;
+    --surface: 0 0% 100%;
+    --surface-muted: 145 35% 95%;
+    --ink: 150 40% 14%;
+    --ink-muted: 150 15% 42%;
+    --line: 145 20% 90%;
+    --accent-green: 150 97% 34%;
   }
 
   .dark {
@@ -56,6 +65,15 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Semantic Library theme tokens (dark overrides) */
+    --page: 220 30% 11%;
+    --surface: 220 30% 11%;
+    --surface-muted: 217 33% 16%;
+    --ink: 210 40% 98%;
+    --ink-muted: 215 24% 64%;
+    --line: 217 33% 24%;
+    --accent-green: 150 60% 45%;
   }
 
   .hide-scrollbar::-webkit-scrollbar {
@@ -88,16 +106,16 @@
   }
 
   .form-input {
-    @apply w-full min-h-14 border-none text-base font-bold placeholder:font-normal text-white placeholder:text-light-100 focus-visible:ring-0 focus-visible:shadow-none bg-dark-300 !important;
+    @apply w-full min-h-14 border-none text-base font-bold placeholder:font-normal text-ink placeholder:text-ink-muted focus-visible:ring-0 focus-visible:shadow-none bg-surface shadow-sm dark:bg-dark-300 dark:text-white dark:placeholder:text-light-100 !important;
   }
 
   /* Book Card */
   .book-title {
-    @apply mt-2 line-clamp-1 text-base font-semibold text-white xs:text-xl;
+    @apply mt-2 line-clamp-1 text-base font-semibold text-ink dark:text-white xs:text-xl;
   }
 
   .book-genre {
-    @apply mt-1 line-clamp-1 text-sm italic text-light-100 xs:text-base;
+    @apply mt-1 line-clamp-1 text-sm italic text-ink-muted dark:text-light-100 xs:text-base;
   }
 
   .book-loaned {
@@ -159,11 +177,11 @@
      Tailwind @layer utilities always overrides @layer components, so text-size
      utilities here have no effect. */
   .book-overview h1 {
-    @apply font-bold text-white;
+    @apply font-bold text-ink dark:text-white;
   }
 
   .book-info {
-    @apply mt-7 flex flex-row flex-wrap gap-3 sm:gap-4 text-base sm:text-xl text-light-100;
+    @apply mt-7 flex flex-row flex-wrap gap-3 sm:gap-4 text-base sm:text-xl text-ink dark:text-light-100;
   }
 
   .book-copies {
@@ -171,15 +189,15 @@
   }
 
   .book-copies p {
-    @apply text-base sm:text-xl text-light-100;
+    @apply text-base sm:text-xl text-ink dark:text-light-100;
   }
 
   .book-copies p span {
-    @apply ml-2 font-semibold text-primary;
+    @apply ml-2 font-semibold text-accent-green dark:text-primary;
   }
 
   .book-description {
-    @apply mt-2 text-justify text-sm lg:text-xl text-light-100;
+    @apply mt-2 text-justify text-sm lg:text-xl text-ink dark:text-light-100;
   }
 
   .book-overview_btn {
@@ -201,11 +219,11 @@
 
   /* Search */
   .search {
-    @apply relative mt-10 flex min-h-14 w-full items-center rounded-xl bg-dark-300 px-4;
+    @apply relative mt-10 flex min-h-14 w-full items-center rounded-xl bg-surface-muted dark:bg-dark-300 px-4;
   }
 
   .search-input {
-    @apply w-full border-none font-bold placeholder:font-normal text-white placeholder:text-light-100 focus-visible:ring-0 focus-visible:shadow-none !important;
+    @apply w-full border-none font-bold placeholder:font-normal text-ink placeholder:text-ink-muted focus-visible:ring-0 focus-visible:shadow-none dark:text-white dark:placeholder:text-light-100 !important;
   }
 
   /* Book Receipt */
@@ -248,11 +266,11 @@
   }
 
   #not-found h4 {
-    @apply text-white mt-6 font-semibold text-2xl;
+    @apply font-semibold mt-6 text-2xl text-ink dark:text-white;
   }
 
   #not-found p {
-    @apply text-light-100 w-[360px] mt-1;
+    @apply text-ink-muted w-[360px] mt-1 dark:text-light-100;
   }
 
   .not-found-btn {
@@ -278,15 +296,15 @@
 
   /* Sort */
   .select-trigger {
-    @apply w-40 h-10 px-4 bg-dark-300 text-light-100 border-dark-100 !important;
+    @apply w-40 h-10 px-4 bg-surface text-ink border-line dark:bg-dark-300 dark:text-light-100 dark:border-dark-100 !important;
   }
 
   .select-content {
-    @apply bg-dark-300 text-light-100 border-dark-100 !important;
+    @apply bg-surface text-ink border-line dark:bg-dark-300 dark:text-light-100 dark:border-dark-100 !important;
   }
 
   .select-item {
-    @apply focus:bg-dark-600 focus:text-light-100 !important;
+    @apply focus:bg-emerald-100/70 focus:text-ink dark:focus:bg-dark-100 dark:focus:text-light-100 !important;
   }
 }
 
@@ -305,15 +323,21 @@
 
   /* Auth */
   .auth-container {
-    @apply relative flex flex-col-reverse text-light-100 sm:flex-row;
+    @apply relative flex flex-col-reverse text-ink dark:text-light-100 sm:flex-row;
   }
 
   .auth-form {
-    @apply my-auto flex h-full min-h-screen flex-1 items-center bg-pattern bg-cover bg-top bg-dark-100 px-5 py-10;
+    @apply my-auto flex h-full min-h-screen flex-1 items-center bg-page dark:bg-pattern dark:bg-cover dark:bg-top dark:bg-dark-100 px-5 py-10;
   }
 
   .auth-box {
-    @apply gradient-vertical mx-auto flex max-w-xl flex-col gap-6 rounded-lg p-10;
+    @apply mx-auto flex max-w-xl flex-col gap-6 rounded-lg p-10;
+    background: linear-gradient(180deg, #ffffff 0%, #f2f7f2 100%);
+  }
+
+  .dark .auth-box {
+    @apply mx-auto flex max-w-xl flex-col gap-6 rounded-lg p-10;
+    background: linear-gradient(180deg, #12141d 0%, #12151f 100%);
   }
 
   .auth-illustration {
@@ -322,7 +346,7 @@
 
   /* Root */
   .root-container {
-    @apply flex min-h-screen flex-1 flex-col bg-pattern bg-cover bg-top bg-dark-100 px-5 xs:px-10 md:px-16 overflow-x-hidden;
+    @apply flex min-h-screen flex-1 flex-col bg-page dark:bg-pattern dark:bg-cover dark:bg-top dark:bg-dark-100 px-5 xs:px-10 md:px-16 overflow-x-hidden;
   }
 
   /* Book Details */
@@ -331,7 +355,7 @@
   }
 
   .book-details h3 {
-    @apply text-xl font-semibold text-primary;
+    @apply text-xl font-semibold text-accent-green dark:text-primary;
   }
 
   /* Library */
@@ -340,10 +364,16 @@
   }
 
   .library-subtitle {
-    @apply text-lg font-semibold uppercase text-light-100;
+    @apply text-lg font-semibold uppercase text-ink-muted dark:text-light-100;
   }
 
   .library-title {
-    @apply mt-2 text-3xl font-semibold text-white xs:text-5xl;
+    @apply mt-2 text-3xl font-semibold text-ink dark:text-white xs:text-5xl;
+  }
+}
+@layer base {
+  body {
+    background-color: hsl(var(--page));
+    color: hsl(var(--ink));
   }
 }

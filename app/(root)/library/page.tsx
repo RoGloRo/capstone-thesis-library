@@ -91,15 +91,15 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-800">
+    <div className="min-h-screen bg-page dark:bg-gradient-to-br dark:from-slate-900 dark:via-green-900 dark:to-slate-800">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 flex items-center gap-3">
+          <h1 className="text-4xl font-bold text-ink dark:text-white mb-2 flex items-center gap-3">
             <BookOpen className="h-8 w-8" />
             Library
           </h1>
-          <p className="text-blue-200">Discover and explore our book collection</p>
+          <p className="text-blue-700 dark:text-blue-200">Discover and explore our book collection</p>
         </div>
         
         {/* Search Bar */}
@@ -115,19 +115,19 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
         {/* Active Filters */}
         {(search || author || genre) && (
           <div className="mb-6 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-blue-200">Active filters:</span>
+            <span className="text-sm text-blue-700 dark:text-blue-200">Active filters:</span>
             {search && (
-              <Badge variant="secondary" className="bg-blue-500/20 text-blue-200">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
                 Search: &ldquo;{decodeURIComponent(search)}&rdquo;
               </Badge>
             )}
             {author && (
-              <Badge variant="secondary" className="bg-green-500/20 text-green-200">
+              <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-200">
                 Author: {decodeURIComponent(author)}
               </Badge>
             )}
             {genre && (
-              <Badge variant="secondary" className="bg-purple-500/20 text-purple-200">
+              <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200">
                 Genre: {decodeURIComponent(genre)}
               </Badge>
             )}
@@ -145,7 +145,7 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
         
         {/* Results Count */}
         <div className="mb-6">
-          <p className="text-blue-200">
+          <p className="text-blue-700 dark:text-blue-200">
             {filteredBooks.length === 0 
               ? 'No books found'
               : `${filteredBooks.length} book${filteredBooks.length === 1 ? '' : 's'} found`
@@ -160,9 +160,9 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
 
         {/* Books Grid */}
         {filteredBooks.length === 0 ? (
-          <div className="text-center py-16 rounded-2xl border border-white/10">
+          <div className="text-center py-16 rounded-2xl border border-line dark:border-white/10">
             <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">No Books Found</h3>
+            <h3 className="text-xl font-semibold text-ink dark:text-white mb-2">No Books Found</h3>
             <p className="text-gray-400 mb-4">
               {search || author || genre 
                 ? 'Try adjusting your search criteria or filters'
@@ -181,7 +181,7 @@ export default async function LibraryPage({ searchParams }: SearchParams) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 p-3 sm:p-6 rounded-2xl border border-white/10">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 p-3 sm:p-6 rounded-2xl border border-line dark:border-white/10">
             {filteredBooks.map((book) => (
               <BookCard
                 key={book.id}

@@ -70,14 +70,14 @@ const isSaved = savedIds.includes(id);
       <div className="flex flex-1 flex-col gap-5 w-full min-w-0">
         <div className="flex items-start gap-3">
           <Link href={`/books/${id}`} className="hover:opacity-80 transition-opacity flex-1">
-            <h1 className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white hover:underline">{title}</h1>
+            <h1 className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold hover:underline">{title}</h1>
           </Link>
           {user && (
             <SaveBookButton
               userId={userId}
               bookId={id}
               initialIsSaved={isSaved}
-              className="mt-1 h-9 w-9 bg-dark-300/60 hover:bg-dark-300 border border-white/10 rounded-full shrink-0"
+              className="mt-1 h-9 w-9 bg-white/70 hover:bg-white border border-line rounded-full shrink-0 dark:bg-dark-300/60 dark:hover:bg-dark-300 dark:border-white/10"
             />
           )}
         </div>
@@ -87,7 +87,7 @@ const isSaved = savedIds.includes(id);
             By{" "}
             <Link 
               href={`/library?author=${encodeURIComponent(author)}`}
-              className="font-semibold text-light-200 hover:underline hover:opacity-90 transition-opacity"
+              className="font-semibold text-ink-muted hover:underline hover:opacity-90 transition-opacity dark:text-light-200"
             >
               {author}
             </Link>
@@ -97,7 +97,7 @@ const isSaved = savedIds.includes(id);
             Category{" "}
             <Link 
               href={`/library?genre=${encodeURIComponent(genre)}`}
-              className="font-semibold text-light-200 hover:underline hover:opacity-90 transition-opacity"
+              className="font-semibold text-ink-muted hover:underline hover:opacity-90 transition-opacity dark:text-light-200"
             >
               {genre}
             </Link>

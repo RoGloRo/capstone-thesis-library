@@ -88,18 +88,18 @@ export default function GenreSelector({ genres, userId }: Props) {
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
           <div className="h-16 w-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-            <BookOpen className="h-8 w-8 text-emerald-400" />
+            <BookOpen className="h-8 w-8 text-green-700 dark:text-emerald-400" />
           </div>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+        <h1 className="text-3xl sm:text-4xl font-bold text-ink dark:text-white mb-3">
           What do you love to read?
         </h1>
-        <p className="text-light-200 text-base sm:text-lg max-w-xl mx-auto">
+        <p className="text-ink dark:text-light-200 text-base sm:text-lg max-w-xl mx-auto">
           Select your favourite genres so we can personalise your reading
           recommendations. Pick as many as you like!
         </p>
         {selected.size > 0 && (
-          <p className="mt-2 text-sm text-emerald-400 font-medium">
+          <p className="mt-2 text-sm text-green-700 dark:text-emerald-400 font-medium">
             {selected.size} genre{selected.size !== 1 ? "s" : ""} selected
           </p>
         )}
@@ -119,7 +119,7 @@ export default function GenreSelector({ genres, userId }: Props) {
                 "border-2 flex items-center justify-between gap-2",
                 isSelected
                   ? `bg-gradient-to-br ${gradient} border-white/40 text-white shadow-lg scale-[1.02]`
-                  : "bg-dark-300/50 border-white/10 text-light-200 hover:border-emerald-500/50 hover:text-white hover:bg-dark-300/80"
+                  : "bg-surface border-line text-ink hover:border-emerald-500/50 hover:text-green-700 dark:bg-dark-300/50 dark:border-white/10 dark:text-light-200 dark:hover:text-white dark:hover:bg-dark-300/80"
               )}
             >
               <span className="truncate">{genre}</span>
@@ -135,7 +135,7 @@ export default function GenreSelector({ genres, userId }: Props) {
 
       {/* CTA */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p className="text-sm text-light-400 text-center sm:text-left">
+        <p className="text-sm text-ink-muted dark:text-light-400 text-center sm:text-left">
           You can always update your preferences later from your profile.
         </p>
         <button

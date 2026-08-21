@@ -16,17 +16,17 @@ const Layout = async ({ children }: { children: ReactNode }) => {
         <div className="auth-box">
           <div className="flex flex-row gap-3">
             <Image src="/icons/logo.svg" alt="logo" width={37} height={37} />
-            <h1 className="text-2xl font-semibold text-white">Smart Library</h1>
+            <h1 className="text-2xl font-semibold text-ink dark:text-white">Smart Library</h1>
           </div>
           <div>{children}</div>
           {/* Footer directly below the auth form */}
           <div className="mt-6 text-center">
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-ink-muted dark:text-slate-400">
               <span>© Smart Library</span>
               <span className="mx-2">|</span>
-              <Link href="/about-us" className="text-slate-300 hover:text-slate-100 hover:underline transition-colors duration-150">About</Link>
+              <Link href="/about-us" className="text-ink hover:text-green-700 dark:text-slate-300 dark:hover:text-slate-100 hover:underline transition-colors duration-150">About</Link>
               <span className="mx-2">|</span>
-              <Link href="/about-us" className="text-slate-300 hover:text-slate-100 hover:underline transition-colors duration-150">Contact</Link>
+              <Link href="/about-us" className="text-ink hover:text-green-700 dark:text-slate-300 dark:hover:text-slate-100 hover:underline transition-colors duration-150">Contact</Link>
             </div>
           </div>
         </div>
