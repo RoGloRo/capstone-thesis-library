@@ -152,13 +152,13 @@ export default function AboutPage() {
           <div className="space-y-3 text-slate-600 dark:text-slate-300">
             <p className="flex items-center justify-center gap-2">
               <Mail className="w-4 h-4 text-emerald-300" />
-              <a href="mailto:OfficialMNHS@gmail.com" className="text-emerald-200 hover:underline">OfficialMNHS@gmail.com</a>
+              <a href="mailto:mnhsmainiris@gmail.com" className="text-emerald-200 hover:underline">mnhsmainiris@gmail.com</a>
             </p>
             <p className="flex items-center justify-center gap-2">
               <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path fill="currentColor" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.876v-6.99H7.898v-2.886h2.54V9.797c0-2.506 1.492-3.89 3.776-3.89 1.094 0 2.238.195 2.238.195v2.462h-1.26c-1.243 0-1.63.772-1.63 1.562v1.875h2.773l-.444 2.886h-2.329v6.99C18.343 21.128 22 16.991 22 12z" />
               </svg>
-              <a href="https://www.facebook.com/p/Muntinlupa-National-High-School-61557405626625/" target="_blank" rel="noreferrer" className="text-emerald-200 hover:underline">FB: Muntinlupa National High School</a>
+              <a href="https://www.facebook.com/mnhsmainiris" target="_blank" rel="noreferrer" className="text-emerald-200 hover:underline">FB: Muntinlupa National High School- Learning Resource Center</a>
             </p>
             <p className="flex items-center justify-center gap-2">
               <Phone className="w-4 h-4 text-amber-300" />

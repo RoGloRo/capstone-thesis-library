@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
+import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 
 const Layout = async ({ children }: { children: ReactNode }) => {
 
@@ -12,6 +13,11 @@ const Layout = async ({ children }: { children: ReactNode }) => {
 
   return (
     <main className="auth-container">
+      {/* Theme toggle — unobtrusive top-right corner */}
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggleButton />
+      </div>
+
       <section className="auth-form">
         <div className="auth-box">
           <div className="flex flex-row gap-3">
