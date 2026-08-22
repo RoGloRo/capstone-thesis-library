@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
           - The book may not be available or may already be borrowed.
           - The developers of this app/website are General Lemor Oquias, Paul Balisi, and Kenneth Sedava.
           - If you need further assistance, please contact the library directly:
-          📧 contact@lemoroquias.online
-          📞 09933703396
+          📧 mnhsmainiris@gmail.com
+          📞 Messenger - Muntinlupa National High School- Learning Resource Center
           `
       },
       {
