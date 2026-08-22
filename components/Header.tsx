@@ -12,7 +12,7 @@ import NotificationDropdown from "@/components/NotificationDropdown";
 import LogoutConfirmation from "@/components/ui/logout-confirmation";
 import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 
-const Header = ({session}: {session: Session}) => {
+const Header = ({session}: {session: Session | null}) => {
   const pathname = usePathname();
   const router = useRouter();
 
