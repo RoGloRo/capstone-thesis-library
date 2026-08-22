@@ -96,7 +96,7 @@
   }
 
   html, body {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 }
 
@@ -107,6 +107,56 @@
 
   .form-input {
     @apply w-full min-h-14 border-none text-base font-bold placeholder:font-normal text-ink placeholder:text-ink-muted focus-visible:ring-0 focus-visible:shadow-none bg-surface shadow-sm dark:bg-dark-300 dark:text-white dark:placeholder:text-light-100 !important;
+  }
+
+  /* User Header (full-width, sticky, scroll-aware surface) */
+  .user-header {
+    position: relative;
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition: border-color 250ms ease-out, box-shadow 250ms ease-out;
+  }
+
+  /* Faded surface shown once the user scrolls (light mode) */
+  .user-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(to right, #EDF7F1, #E6F1E9, #DEF0E4);
+    opacity: 0;
+    transition: opacity 250ms ease-out;
+  }
+
+  .user-header-scrolled {
+    border-bottom-color: rgba(2, 122, 72, 0.12);
+    box-shadow: 0 1px 10px rgba(2, 122, 72, 0.06);
+  }
+
+  .user-header-scrolled::before {
+    opacity: 1;
+  }
+
+  /* Dark mode: transparent at top, deep forest-emerald when scrolled */
+  .dark .user-header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(to right, #0F261B, #15332A, #1A3B31);
+    opacity: 0;
+    transition: opacity 250ms ease-out;
+  }
+
+  .dark .user-header-scrolled {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+  }
+
+  .dark .user-header-scrolled::before {
+    opacity: 1;
   }
 
   /* Book Card */
@@ -346,7 +396,7 @@
 
   /* Root */
   .root-container {
-    @apply flex min-h-screen flex-1 flex-col bg-page dark:bg-pattern dark:bg-cover dark:bg-top dark:bg-dark-100 px-5 xs:px-10 md:px-16 overflow-x-hidden;
+    @apply flex min-h-screen flex-1 flex-col bg-page dark:bg-pattern dark:bg-cover dark:bg-top dark:bg-dark-100 px-5 xs:px-10 md:px-16 overflow-x-clip;
   }
 
   /* Book Details */

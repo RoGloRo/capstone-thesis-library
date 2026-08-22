@@ -10,7 +10,7 @@ import React, { FormEvent, useState, useEffect, useRef } from "react";
 import { LogOut, Menu, X, Home, Library, Bell, User, MessageSquare, Info } from "lucide-react";
 import NotificationDropdown from "@/components/NotificationDropdown";
 import LogoutConfirmation from "@/components/ui/logout-confirmation";
-import { ModeToggle } from "@/components/ui/mode-toggle";
+import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
 
 const Header = ({session}: {session: Session}) => {
   const pathname = usePathname();
@@ -23,6 +23,21 @@ const Header = ({session}: {session: Session}) => {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Track scroll: switch the header from a transparent surface to a colored one
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 10;
+      // Only update state when the value flips, to avoid needless re-renders
+      setIsScrolled((prev) => (prev === scrolled ? prev : scrolled));
+    };
+
+    handleScroll(); // initialize from current position (anchors, mid-page refresh)
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   const currentLogoutFormRef = useRef<HTMLFormElement | null>(null);
   const desktopLogoutFormRef = useRef<HTMLFormElement | null>(null);
   const mobileLogoutFormRef = useRef<HTMLFormElement | null>(null);
@@ -154,8 +169,12 @@ const Header = ({session}: {session: Session}) => {
   };
 
   return <>
-    <header className="my-10 flex items-center justify-between gap-5">
-      <div className="flex items-center gap-4 flex-shrink-0">
+    <header className={cn(
+      "user-header sticky top-0 z-40 -mx-5 xs:-mx-10 md:-mx-16",
+      isScrolled && "user-header-scrolled"
+    )}>
+      <div className="relative mx-auto max-w-7xl px-5 xs:px-10 md:px-16 flex items-center justify-between gap-5 py-4">
+        <div className="flex items-center gap-4 flex-shrink-0">
         <Link href="/" className="flex-shrink-0">
           <Image src="/icons/logo.svg" alt="logo" width={40} height={40} />
         </Link>
@@ -307,7 +326,7 @@ const Header = ({session}: {session: Session}) => {
         )}
         
         {/* Theme Toggle */}
-        <ModeToggle />
+        <ThemeToggleButton />
 
         {/* Notification Bell with Dropdown */}
         <NotificationDropdown
@@ -375,6 +394,7 @@ const Header = ({session}: {session: Session}) => {
           )}
         </button>
       </div>
+      </div>
     </header>
 
     {/* Mobile Inline Search Bar */}
@@ -438,7 +458,7 @@ const Header = ({session}: {session: Session}) => {
           <div className="flex items-center justify-between p-6 border-b border-gray-200/60">
             <h2 className="text-lg font-semibold text-gray-800">Navigation</h2>
             <div className="flex items-center gap-3">
-              <ModeToggle />
+              <ThemeToggleButton />
               <button
                 onClick={closeMobileMenu}
                 className="p-2 text-gray-600 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 rounded-lg"
