@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ZodSchema } from "zod";
+import { ZodType } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,7 @@ import { FIELD_TYPES } from "@/constants";
 import FileUpload from "./FileUpload";
 
 interface Props {
-  schema: ZodSchema<any>;
+  schema: ZodType<any, any>;
   defaultValues: Record<string, any>;
   onSubmit: (data: any) => Promise<{ success: boolean; error?: string; role?: string }>;
   type: "SIGN_IN" | "SIGN_UP";
@@ -38,6 +38,7 @@ function AuthForm({
   const isSignIn = type === "SIGN_IN";
 
   const form = useForm({
+    resolver: zodResolver(schema),
     defaultValues,
   });
 

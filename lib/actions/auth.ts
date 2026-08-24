@@ -70,6 +70,13 @@ export const signInWithCredentials = async (params: Pick<AuthCredentials, "email
 export const signUp = async (params: AuthCredentials) => {
   const {fullName, email, universityId, password, universityCard} = params;
 
+  // Guard: a valid university card is mandatory. This is also enforced by the
+  // signUpSchema on the client, but we re-check here on the server so it can
+  // never be bypassed by calling the registration action directly.
+  if (!universityCard || !universityCard.trim()) {
+    return { success: false, error: "University Card is required." };
+  }
+
   const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
   const {success} = await ratelimit.limit(ip);
 
