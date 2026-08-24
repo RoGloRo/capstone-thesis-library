@@ -78,7 +78,7 @@ const AboutPage = async () => {
               Muntinlupa National High School or simply MNHS is one of the
               public schools in Muntinlupa, Philippines. Located in NBP
               Reservation, Brgy. Poblacion, Muntinlupa. The school,
-              established in 1945, is now headed by Mr. Florante Marmeto. This
+              established in 1945, is now headed by Mr. Rosendo A. Sangalang. This
               high school is the biggest amongst the public high schools in
               the city.
             </p>

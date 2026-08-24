@@ -2,6 +2,7 @@ import { db } from "@/database/drizzle";
 import { books, borrowRecords } from "@/database/schema";
 import { getCacheJson, setCacheJson, type AiCacheValue } from "@/lib/ai-cache";
 import { callOpenRouterChat } from "@/lib/openrouter";
+import { getPopularBooks } from "@/lib/recommendations";
 import { and, desc, eq, inArray, ne, not } from "drizzle-orm";
 
 interface CurrentBook {
@@ -38,6 +39,66 @@ const getFallbackSimilarBooks = async (
     )
     .orderBy(desc(books.rating))
     .limit(limit) as unknown as Book[];
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Deterministic (non-AI) similar-books recommendations
+//
+// Used by the book-details page so opening a book never triggers an AI/API
+// request. Tiered fallback built entirely from existing DB fields:
+//   1. same genre/category (excludes the current book + borrowed books)
+//   2. same author (any genre) when there aren't enough same-genre books
+//   3. existing popular/available books via the app's getPopularBooks logic
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const getSimilarBooks = async (
+  currentBook: Pick<CurrentBook, "id" | "author" | "genre">,
+  excludeBookIds: string[] = [],
+  limit = 5
+): Promise<Book[]> => {
+  const allExclude = [currentBook.id, ...excludeBookIds];
+
+  // Tier 1: same genre, highest-rated first, current + borrowed excluded
+  const sameGenre = (await db
+    .select()
+    .from(books)
+    .where(
+      and(
+        eq(books.genre, currentBook.genre),
+        ne(books.id, currentBook.id),
+        not(inArray(books.id, allExclude))
+      )
+    )
+    .orderBy(desc(books.rating))
+    .limit(limit)) as unknown as Book[];
+
+  if (sameGenre.length >= limit) return sameGenre.slice(0, limit);
+
+  // Tier 2: same author (any genre), excluding everything picked so far
+  const sameAuthor = (await db
+    .select()
+    .from(books)
+    .where(
+      and(
+        eq(books.author, currentBook.author),
+        ne(books.id, currentBook.id),
+        not(inArray(books.id, [...allExclude, ...sameGenre.map((b) => b.id)]))
+      )
+    )
+    .orderBy(desc(books.rating))
+    .limit(limit - sameGenre.length)) as unknown as Book[];
+
+  const collected = [...sameGenre, ...sameAuthor];
+
+  if (collected.length >= limit) return collected.slice(0, limit);
+
+  // Tier 3: existing popular/available books (borrow-count + rating based)
+  const popular = await getPopularBooks(
+    [...allExclude, ...collected.map((b) => b.id)],
+    limit - collected.length
+  );
+
+  return [...collected, ...popular].slice(0, limit);
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

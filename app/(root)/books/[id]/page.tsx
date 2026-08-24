@@ -8,7 +8,7 @@ import BookOverview from "@/components/BookOverview";
 import BookVideo from "@/components/BookVideo";
 import BookList from "@/components/BookList";
 import AiBookSummary from "@/components/AiBookSummary";
-import { getAiSimilarBooks, getBorrowedBookIds } from "@/lib/book-match";
+import { getSimilarBooks, getBorrowedBookIds } from "@/lib/book-match";
 import { getUserSavedBookIds } from "@/lib/actions/book";
 
 const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
@@ -30,14 +30,13 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
     session?.user?.id ? getUserSavedBookIds(session.user.id) : Promise.resolve([]),
   ]);
 
-  // AI-powered similar books with automatic fallback to genre-based logic
-  const similarBooks = await getAiSimilarBooks(
+  // Deterministic similar books (no AI/API call on book view):
+  // same genre → same author → existing popular/available books.
+  const similarBooks = await getSimilarBooks(
     {
       id: bookDetails.id,
-      title: bookDetails.title,
       author: bookDetails.author,
       genre: bookDetails.genre,
-      description: bookDetails.description,
     },
     excludeBookIds,
     5
