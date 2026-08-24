@@ -40,7 +40,6 @@ const Header = ({session}: {session: Session | null}) => {
   }, []);
   const currentLogoutFormRef = useRef<HTMLFormElement | null>(null);
   const desktopLogoutFormRef = useRef<HTMLFormElement | null>(null);
-  const mobileLogoutFormRef = useRef<HTMLFormElement | null>(null);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -578,7 +577,10 @@ const Header = ({session}: {session: Session | null}) => {
               {/* Logout Button in Navigation */}
               <button
                 onClick={() => {
-                  currentLogoutFormRef.current = mobileLogoutFormRef.current;
+                  // Reuse the always-mounted desktop logout form: the form is submitted only
+                  // after the dialog confirm, but a form inside the mobile menu would already
+                  // be unmounted by then (menu closes here), so it would never reach signOut.
+                  currentLogoutFormRef.current = desktopLogoutFormRef.current;
                   setIsLogoutOpen(true);
                   closeMobileMenu();
                 }}
@@ -587,10 +589,6 @@ const Header = ({session}: {session: Session | null}) => {
                 <LogOut className="w-5 h-5" />
                 <span>Sign Out</span>
               </button>
-              <form ref={mobileLogoutFormRef} action={handleSignOut} className="hidden">
-                <button type="submit" />
-              </form>
-
               {/* Full Search Bar for Mobile */}
               <div className="pt-4 pb-2">
                 <form onSubmit={(e) => {
