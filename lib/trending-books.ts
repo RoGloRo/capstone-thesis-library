@@ -149,7 +149,7 @@ const parseTrendingIds = (content: string): string[] => {
 // list (AiCacheValue); full Book records are always re-queried from Neon.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TRENDING_CACHE_TTL_SECONDS = 1800; // 30 minutes
+const TRENDING_CACHE_TTL_SECONDS = 86400; // 24 hours
 
 const hashPreferredGenres = (preferredGenres: string[]): string =>
   createHash("sha256")

@@ -2,7 +2,7 @@
 
 import { db } from "@/database/drizzle";
 import { books, borrowRecords, users, savedBooks } from "@/database/schema";
-import { deleteCacheKey } from "@/lib/ai-cache";
+import { deleteCacheKey, deleteCachesByPattern } from "@/lib/ai-cache";
 import dayjs from "dayjs";
 import { and, eq, inArray } from "drizzle-orm";
 
@@ -63,6 +63,10 @@ export const borrowBook = async (params: BorrowBookParams) => {
     // The user's borrow history changed → invalidate their personalized
     // recommendation cache. Best-effort; Redis failures never affect the action.
     await deleteCacheKey(`ai:recs:${userId}`);
+
+    // Borrow counts feed the shared trending cache → refresh it. Best-effort;
+    // Redis failures never affect the action.
+    await deleteCachesByPattern("ai:trending:*");
 
     // Fetch user and book details for email notification
     const [user] = await db
@@ -208,6 +212,10 @@ export const returnBook = async (params: { borrowRecordId: string; bookId: strin
     // recommendation cache. Best-effort; Redis failures never affect the action.
     await deleteCacheKey(`ai:recs:${record.userId}`);
 
+    // Return counts feed the shared trending cache → refresh it. Best-effort;
+    // Redis failures never affect the action.
+    await deleteCachesByPattern("ai:trending:*");
+
     // Fetch user and book details for return confirmation email
     const [user] = await db
       .select({
@@ -324,6 +332,9 @@ export const toggleSaveBook = async (params: { userId: string; bookId: string })
       // Saved books are recommendation context → invalidate this user's cache.
       // Best-effort; Redis failures never affect the action.
       await deleteCacheKey(`ai:recs:${userId}`);
+      // Save counts feed the shared trending cache → refresh it. Best-effort;
+      // Redis failures never affect the action.
+      await deleteCachesByPattern("ai:trending:*");
       return { success: true, saved: false };
     }
 
@@ -331,6 +342,9 @@ export const toggleSaveBook = async (params: { userId: string; bookId: string })
     // Saved books are recommendation context → invalidate this user's cache.
     // Best-effort; Redis failures never affect the action.
     await deleteCacheKey(`ai:recs:${userId}`);
+    // Save counts feed the shared trending cache → refresh it. Best-effort;
+    // Redis failures never affect the action.
+    await deleteCachesByPattern("ai:trending:*");
     return { success: true, saved: true };
   } catch (error) {
     console.error("Error toggling saved book:", error);

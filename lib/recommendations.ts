@@ -297,7 +297,7 @@ export const getRecommendedBooks = async (userId: string): Promise<Book[]> => {
 // invalidation is handled in a later step.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const RECOMMENDATIONS_CACHE_TTL_SECONDS = 3600; // 60 minutes
+const RECOMMENDATIONS_CACHE_TTL_SECONDS = 86400; // 24 hours
 const RECOMMENDATIONS_LIMIT = 6;
 
 const buildRecommendationsCacheKey = (userId: string): string =>
