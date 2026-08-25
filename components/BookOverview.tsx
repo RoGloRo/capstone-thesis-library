@@ -25,6 +25,7 @@ const BookOverview = async ({
   coverColor,
   coverUrl,
   id,
+  publishedYear,
   userId,
 }: Props) => {
   const [user] = await db
@@ -81,6 +82,12 @@ const isSaved = savedIds.includes(id);
             />
           )}
         </div>
+
+        {publishedYear != null && publishedYear !== undefined && (
+          <p className="text-sm text-ink-muted dark:text-light-400">
+            Published {publishedYear}
+          </p>
+        )}
 
         <div className="book-info">
           <p>

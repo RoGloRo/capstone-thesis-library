@@ -30,4 +30,12 @@ export const bookSchema = z.object({
   videoUrl: z.string().nonempty(),
   summary: z.string().trim().min(10),
   controlNumber: z.string().trim().max(64).optional(),
+  publishedYear: z
+    .union([
+      z.number().int().min(1000).max(new Date().getFullYear()),
+      z.null(),
+      z.literal(""),
+    ])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
 });

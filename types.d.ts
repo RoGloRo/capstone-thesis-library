@@ -12,6 +12,7 @@ interface Book {
   videoUrl: string;
   summary: string;
   controlNumber?: string | null;
+  publishedYear?: number | null;
   isLoanedBook?: boolean;
   borrowDate?: string; // ISO timestamp
   dueDate?: string; // ISO date
@@ -38,6 +39,7 @@ interface BookParams {
   videoUrl: string;
   summary: string;
   controlNumber?: string | null;
+  publishedYear?: number | null;
 }
 
 interface BorrowBookParams {

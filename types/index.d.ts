@@ -14,6 +14,7 @@ type Book = {
   availableCopies: number;
   videoUrl: string;
   summary: string;
+  publishedYear?: number | null;
   createdAt: Date;
 };
 

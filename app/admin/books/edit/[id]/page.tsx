@@ -32,6 +32,7 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
     videoUrl,
     summary
     ,controlNumber
+    ,publishedYear
   } = result.book;
 
   return (
@@ -55,6 +56,7 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
           videoUrl={videoUrl}
           summary={summary}
           controlNumber={controlNumber}
+          publishedYear={publishedYear}
         />
       </section>
     </>

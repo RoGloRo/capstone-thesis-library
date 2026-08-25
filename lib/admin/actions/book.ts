@@ -54,6 +54,7 @@ export const createBook = async (params: BookParams) => {
       .insert(books)
       .values({
         ...params,
+        publishedYear: params.publishedYear ?? null,
         controlNumber,
         availableCopies: params.totalCopies,
       })
@@ -126,6 +127,7 @@ export const updateBook = async (id: string, params: BookParams) => {
       .update(books)
       .set({
         ...params,
+        publishedYear: params.publishedYear ?? null,
         controlNumber: controlNumberToSet,
         availableCopies: newAvailableCopies,
       })

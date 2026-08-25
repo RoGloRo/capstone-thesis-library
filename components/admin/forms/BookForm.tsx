@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Loader2, BookOpen, User, Tag, Star, Palette, Video } from "lucide-react";
+import { Loader2, BookOpen, User, Tag, Star, Palette, Video, Calendar } from "lucide-react";
 import { bookSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,7 @@ const BookForm = ({
   videoUrl = "",
   summary = ""
   ,controlNumber = ""
+  ,publishedYear = undefined
 }: BookFormProps) => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,6 +63,7 @@ const BookForm = ({
       videoUrl: videoUrl || "",
       summary: summary || "",
       controlNumber: controlNumber || "",
+      publishedYear: publishedYear ?? undefined,
     },
   });
 
@@ -205,6 +207,37 @@ const BookForm = ({
                           <span className="text-sm text-muted-foreground">out of 5 stars</span>
                         </div>
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Published Year */}
+                <FormField
+                  control={form.control}
+                  name="publishedYear"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Published Year
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1000}
+                          max={new Date().getFullYear()}
+                          placeholder="e.g., 2016 (optional)"
+                          value={typeof field.value === "number" ? field.value : ""}
+                          onChange={(e) =>
+                            field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
+                          }
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          disabled={field.disabled}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">Optional.</p>
                       <FormMessage />
                     </FormItem>
                   )}
