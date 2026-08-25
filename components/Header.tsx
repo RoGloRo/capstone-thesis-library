@@ -18,7 +18,7 @@ const Header = ({session}: {session: Session | null}) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
@@ -95,7 +95,11 @@ const Header = ({session}: {session: Session | null}) => {
           const response = await fetch(`/api/users/${session.user.id}/role-check`);
           if (response.ok) {
             const data = await response.json();
-            setIsAdmin(data.isAdmin);
+            // null until the check succeeds; on failure we keep null (do not
+            // downgrade to false so a transient error never hides the button).
+            setIsAdmin(data.isAdmin === true);
+          } else {
+            console.error('Admin role check failed:', response.status);
           }
         } catch (error) {
           console.error('Error checking admin role:', error);
@@ -309,7 +313,7 @@ const Header = ({session}: {session: Session | null}) => {
         </Link>
 
         {/* Admin Panel Link - Only show for admin users on desktop */}
-        {isAdmin && (
+        {isAdmin === true && (
           <Link href="/admin" className={cn(
             "relative px-4 py-2 text-base font-medium capitalize rounded-lg transition-all duration-300 ease-out group",
             pathname.startsWith("/admin") 
@@ -530,7 +534,7 @@ const Header = ({session}: {session: Session | null}) => {
               </Link>
 
               {/* Admin Link - Only show for admin users */}
-              {isAdmin && (
+              {isAdmin === true && (
                 <Link 
                   href="/admin" 
                   onClick={closeMobileMenu}
