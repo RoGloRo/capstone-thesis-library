@@ -3,11 +3,13 @@ import { emailLogs } from "@/database/schema";
 import { render } from "@react-email/render";
 import OverdueBookEmail from "@/emails/OverdueBookEmail";
 import { sendOverdueNoticeEmail } from "@/lib/email-with-logging";
+import { hasEmailBeenSent } from "@/lib/email-automation";
 import { eq } from "drizzle-orm";
 
 export async function processOverdueBatch(triggerId: string, records: Array<any>) {
   let sent = 0;
   let failed = 0;
+  let skippedDuplicates = 0;
 
   for (const r of records) {
     try {
@@ -29,6 +31,14 @@ export async function processOverdueBatch(triggerId: string, records: Array<any>
         } catch (e) {}
       }
       if (alreadyProcessed) continue;
+
+      // Compatible dedup with automation: skip if an OVERDUE_NOTICE was already
+      // SENT for this borrow record (prevents a manual backup from duplicating
+      // an automatic send and vice versa).
+      if (await hasEmailBeenSent("OVERDUE_NOTICE", r.borrowRecordId)) {
+        skippedDuplicates++;
+        continue;
+      }
 
       const today = new Date();
       const dueDate = new Date(r.dueDate);
@@ -75,7 +85,7 @@ export async function processOverdueBatch(triggerId: string, records: Array<any>
     }
   }
 
-  return { sent, failed };
+  return { sent, failed, skippedDuplicates };
 }
 
 export function isLoopbackHost(hostname: string) {

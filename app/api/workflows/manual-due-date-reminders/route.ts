@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { render } from "@react-email/render";
 import DueDateReminderEmail from "@/emails/DueDateReminderEmail";
 import { sendDueReminderEmail } from "@/lib/email-with-logging";
+import { hasEmailBeenSent } from "@/lib/email-automation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,9 +34,16 @@ export async function POST(request: NextRequest) {
 
     let sent = 0;
     let failed = 0;
+    let skippedDuplicates = 0;
 
     for (const record of booksDueTomorrow) {
       try {
+        // Compatible dedup with automation: skip if already SENT for this record.
+        if (await hasEmailBeenSent("DUE_REMINDER", record.borrowRecordId)) {
+          skippedDuplicates++;
+          continue;
+        }
+
         const formattedDueDate = new Date(record.dueDate).toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
@@ -67,7 +75,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, total: booksDueTomorrow.length, sent, failed });
+    return NextResponse.json({ success: true, total: booksDueTomorrow.length, sent, failed, skippedDuplicates });
   } catch (error) {
     console.error("Error in manual due-date reminders:", error);
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });

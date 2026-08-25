@@ -13,9 +13,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid payload" }, { status: 400 });
     }
 
-    const { sent, failed } = await processOverdueBatch(triggerId, records);
+    const { sent, failed, skippedDuplicates = 0 } = await processOverdueBatch(triggerId, records);
 
-    return NextResponse.json({ success: true, triggerId, sent, failed });
+    return NextResponse.json({ success: true, triggerId, sent, failed, skippedDuplicates });
   } catch (error) {
     console.error("Error in manual overdue worker:", error);
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });

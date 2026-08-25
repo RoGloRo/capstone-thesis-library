@@ -104,11 +104,7 @@ const AboutPage = async () => {
                 Mission
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-ink-muted dark:text-slate-300">
-                We, the stakeholders of Muntinlupa National High School shall
-                relentlessly strive to provide equal and equitable access to
-                quality education that respond to the cultural, environmental,
-                financial, commercial, industrial, technical and technological
-                demands of the progressively thriving City of Muntinlupa.
+                All DepEd libraries aim to empower and bestow leadership to learners, teachers, librarians, and school stakeholders in choosing, gaining, storing, accessing, and making supplementary learning resources available to create a place for reading, discovery, and collaboration. DepEd libraries are committed to make an impact in building  a learning community  where school stakeholders engage one another to participate in and contribute to their learning and growth and achieve the objectives of the K to 12 program.
               </p>
             </div>
 
@@ -120,11 +116,7 @@ const AboutPage = async () => {
                 Vision
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-ink-muted dark:text-slate-300">
-                Muntinlupa National High School is a caring and friendly
-                institution of learning transforming Filipino youths into
-                God-loving, productive and lifelong learners in a
-                technologically driven society strongly supported by all
-                stakeholders.
+                All DepEd libraries shall be transformed as fully functional places for reading discovery, and collaboration to contribute significantly in attaining the objectives of the K to 12 Program and reaching greater level of learning achievements through stakeholders shared engagement in school library establishment, improvement, and operations.
               </p>
             </div>
           </div>

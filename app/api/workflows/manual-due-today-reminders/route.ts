@@ -5,6 +5,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { render } from "@react-email/render";
 import BookDueTodayEmail from "@/emails/BookDueTodayEmail";
 import { sendDueTodayEmail } from "@/lib/email-with-logging";
+import { hasEmailBeenSent } from "@/lib/email-automation";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,9 +35,16 @@ export async function POST(request: NextRequest) {
 
     let sent = 0;
     let failed = 0;
+    let skippedDuplicates = 0;
 
     for (const record of booksDueToday) {
       try {
+        // Compatible dedup with automation: skip if already SENT for this record.
+        if (await hasEmailBeenSent("DUE_TODAY", record.borrowRecordId)) {
+          skippedDuplicates++;
+          continue;
+        }
+
         const borrowDate = new Date(record.borrowDate);
         const dueDate = new Date(record.dueDate);
         const loanDuration = Math.ceil((dueDate.getTime() - borrowDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -83,7 +91,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true, total: booksDueToday.length, sent, failed });
+    return NextResponse.json({ success: true, total: booksDueToday.length, sent, failed, skippedDuplicates });
   } catch (error) {
     console.error("Error in manual due-today reminders:", error);
     return NextResponse.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });

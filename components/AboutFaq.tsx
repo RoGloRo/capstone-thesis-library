@@ -39,7 +39,7 @@ const FAQ_ITEMS: FaqItemData[] = [
   {
     question: "Operating Hours",
     answer:
-      "The library is open from 8:00 AM to 4:00 PM, Monday to Friday.",
+      "The library is open from 8:00 AM to 5:00 PM, Monday to Friday. Closed on Weekends and Public Holidays.",
   },
 ];
 
