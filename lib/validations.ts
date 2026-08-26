@@ -7,11 +7,41 @@ export const signUpSchema = z.object ({
   universityId: z
     .string()
     .trim()
-    .min(1, "University ID is required")
-    .max(50, "University ID must be 50 characters or fewer"),
-  universityCard: z.string().nonempty("University Card is required"),
+    .min(1, "School ID is required")
+    .max(50, "School ID must be 50 characters or fewer"),
+  universityCard: z.string().nonempty("School ID Picture is required"),
   password: z.string().min(8),
-
+  userCategory: z.enum(["STUDENT", "TEACHER", "STAFF"], {
+    message: "User Category is required.",
+  }),
+  gradeLevel: z
+    .union([
+      z.enum(
+        [
+          "GRADE_7",
+          "GRADE_8",
+          "GRADE_9",
+          "GRADE_10",
+          "GRADE_11",
+          "GRADE_12",
+        ],
+        {
+          message: "Grade Level is required for students.",
+        }
+      ),
+      z.literal(""), // Hidden/cleared for non-students; normalized to null below.
+    ])
+    .nullable()
+    .optional()
+    .transform((v) => (v == null || v === "" ? null : v)),
+}).superRefine((data, ctx) => {
+  if (data.userCategory === "STUDENT" && !data.gradeLevel) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Grade Level is required for students.",
+      path: ["gradeLevel"],
+    });
+  }
 });
 
 export const signInSchema = z.object({

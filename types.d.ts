@@ -33,6 +33,16 @@ interface AuthCredentials {
   password: string;
   universityId: string;
   universityCard: string;
+  // MNHS user classification — distinct from the system `role` (USER/ADMIN).
+  userCategory: "STUDENT" | "TEACHER" | "STAFF";
+  gradeLevel?:
+    | "GRADE_7"
+    | "GRADE_8"
+    | "GRADE_9"
+    | "GRADE_10"
+    | "GRADE_11"
+    | "GRADE_12"
+    | null; // Only applies to STUDENT users.
 }
 
 interface BookParams {

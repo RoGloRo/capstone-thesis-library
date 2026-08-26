@@ -13,6 +13,7 @@ import SaveBookButton from "@/components/SaveBookButton";
 import BookCover from "@/components/BookCover";
 import Link from "next/link";
 import UserQRCode from "@/components/UserQRCode";
+import { gradeLevelLabels, userCategoryLabels } from "@/constants";
 
 // Simple card components since shadcn/ui might not be installed
 const Card = ({ className, children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -267,10 +268,32 @@ const Page = async () => {
               <div className="space-y-1">
                 <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
                   <Hash className="h-3 w-3 sm:h-4 sm:w-4" />
-                  University ID
+                  School ID
                 </p>
                 <p className="font-medium text-ink dark:text-white text-sm sm:text-base">{userData.universityId}</p>
               </div>
+              {userData.userCategory && (
+                <div className="space-y-1">
+                  <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
+                    <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                    User Category
+                  </p>
+                  <p className="font-medium text-ink dark:text-white text-sm sm:text-base">
+                    {userCategoryLabels[userData.userCategory] ?? userData.userCategory}
+                  </p>
+                </div>
+              )}
+              {userData.userCategory === "STUDENT" && userData.gradeLevel && (
+                <div className="space-y-1">
+                  <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
+                    <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Grade Level
+                  </p>
+                  <p className="font-medium text-ink dark:text-white text-sm sm:text-base">
+                    {gradeLevelLabels[userData.gradeLevel] ?? userData.gradeLevel}
+                  </p>
+                </div>
+              )}
               <div className="space-y-1">
                 <p className="text-xs sm:text-sm text-green-700 dark:text-emerald-200 flex items-center gap-2">
                   <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -289,7 +312,7 @@ const Page = async () => {
                 <div className="flex items-end justify-end">
                   <Image
                     src={userData.universityCard}
-                    alt="University ID Card"
+                    alt="School ID Picture"
                     width={300}
                     height={200}
                     className="rounded-lg border border-line shadow-md dark:border-white/20 object-contain w-full h-auto"
@@ -299,7 +322,7 @@ const Page = async () => {
             </CardContent>
           </Card>
 
-          {/* University Card / QR Code */}
+          {/* School ID Picture / QR Code */}
           <Card className="bg-surface border-line dark:bg-white/5 dark:border-white/10 dark:backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg sm:text-xl text-ink dark:text-white flex items-center gap-2">

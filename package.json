@@ -13,6 +13,7 @@
     "db:apply:published-year": "tsx scripts/apply-published-year-migration.ts",
     "db:apply:bibliographic-information": "tsx scripts/apply-bibliographic-information-migration.ts",
     "db:apply:library-information": "tsx scripts/apply-library-information-migration.ts",
+    "db:apply:user-category-grade-level": "tsx scripts/apply-user-category-migration.ts",
     "db:studio": "npx drizzle-kit studio"
   },
   "dependencies": {

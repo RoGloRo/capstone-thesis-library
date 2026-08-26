@@ -33,6 +33,7 @@ import { ChevronDown, Loader2, Trash2, Link as LinkIcon, FileImage, Search } fro
 import config from "@/lib/config";
 import Image from "next/image";
 import { toast } from "sonner";
+import { gradeLevelLabels, userCategoryLabels } from "@/constants";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -182,7 +183,23 @@ export function UsersTable({ data }: UsersTableProps) {
     },
     {
       accessorKey: "universityId",
-      header: "University ID",
+      header: "School ID",
+    },
+    {
+      accessorKey: "userCategory",
+      header: "Category",
+      cell: ({ row }) => {
+        const value = row.getValue("userCategory") as string | null;
+        return value ? (userCategoryLabels[value] ?? value) : "—";
+      },
+    },
+    {
+      accessorKey: "gradeLevel",
+      header: "Grade Level",
+      cell: ({ row }) => {
+        const value = row.getValue("gradeLevel") as string | null;
+        return value ? (gradeLevelLabels[value] ?? value) : "—";
+      },
     },
     {
       accessorKey: "lastActivityDate",
@@ -301,7 +318,7 @@ export function UsersTable({ data }: UsersTableProps) {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
           <Input
-            placeholder="Search by name, email, or university ID..."
+            placeholder="Search by name, email, or school ID..."
             value={(table.getState().globalFilter as string) ?? ""}
             onChange={(event) => {
               table.setGlobalFilter(event.target.value);
@@ -444,7 +461,7 @@ export function UsersTable({ data }: UsersTableProps) {
       }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>User&apos;s ID Card</DialogTitle>
+            <DialogTitle>School ID Picture</DialogTitle>
           </DialogHeader>
           <div className="flex justify-center py-4">
             {!currentUserCard || imageError ? (
@@ -463,7 +480,7 @@ export function UsersTable({ data }: UsersTableProps) {
                       ? currentUserCard 
                       : `${config.env.imagekit.urlEndpoint}${currentUserCard}`
                   }
-                  alt="University ID Card"
+                  alt="School ID Picture"
                   fill
                   className="rounded-md border object-contain"
                   unoptimized={currentUserCard.startsWith('data:')}

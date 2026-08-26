@@ -65,7 +65,7 @@ export function generatePDFReceipt(receiptData: BookReceiptData): void {
   yPosition += 8;
   
   if (receiptData.universityId) {
-    doc.text(`University ID: ${receiptData.universityId}`, 25, yPosition);
+    doc.text(`School ID: ${receiptData.universityId}`, 25, yPosition);
     yPosition += 8;
   }
   

@@ -59,9 +59,11 @@ export const adminSideBarLinks = [
 export const FIELD_NAMES = {
   fullName: "Full name",
   email: "Email",
-  universityId: "University ID",
+  universityId: "School ID",
   password: "Password",
-  universityCard: "Upload University ID Card",
+  universityCard: "Upload School ID Picture",
+  userCategory: "User Category",
+  gradeLevel: "Grade Level",
 };
 
 export const FIELD_TYPES = {
@@ -262,3 +264,65 @@ export const borrowStatuses = [
     textColor: "text-[#026AA2]",
   },
 ];
+
+// User Category + Grade Level — MNHS classifies its library users into
+// STUDENT / TEACHER / STAFF. This is intentionally distinct from the system
+// `role` (USER / ADMIN), which is managed separately by the application/admin
+// system. ADMIN is NOT offered as a user category.
+export const userCategories = [
+  {
+    value: "STUDENT",
+    label: "Student",
+  },
+  {
+    value: "TEACHER",
+    label: "Teacher",
+  },
+  {
+    value: "STAFF",
+    label: "Staff",
+  },
+];
+
+// Grade Level only applies to STUDENT users.
+export const gradeLevels = [
+  {
+    value: "GRADE_7",
+    label: "Grade 7",
+  },
+  {
+    value: "GRADE_8",
+    label: "Grade 8",
+  },
+  {
+    value: "GRADE_9",
+    label: "Grade 9",
+  },
+  {
+    value: "GRADE_10",
+    label: "Grade 10",
+  },
+  {
+    value: "GRADE_11",
+    label: "Grade 11",
+  },
+  {
+    value: "GRADE_12",
+    label: "Grade 12",
+  },
+];
+
+export const userCategoryLabels: Record<string, string> = {
+  STUDENT: "Student",
+  TEACHER: "Teacher",
+  STAFF: "Staff",
+};
+
+export const gradeLevelLabels: Record<string, string> = {
+  GRADE_7: "Grade 7",
+  GRADE_8: "Grade 8",
+  GRADE_9: "Grade 9",
+  GRADE_10: "Grade 10",
+  GRADE_11: "Grade 11",
+  GRADE_12: "Grade 12",
+};

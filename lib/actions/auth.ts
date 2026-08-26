@@ -68,13 +68,13 @@ export const signInWithCredentials = async (params: Pick<AuthCredentials, "email
 };
 
 export const signUp = async (params: AuthCredentials) => {
-  const {fullName, email, universityId, password, universityCard} = params;
+  const {fullName, email, universityId, password, universityCard, userCategory, gradeLevel} = params;
 
-  // Guard: a valid university card is mandatory. This is also enforced by the
+  // Guard: a valid school ID picture is mandatory. This is also enforced by the
   // signUpSchema on the client, but we re-check here on the server so it can
   // never be bypassed by calling the registration action directly.
   if (!universityCard || !universityCard.trim()) {
-    return { success: false, error: "University Card is required." };
+    return { success: false, error: "School ID Picture is required." };
   }
 
   const ip = (await headers()).get("x-forwarded-for") || "127.0.0.1";
@@ -96,6 +96,11 @@ export const signUp = async (params: AuthCredentials) => {
   const hashedPassword = await hash(password, 10);
 
   try {
+    // Grade Level only applies to STUDENT users. Force it to NULL for any
+    // non-student so a stray value can never be persisted (server-side guard).
+    const finalGradeLevel =
+      userCategory === "STUDENT" ? gradeLevel ?? null : null;
+
     // Insert user into database
     await db.insert(users).values({
       fullName,
@@ -103,6 +108,8 @@ export const signUp = async (params: AuthCredentials) => {
       universityId,
       password: hashedPassword,
       universityCard,
+      userCategory,
+      gradeLevel: finalGradeLevel,
     });
 
     console.log("✅ User created successfully:", email);

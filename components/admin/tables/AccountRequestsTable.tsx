@@ -331,7 +331,7 @@ const handleDeleteUser = async (userId: string) => {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search by name, email, or university ID..."
+            placeholder="Search by name, email, or school ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 w-full"
@@ -359,8 +359,8 @@ const handleDeleteUser = async (userId: string) => {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>University ID</TableHead>
-              <TableHead>University Card</TableHead>
+              <TableHead>School ID</TableHead>
+              <TableHead>School ID Picture</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Requested On</TableHead>
               <TableHead>Actions</TableHead>
@@ -541,20 +541,20 @@ const handleDeleteUser = async (userId: string) => {
         </div>
       )}
 
-      {/* University Card Modal */}
+      {/* School ID Picture Modal */}
       <Dialog
         open={!!viewingCard}
         onOpenChange={(open) => !open && setViewingCard(null)}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{viewingCard?.name}&apos;s University Card</DialogTitle>
+            <DialogTitle>{viewingCard?.name}&apos;s School ID Picture</DialogTitle>
           </DialogHeader>
           <div className="relative h-64 w-full">
             {viewingCard?.cardUrl ? (
               <Image
                 src={getImageUrl(viewingCard.cardUrl) || ''}
-                alt={`${viewingCard.name}'s University Card`}
+                alt={`${viewingCard.name}'s School ID Picture`}
                 fill
                 className="rounded-md object-contain"
                 unoptimized

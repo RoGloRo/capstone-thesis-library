@@ -14,7 +14,9 @@ const Page = () => (
       password: "",
       fullName: "",
       universityId: "",
-      universityCard: "",  
+      universityCard: "",
+      userCategory: "",
+      gradeLevel: "",
     }}
     onSubmit={signUp}
   />

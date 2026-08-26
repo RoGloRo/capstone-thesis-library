@@ -15,10 +15,11 @@ import {
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { FIELD_TYPES } from "@/constants";
+import { FIELD_NAMES, FIELD_TYPES, gradeLevels, userCategories } from "@/constants";
 import FileUpload from "./FileUpload";
 
 interface Props {
@@ -43,6 +44,11 @@ function AuthForm({
   });
 
   const fields = Object.keys(defaultValues);
+
+  // Grade Level is only shown/applicable to STUDENT users. Watch the selected
+  // category so we can conditionally show the Grade Level dropdown and clear it
+  // whenever a non-student category is chosen.
+  const selectedCategory = form.watch("userCategory") as string;
 
   const handleSubmit = async (data: any) => {
     try {
@@ -87,47 +93,95 @@ function AuthForm({
       <p className="text-ink-muted dark:text-light-100">
         {isSignIn
           ? "Access the vast collections of resources, and stay updated"
-          : "Please complete all fields and upload a valid university ID to gain access to the library"}
+          : "Please complete all fields and upload a valid school ID picture to gain access to the library"}
       </p>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
-          {fields.map((fieldName) => (
-            <FormField
-              key={fieldName}
-              control={form.control}
-              name={fieldName}
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel className="capitalize">{fieldName}</FormLabel>
+          {fields.map((fieldName) => {
+            // Grade Level is hidden for non-student categories.
+            if (fieldName === "gradeLevel" && selectedCategory !== "STUDENT") {
+              return null;
+            }
 
-                  <FormControl>
-                    {fieldName === "universityCard" ? (
-                      <div className="w-full">
-                        <FileUpload 
-                          type="image"
-                          accept="image/*"
-                          placeholder="Upload your ID"
-                          folder="ids"
-                          variant="dark" 
-                          onFileChange={field.onChange} 
+            return (
+              <FormField
+                key={fieldName}
+                control={form.control}
+                name={fieldName}
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="capitalize">
+                      {FIELD_NAMES[fieldName as keyof typeof FIELD_NAMES] ?? fieldName}
+                    </FormLabel>
+
+                    <FormControl>
+                      {fieldName === "universityCard" ? (
+                        <div className="w-full">
+                          <FileUpload 
+                            type="image"
+                            accept="image/*"
+                            placeholder="Upload your ID"
+                            folder="ids"
+                            variant="dark" 
+                            onFileChange={field.onChange} 
+                          />
+                        </div>
+                      ) : fieldName === "userCategory" ? (
+                        <Select
+                          value={field.value || ""}
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Non-student categories don't have a Grade Level;
+                            // clear any previously selected value.
+                            if (value !== "STUDENT") {
+                              form.setValue("gradeLevel", "");
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="form-input">
+                            <SelectValue placeholder="Select user category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {userCategories.map((category) => (
+                              <SelectItem key={category.value} value={category.value}>
+                                {category.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : fieldName === "gradeLevel" ? (
+                        <Select
+                          value={field.value || ""}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger className="form-input">
+                            <SelectValue placeholder="Select grade level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {gradeLevels.map((g) => (
+                              <SelectItem key={g.value} value={g.value}>
+                                {g.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          {...field}
+                          required
+                          type={FIELD_TYPES[fieldName as keyof typeof FIELD_TYPES]}
+                          className="form-input"
                         />
-                      </div>
-                    ) : (
-                      <Input
-                        {...field}
-                        required
-                        type={FIELD_TYPES[fieldName as keyof typeof FIELD_TYPES]}
-                        className="form-input"
-                      />
-                    )}
-                  </FormControl>
+                      )}
+                    </FormControl>
 
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            );
+          })}
 
           <Button type="submit" className="form-btn">
             {isSignIn ? "Sign In" : "Sign Up"}

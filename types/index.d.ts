@@ -34,6 +34,11 @@ type User = {
   universityCard: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
   role: 'USER' | 'ADMIN' | null;
+  // Nullable string to match the drizzle-inferred type of the nullable
+  // varchar columns (user_category / grade_level). Values are one of the
+  // MNHS categories / grade levels when set.
+  userCategory: string | null;
+  gradeLevel: string | null;
   lastActivityDate: string | null;
   createdAt: Date | null;
 };

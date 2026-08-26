@@ -299,8 +299,8 @@ useEffect(() => {
           <TableHeader>
             <TableRow>
               <TableHead>User</TableHead>
-              <TableHead>University ID</TableHead>
-              <TableHead>University Card</TableHead>
+              <TableHead>School ID</TableHead>
+              <TableHead>School ID Picture</TableHead>
               <TableHead>Book</TableHead>
               <TableHead>Borrowed On</TableHead>
               <TableHead>Due Date</TableHead>
@@ -420,20 +420,20 @@ useEffect(() => {
         </div>
       )}
 
-      {/* University Card Modal */}
+      {/* School ID Picture Modal */}
       <Dialog
         open={!!viewingCard}
         onOpenChange={(open) => !open && setViewingCard(null)}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{viewingCard?.name}&apos;s University Card</DialogTitle>
+            <DialogTitle>{viewingCard?.name}&apos;s School ID Picture</DialogTitle>
           </DialogHeader>
           <div className="relative h-64 w-full">
             {viewingCard?.cardUrl ? (
               <Image
                 src={getImageUrl(viewingCard.cardUrl) || ''}
-                alt={`${viewingCard.name}'s University Card`}
+                alt={`${viewingCard.name}'s School ID Picture`}
                 fill
                 className="rounded-md object-contain"
                 unoptimized

@@ -217,7 +217,7 @@ const FileUpload = ({
                 sizes="100vw"
               />
             </div>
-            <p className="text-xs text-center mt-2 text-gray-500">University ID Card Preview</p>
+            <p className="text-xs text-center mt-2 text-gray-500">School ID Picture Preview</p>
           </div>
           
           {/* Desktop version - original behavior */}

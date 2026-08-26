@@ -28,6 +28,8 @@ export const users = pgTable("users", {
   universityCard: text("university_card").notNull(),
   status: STATUS_ENUM("status").default("PENDING"),
   role: ROLE_ENUM("role").default("USER"),
+  userCategory: varchar("user_category", { length: 20 }),
+  gradeLevel: varchar("grade_level", { length: 20 }),
   lastActivityDate: date("last_activity_date").defaultNow(),
   createdAt: timestamp("created_at", {
     withTimezone: true,
