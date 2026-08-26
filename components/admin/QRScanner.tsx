@@ -11,7 +11,7 @@ type ScanState = "idle" | "starting" | "scanning" | "processing" | "success" | "
 interface ScannedUser {
   id: string;
   fullName: string;
-  universityId: number;
+  universityId: string;
   universityCard: string;
   email: string;
 }

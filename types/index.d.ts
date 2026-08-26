@@ -30,7 +30,7 @@ type User = {
   id: string;
   fullName: string;
   email: string;
-  universityId: number;
+  universityId: string;
   universityCard: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
   role: 'USER' | 'ADMIN' | null;

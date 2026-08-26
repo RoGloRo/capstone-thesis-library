@@ -29,7 +29,7 @@ interface BookCardProps extends Book {
   // User information for PDF receipt (only needed for loaned books)
   userName?: string;
   userEmail?: string;
-  universityId?: number;
+  universityId?: string;
   // Save feature
   userId?: string;
   isSaved?: boolean;

@@ -8,7 +8,7 @@ import { getQRToken } from "@/lib/qr-utils";
 interface UserQRCodeProps {
   userId: string;
   userName: string;
-  universityId: number;
+  universityId: string;
 }
 
 export default function UserQRCode({ userId, userName, universityId }: UserQRCodeProps) {

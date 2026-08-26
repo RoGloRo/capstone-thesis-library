@@ -14,6 +14,44 @@ import SaveBookButton from "./SaveBookButton";
 interface Props extends Book {
   userId: string;
 }
+
+type MetadataRow = { label: string; value: string };
+
+/** True only when a field contains visible, non-blank text. */
+const hasText = (value: string | null | undefined): value is string =>
+  typeof value === "string" && value.trim().length > 0;
+
+/** Builds a display row, or null when the field has no value. */
+const toMetadataRow = (
+  label: string,
+  value: string | number | null | undefined
+): MetadataRow | null => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? { label, value: String(value) } : null;
+  }
+  return hasText(value) ? { label, value: value.trim() } : null;
+};
+
+/**
+ * Formats an ISO calendar date (YYYY-MM-DD) like "August 15, 2026".
+ * Parts are parsed straight from the string and rebuilt as a local-time
+ * Date, so timezone conversion can never shift the displayed day.
+ */
+const formatAcquisitionDate = (value: string): string => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
+  if (!match) return value;
+
+  return new Date(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3])
+  ).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
 const BookOverview = async ({
   title,
   author,
@@ -26,6 +64,15 @@ const BookOverview = async ({
   coverUrl,
   id,
   publishedYear,
+  identifier,
+  publisher,
+  edition,
+  language,
+  pages,
+  controlNumber,
+  shelfLocation,
+  bookFormat,
+  acquisitionDate,
   userId,
 }: Props) => {
   const [user] = await db
@@ -66,8 +113,30 @@ const checkIfUserHasBorrowedBook = async (userId: string, bookId: string) => {
 const hasBorrowedBook = await checkIfUserHasBorrowedBook(userId, id);
 const savedIds = userId ? await getUserSavedBookIds(userId) : [];
 const isSaved = savedIds.includes(id);
+
+  // Public catalog metadata. Rows without a value are omitted, and a
+  // section with no rows at all is not rendered.
+  const bibliographicRows = [
+    toMetadataRow("ISSN / ISBN", identifier),
+    toMetadataRow("Publisher", publisher),
+    toMetadataRow("Edition", edition),
+    toMetadataRow("Language", language),
+    toMetadataRow("Pages", pages),
+  ].filter((row): row is MetadataRow => row !== null);
+
+  const libraryRows = [
+    toMetadataRow("Call Number", controlNumber),
+    toMetadataRow("Shelf Location", shelfLocation),
+    toMetadataRow("Book Format", bookFormat),
+    toMetadataRow(
+      "Acquisition Date",
+      hasText(acquisitionDate) ? formatAcquisitionDate(acquisitionDate) : null
+    ),
+  ].filter((row): row is MetadataRow => row !== null);
+
   return (
-    <section className="book-overview">
+    <section className="w-full">
+    <div className="book-overview">
       <div className="flex flex-1 flex-col gap-5 w-full min-w-0">
         <div className="flex items-start gap-3">
           <Link href={`/books/${id}`} className="hover:opacity-80 transition-opacity flex-1">
@@ -174,6 +243,79 @@ const isSaved = savedIds.includes(id);
           </div>
         </div>
       </div>
+    </div>
+
+    {(bibliographicRows.length > 0 || libraryRows.length > 0) && (
+      <div className="mt-10 grid w-full gap-6 md:grid-cols-2 lg:mt-14 lg:gap-8">
+        {bibliographicRows.length > 0 && (
+          <section
+            aria-labelledby="book-bibliographic-info"
+            className="rounded-xl border border-line bg-surface p-5 dark:border-white/10 dark:bg-white/5 sm:p-6"
+          >
+            <h3
+              id="book-bibliographic-info"
+              className="text-base font-semibold text-accent-green dark:text-primary xs:text-lg"
+            >
+              Bibliographic Information
+            </h3>
+            <table className="mt-4 w-full border-collapse text-left">
+              <tbody>
+                {bibliographicRows.map((row) => (
+                  <tr
+                    key={row.label}
+                    className="border-t border-line/70 first:border-t-0 dark:border-white/10"
+                  >
+                    <th
+                      scope="row"
+                      className="py-2 pr-4 align-top text-xs font-medium text-ink-muted dark:text-light-400 sm:text-sm"
+                    >
+                      {row.label}
+                    </th>
+                    <td className="break-words py-2 align-top text-sm font-semibold text-ink dark:text-light-100 sm:text-base">
+                      {row.value}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
+
+        {libraryRows.length > 0 && (
+          <section
+            aria-labelledby="book-library-info"
+            className="rounded-xl border border-line bg-surface p-5 dark:border-white/10 dark:bg-white/5 sm:p-6"
+          >
+            <h3
+              id="book-library-info"
+              className="text-base font-semibold text-accent-green dark:text-primary xs:text-lg"
+            >
+              Library Information
+            </h3>
+            <table className="mt-4 w-full border-collapse text-left">
+              <tbody>
+                {libraryRows.map((row) => (
+                  <tr
+                    key={row.label}
+                    className="border-t border-line/70 first:border-t-0 dark:border-white/10"
+                  >
+                    <th
+                      scope="row"
+                      className="py-2 pr-4 align-top text-xs font-medium text-ink-muted dark:text-light-400 sm:text-sm"
+                    >
+                      {row.label}
+                    </th>
+                    <td className="break-words py-2 align-top text-sm font-semibold text-ink dark:text-light-100 sm:text-base">
+                      {row.value}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
+      </div>
+    )}
     </section>
   );
 };

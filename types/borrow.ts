@@ -3,7 +3,7 @@ export interface BorrowRecord {
   id: string;
   userName: string | null;
   userEmail: string | null;
-  universityId: number | null;
+  universityId: string | null;
   universityCard: string | null;
   bookTitle: string | null;
   bookAuthor: string | null;

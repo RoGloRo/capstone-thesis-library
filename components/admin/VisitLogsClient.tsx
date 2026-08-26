@@ -12,14 +12,14 @@ interface VisitRow {
   visitDate: string | null;
   visitTime: string;
   fullName: string | null;
-  universityId: number | null;
+  universityId: string | null;
   email: string | null;
 }
 
 interface StatsData {
   todayCount: number;
   weekCount: number;
-  topVisitors: { userId: string; fullName: string | null; universityId: number | null; visitCount: number }[];
+  topVisitors: { userId: string; fullName: string | null; universityId: string | null; visitCount: number }[];
 }
 
 interface VisitLogsClientProps {

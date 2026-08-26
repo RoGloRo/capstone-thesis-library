@@ -12,7 +12,7 @@ interface Props {
   userData?: {
     fullName: string;
     email: string;
-    universityId?: number;
+    universityId?: string;
   };
   // Save feature
   userId?: string;

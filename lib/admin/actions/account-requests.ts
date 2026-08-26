@@ -26,7 +26,7 @@ export const getAccountRequests = async (): Promise<AccountRequest[]> => {
       id: user.id,
       fullName: user.fullName || "",
       email: user.email || "",
-      universityId: user.universityId || 0,
+      universityId: user.universityId ?? "",
       universityCard: user.universityCard || "",
       status: user.status as "PENDING" | "REJECTED",
       createdAt: user.createdAt || new Date()
@@ -41,7 +41,7 @@ export interface AccountRequest {
   id: string;
   fullName: string;
   email: string;
-  universityId: number;
+  universityId: string;
   universityCard: string;
   status: "PENDING" | "REJECTED";
   createdAt: Date;

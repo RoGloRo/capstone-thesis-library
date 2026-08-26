@@ -4,7 +4,7 @@ interface BookReceiptData {
   // User Information
   userName: string;
   userEmail: string;
-  universityId?: number;
+  universityId?: string;
   
   // Book Information
   bookTitle: string;

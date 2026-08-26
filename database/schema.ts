@@ -23,7 +23,7 @@ export const users = pgTable("users", {
   id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
   fullName: varchar("full_name", {length: 255}).notNull(),
   email: text("email").notNull().unique(),
-  universityId: integer("univeristy_id").notNull().unique(),
+  universityId: varchar("univeristy_id", { length: 50 }).notNull().unique(),
   password: text("password").notNull(),
   universityCard: text("university_card").notNull(),
   status: STATUS_ENUM("status").default("PENDING"),

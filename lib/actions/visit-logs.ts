@@ -12,7 +12,7 @@ export async function recordVisit(userId: string): Promise<{
   user?: {
     id: string;
     fullName: string;
-    universityId: number;
+    universityId: string;
     universityCard: string;
     email: string;
   };
