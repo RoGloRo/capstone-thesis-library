@@ -11,6 +11,8 @@
     "db:migrate": "npx drizzle-kit migrate",
     "db:apply-migration": "tsx scripts/apply-migration.ts",
     "db:apply:published-year": "tsx scripts/apply-published-year-migration.ts",
+    "db:apply:bibliographic-information": "tsx scripts/apply-bibliographic-information-migration.ts",
+    "db:apply:library-information": "tsx scripts/apply-library-information-migration.ts",
     "db:studio": "npx drizzle-kit studio"
   },
   "dependencies": {

@@ -38,4 +38,36 @@ export const bookSchema = z.object({
     ])
     .optional()
     .transform((v) => (v == null || v === "" ? undefined : v)),
+  identifier: z
+    .union([z.string().trim().max(200), z.null()])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
+  publisher: z
+    .union([z.string().trim().max(255), z.null()])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
+  edition: z
+    .union([z.string().trim().max(255), z.null()])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
+  language: z
+    .union([z.string().trim().max(100), z.null()])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
+  pages: z
+    .union([z.number().int().positive(), z.null(), z.literal("")])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
+  shelfLocation: z
+    .union([z.string().trim().max(100), z.null()])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
+  bookFormat: z
+    .union([z.string().trim().max(50), z.null()])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
+  acquisitionDate: z
+    .union([z.string().trim(), z.null()])
+    .optional()
+    .transform((v) => (v == null || v === "" ? undefined : v)),
 });

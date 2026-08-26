@@ -80,7 +80,7 @@ function AuthForm({
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-semibold text-ink dark:text-white">
         {isSignIn
-          ? "Welcome back to Smart Library"
+          ? "Welcome back to MNHS MAIN Smart Library"
           : "Create your library account"}
       </h1>
 

@@ -15,6 +15,14 @@ type Book = {
   videoUrl: string;
   summary: string;
   publishedYear?: number | null;
+  identifier?: string | null;
+  publisher?: string | null;
+  edition?: string | null;
+  language?: string | null;
+  pages?: number | null;
+  shelfLocation?: string | null;
+  bookFormat?: string | null;
+  acquisitionDate?: string | null;
   createdAt: Date;
 };
 

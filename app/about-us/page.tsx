@@ -122,6 +122,18 @@ const AboutPage = async () => {
           </div>
         </section>
 
+        {/* General Objectives of the Library */}
+        <section className="px-4 pt-8">
+          <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm dark:border-white/10 dark:bg-white/5 sm:p-10">
+           <h3 className="text-xl font-semibold text-ink dark:text-white">
+              General Objectives of the Library
+          </h3>
+            <p className="mt-3 text-base leading-relaxed text-ink-muted dark:text-slate-300">
+              The MNHS- MAIN Library supports and supplements the structural program of the school through the most appropriate, updated and adequate library resources and well-trained librarian for the attainment of its mission and objectives.
+            </p>
+          </div>
+        </section>
+
       {/* Core Values */}
         <section className="px-4 pt-16">
           <div className="mx-auto max-w-3xl text-center">

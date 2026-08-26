@@ -21,7 +21,7 @@ const Sidebar = ({ session }: { session: Session }) => {
             height={37}
             width={37}
           />
-          <h1 className="text-gray-900 dark:text-white transition-colors">Smart Library</h1>
+          <h1 className="text-gray-900 dark:text-white transition-colors">MNHS MAIN Smart Library</h1>
         </div>
 
         <div className="mt-10 flex flex-col gap-5">

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Loader2, BookOpen, User, Tag, Star, Palette, Video, Calendar } from "lucide-react";
+import { Loader2, BookOpen, User, Tag, Star, Palette, Video, Calendar, BookMarked, Hash, Building2, Layers, Languages, BookText, LibraryBig, Package, MapPin, BookType, CalendarDays, Boxes } from "lucide-react";
 import { bookSchema } from "@/lib/validations";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,13 @@ import ColorPicker from "@/components/admin/ColorPicker";
 import { createBook, updateBook } from "@/lib/admin/actions/book";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -45,6 +52,15 @@ const BookForm = ({
   summary = ""
   ,controlNumber = ""
   ,publishedYear = undefined
+  ,identifier = ""
+  ,publisher = ""
+  ,edition = ""
+  ,language = ""
+  ,pages = undefined
+  ,availableCopies = 0
+  ,shelfLocation = ""
+  ,bookFormat = ""
+  ,acquisitionDate = ""
 }: BookFormProps) => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,6 +80,14 @@ const BookForm = ({
       summary: summary || "",
       controlNumber: controlNumber || "",
       publishedYear: publishedYear ?? undefined,
+      identifier: identifier || "",
+      publisher: publisher || "",
+      edition: edition || "",
+      language: language || "",
+      pages: pages ?? undefined,
+      shelfLocation: shelfLocation || "",
+      bookFormat: bookFormat || "",
+      acquisitionDate: acquisitionDate || "",
     },
   });
 
@@ -97,8 +121,10 @@ const BookForm = ({
     <div className="max-w-4xl mx-auto">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* Basic Information Section */}
-          <Card>
+          {/* Basic Information + Bibliographic Information (stack on small screens) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Basic Information Section */}
+            <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
@@ -138,25 +164,6 @@ const BookForm = ({
                       <FormControl>
                         <Input placeholder="Enter author name" {...field} />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Control Number (optional) */}
-                <FormField
-                  control={form.control}
-                  name="controlNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        Call Number
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="SL-YYYY-XXXXXX (optional)" {...field} />
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground mt-1">Leave blank to auto-generate.</p>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -243,15 +250,249 @@ const BookForm = ({
                   )}
                 />
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Total Copies */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Bibliographic Information Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookMarked className="h-5 w-5" />
+                  Bibliographic Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="identifier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Hash className="h-4 w-4" />
+                        ISSN / ISBN
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="978-0-123456-47-2 or 1234-5678" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        ISBN-10, ISBN-13, or ISSN-8 (optional).
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="publisher"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4" />
+                        Publisher
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Pearson" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="edition"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Layers className="h-4 w-4" />
+                        Edition
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., 2nd Edition" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="language"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Languages className="h-4 w-4" />
+                        Language
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., English" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="pages"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <BookText className="h-4 w-4" />
+                        Pages
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="e.g., 350"
+                          value={typeof field.value === "number" ? field.value : ""}
+                          onChange={(e) =>
+                            field.onChange(e.target.value === "" ? undefined : Number(e.target.value))
+                          }
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          disabled={field.disabled}
+                        />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">Optional.</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Library Information + Inventory Information (stack on small screens) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Library Information Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LibraryBig className="h-5 w-5" />
+                  Library Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Call Number */}
+                <FormField
+                  control={form.control}
+                  name="controlNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Tag className="h-4 w-4" />
+                        Call Number
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="SL-YYYY-XXXXXX (optional)" {...field} />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">Leave blank to auto-generate.</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Shelf Location */}
+                <FormField
+                  control={form.control}
+                  name="shelfLocation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        Shelf Location
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., A-12-03" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">Optional.</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Book Format */}
+                <FormField
+                  control={form.control}
+                  name="bookFormat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <BookType className="h-4 w-4" />
+                        Book Format
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select format (optional)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {[
+                            "Hardcover",
+                            "Paperback",
+                            "E-book",
+                            "Audiobook",
+                            "Reference",
+                            "Magazine",
+                            "Journal",
+                            "Other",
+                          ].map((format) => (
+                            <SelectItem key={format} value={format}>
+                              {format}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">Optional.</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Acquisition Date */}
+                <FormField
+                  control={form.control}
+                  name="acquisitionDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4" />
+                        Acquisition Date
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">Optional.</p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Inventory Information Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Inventory Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Add Book Copies */}
                 <FormField
                   control={form.control}
                   name="totalCopies"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Total Copies Available</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        <Tag className="h-4 w-4" />
+                        Add Book Copies
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -264,13 +505,28 @@ const BookForm = ({
                           disabled={field.disabled}
                         />
                       </FormControl>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Total copies owned. Changing this adjusts Available Copies automatically.
+                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
-            </CardContent>
-          </Card>
+
+                {/* Available Copies (read-only; managed by borrowing logic) */}
+                <div className="space-y-2">
+                  <p className="flex items-center gap-2 text-sm font-medium leading-none">
+                    <Boxes className="h-4 w-4" />
+                    Available Copies
+                  </p>
+                  <Input value={String(availableCopies ?? 0)} readOnly disabled />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Calculated automatically when copies are added and when books are borrowed or returned.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Visual Elements Section */}
           <Card>

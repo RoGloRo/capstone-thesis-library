@@ -101,7 +101,7 @@ const isSaved = savedIds.includes(id);
           </p>
 
           <p>
-            Category{" "}
+            Genre{" "}
             <Link 
               href={`/library?genre=${encodeURIComponent(genre)}`}
               className="font-semibold text-ink-muted hover:underline hover:opacity-90 transition-opacity dark:text-light-200"

@@ -55,6 +55,14 @@ export const createBook = async (params: BookParams) => {
       .values({
         ...params,
         publishedYear: params.publishedYear ?? null,
+        identifier: params.identifier ?? null,
+        publisher: params.publisher ?? null,
+        edition: params.edition ?? null,
+        language: params.language ?? null,
+        pages: params.pages ?? null,
+        shelfLocation: params.shelfLocation ?? null,
+        bookFormat: params.bookFormat ?? null,
+        acquisitionDate: params.acquisitionDate ?? null,
         controlNumber,
         availableCopies: params.totalCopies,
       })
@@ -128,6 +136,14 @@ export const updateBook = async (id: string, params: BookParams) => {
       .set({
         ...params,
         publishedYear: params.publishedYear ?? null,
+        identifier: params.identifier ?? null,
+        publisher: params.publisher ?? null,
+        edition: params.edition ?? null,
+        language: params.language ?? null,
+        pages: params.pages ?? null,
+        shelfLocation: params.shelfLocation ?? null,
+        bookFormat: params.bookFormat ?? null,
+        acquisitionDate: params.acquisitionDate ?? null,
         controlNumber: controlNumberToSet,
         availableCopies: newAvailableCopies,
       })

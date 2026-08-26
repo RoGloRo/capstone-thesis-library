@@ -33,6 +33,15 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
     summary
     ,controlNumber
     ,publishedYear
+    ,identifier
+    ,publisher
+    ,edition
+    ,language
+    ,pages
+    ,availableCopies
+    ,shelfLocation
+    ,bookFormat
+    ,acquisitionDate
   } = result.book;
 
   return (
@@ -57,6 +66,15 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
           summary={summary}
           controlNumber={controlNumber}
           publishedYear={publishedYear}
+          identifier={identifier}
+          publisher={publisher}
+          edition={edition}
+          language={language}
+          pages={pages}
+          availableCopies={availableCopies}
+          shelfLocation={shelfLocation}
+          bookFormat={bookFormat}
+          acquisitionDate={acquisitionDate}
         />
       </section>
     </>

@@ -51,6 +51,14 @@ export const books = pgTable("books", {
   summary: varchar("summary", { length: 1000 }).notNull(),
   controlNumber: varchar("control_number", { length: 32 }),
   publishedYear: integer("published_year"),
+  identifier: varchar("identifier", { length: 200 }),
+  publisher: varchar("publisher", { length: 255 }),
+  edition: varchar("edition", { length: 255 }),
+  language: varchar("language", { length: 100 }),
+  pages: integer("pages"),
+  shelfLocation: varchar("shelf_location", { length: 100 }),
+  bookFormat: varchar("book_format", { length: 50 }),
+  acquisitionDate: date("acquisition_date"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 

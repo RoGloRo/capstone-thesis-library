@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="mt-12">
       <div className="container mx-auto px-4">
         <div className="text-center text-sm text-ink-muted dark:text-slate-400">
-          <span>© Smart Library</span>
+          <span>© MNHS MAIN Smart Library</span>
           <span className="mx-2">|</span>
           <Link href="/about-us" className="text-ink hover:text-green-700 dark:text-slate-300 dark:hover:text-slate-100 hover:underline transition-colors duration-150">About</Link>
           <span className="mx-2">|</span>

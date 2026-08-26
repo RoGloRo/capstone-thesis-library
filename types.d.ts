@@ -13,6 +13,14 @@ interface Book {
   summary: string;
   controlNumber?: string | null;
   publishedYear?: number | null;
+  identifier?: string | null;
+  publisher?: string | null;
+  edition?: string | null;
+  language?: string | null;
+  pages?: number | null;
+  shelfLocation?: string | null;
+  bookFormat?: string | null;
+  acquisitionDate?: string | null;
   isLoanedBook?: boolean;
   borrowDate?: string; // ISO timestamp
   dueDate?: string; // ISO date
@@ -40,6 +48,14 @@ interface BookParams {
   summary: string;
   controlNumber?: string | null;
   publishedYear?: number | null;
+  identifier?: string | null;
+  publisher?: string | null;
+  edition?: string | null;
+  language?: string | null;
+  pages?: number | null;
+  shelfLocation?: string | null;
+  bookFormat?: string | null;
+  acquisitionDate?: string | null;
 }
 
 interface BorrowBookParams {
