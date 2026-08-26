@@ -4,6 +4,15 @@ import { db } from "@/database/drizzle";
 import { visitLogs, users } from "@/database/schema";
 import { eq, and, gte, lte, desc, count, sql } from "drizzle-orm";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+// Asia/Manila (UTC+8, no DST) is the school's intended local timezone. The
+// visit_date / visit_time columns store the Philippine wall clock, while the
+// created_at timestamptz column stores the absolute instant for ordering and
+// duplicate detection. Only the wall-clock generator needs the timezone.
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Record a library visit (with duplicate prevention within 10 minutes)
 export async function recordVisit(userId: string): Promise<{
@@ -57,7 +66,7 @@ export async function recordVisit(userId: string): Promise<{
     }
 
     // Record the visit
-    const now = dayjs();
+    const now = dayjs().tz("Asia/Manila");
     const visitDate = now.format("YYYY-MM-DD");
     const visitTime = now.format("hh:mm A");
 
@@ -80,7 +89,7 @@ export async function recordVisit(userId: string): Promise<{
 
 // Get visit logs with optional date filter
 export async function getVisitLogs(filter: "today" | "week" | "month" | "all" = "today") {
-  const now = dayjs();
+  const now = dayjs().tz("Asia/Manila");
   let startDate: string | undefined;
   let endDate: string | undefined = now.format("YYYY-MM-DD");
 
@@ -122,8 +131,8 @@ export async function getVisitLogs(filter: "today" | "week" | "month" | "all" = 
 
 // Get visit statistics
 export async function getVisitStats() {
-  const today = dayjs().format("YYYY-MM-DD");
-  const weekStart = dayjs().startOf("week").format("YYYY-MM-DD");
+  const today = dayjs().tz("Asia/Manila").format("YYYY-MM-DD");
+  const weekStart = dayjs().tz("Asia/Manila").startOf("week").format("YYYY-MM-DD");
 
   const [todayCount] = await db
     .select({ count: count() })
@@ -136,7 +145,7 @@ export async function getVisitStats() {
     .where(gte(visitLogs.visitDate, weekStart));
 
   // Most frequent visitors this month
-  const monthStart = dayjs().startOf("month").format("YYYY-MM-DD");
+  const monthStart = dayjs().tz("Asia/Manila").startOf("month").format("YYYY-MM-DD");
   const topVisitors = await db
     .select({
       userId: visitLogs.userId,
