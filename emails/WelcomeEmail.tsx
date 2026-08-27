@@ -25,13 +25,13 @@ export const WelcomeEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>Welcome to Smart Library - Your reading journey starts now!</Preview>
+      <Preview>Welcome to MNHS MAIN Smart Library - Your reading journey starts now!</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
             <Row>
               <Column>
-                <Text style={headerText}>📚 Smart Library</Text>
+                <Text style={headerText}>📚 MNHS MAIN Smart Library</Text>
               </Column>
             </Row>
           </Section>
@@ -49,7 +49,7 @@ export const WelcomeEmail = ({
             <Section style={welcomeSection}>
               <Text style={welcomeTitle}>🎉 You&apos;re Now Part of Our Community!</Text>
               <Text style={welcomeText}>
-                As a member of Smart Library, you now have access to thousands of books, 
+                As a member of MNHS MAIN Smart Library, you now have access to thousands of books, 
                 personalized recommendations, and a seamless borrowing experience.
               </Text>
             </Section>
@@ -126,8 +126,8 @@ export const WelcomeEmail = ({
 
           <Section style={footer}>
             <Text style={footerText}>
-              You&apos;re receiving this email because you just joined Smart Library. 
-              If you have any questions, please contact us at contact@lemoroquias.online
+              You&apos;re receiving this email because you just joined MNHS MAIN Smart Library. 
+              If you have any questions, please contact us at mnhsmainiris@gmail.com
             </Text>
           </Section>
         </Container>

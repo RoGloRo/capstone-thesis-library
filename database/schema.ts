@@ -18,6 +18,11 @@ export const EMAIL_TYPE_ENUM = pgEnum("email_type", [
   "PENALTY_NOTICE"
 ]);
 export const EMAIL_STATUS_ENUM = pgEnum("email_status", ["SENT", "FAILED", "PENDING"]);
+export const MESSAGE_STATUS_ENUM = pgEnum("message_status", [
+  "UNREAD",
+  "READ",
+  "RESOLVED",
+]);
 
 export const users = pgTable("users", {
   id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
@@ -119,4 +124,35 @@ export const visitLogs = pgTable("visit_logs", {
 }, (table) => ({
   userIdx: index("visit_logs_user_idx").on(table.userId),
   visitDateIdx: index("visit_logs_date_idx").on(table.visitDate),
+}));
+
+// Contact/feedback messages submitted through the public "Contact Us" / "Send
+// Us a Message" form.
+//
+// Design notes:
+// - userId is NULLABLE and uses ON DELETE SET NULL so a submitted message is
+//   preserved even if the linked user account is later deleted.
+// - Only the userId relates the message to an account. name/email/message are
+//   the first-class values actually submitted through the form and are stored
+//   independently of any auth state — guests submit with userId = NULL, and the
+//   name/email are still kept.
+// - `status` is a closed-set workflow state (UNREAD / READ / RESOLVED), so it
+//   uses a pgEnum just like users.status / borrowRecords.status.
+export const contactMessages = pgTable("contact_messages", {
+  id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "set null" }),
+  name: varchar("name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 254 }).notNull(),
+  message: text("message").notNull(),
+  status: MESSAGE_STATUS_ENUM("status").default("UNREAD").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+}, (table) => ({
+  // The dominant admin query filters by status (and then sorts by createdAt).
+  statusIdx: index("contact_messages_status_idx").on(table.status),
 }));

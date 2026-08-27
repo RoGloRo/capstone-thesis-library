@@ -39,7 +39,7 @@ export const BookBorrowingConfirmationEmail = ({
           <Section style={header}>
             <Row>
               <Column>
-                <Text style={headerText}>📚 Smart Library</Text>
+                <Text style={headerText}>📚 MNHS MAIN Smart Library</Text>
               </Column>
             </Row>
           </Section>
@@ -116,19 +116,19 @@ export const BookBorrowingConfirmationEmail = ({
             </Section>
 
             <Text style={paragraph}>
-              Thank you for using Smart Library! Happy reading! 📚
+              Thank you for using MNHS MAIN Smart Library! Happy reading! 📚
             </Text>
 
             <Text style={signature}>
               Best regards,<br />
-              The Smart Library Team
+              The MNHS MAIN Smart Library Team
             </Text>
           </Section>
 
           <Section style={footer}>
             <Text style={footerText}>
-              This email was sent from Smart Library. If you have any questions, 
-              please contact us at contact@lemoroquias.online
+              This email was sent from MNHS MAIN Smart Library. If you have any questions, 
+              please contact us at mnhsmainiris@gmail.com
             </Text>
           </Section>
         </Container>

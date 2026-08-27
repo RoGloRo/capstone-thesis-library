@@ -27,13 +27,13 @@ export const AccountApprovalEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>🎉 Your Smart Library account has been approved! Welcome aboard!</Preview>
+      <Preview>🎉 Your MNHS MAIN Smart Library account has been approved! Welcome aboard!</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
             <Row>
               <Column>
-                <Text style={headerText}>📚 Smart Library</Text>
+                <Text style={headerText}>📚 MNHS MAIN Smart Library</Text>
               </Column>
             </Row>
           </Section>
@@ -57,7 +57,7 @@ export const AccountApprovalEmail = ({
                 <Column style={textColumn}>
                   <Text style={approvalTitle}>Your Account is Now Active!</Text>
                   <Text style={approvalText}>
-                    You can now access all features of Smart Library including browsing 
+                    You can now access all features of MNSH MAIN Smart Library including browsing 
                     our collection, borrowing books, and managing your reading profile.
                   </Text>
                 </Column>
@@ -173,7 +173,7 @@ export const AccountApprovalEmail = ({
           <Section style={footer}>
             <Text style={footerText}>
               Your account was approved by our administration team. If you have any questions 
-              or need assistance, please contact us at contact@lemoroquias.online
+              or need assistance, please contact us at mnhsmainiris@gmail.com
             </Text>
           </Section>
         </Container>

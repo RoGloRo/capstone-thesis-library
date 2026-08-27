@@ -269,7 +269,7 @@ const BookForm = ({
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
                         <Hash className="h-4 w-4" />
-                        ISSN / ISBN
+                        ISBN / ISSN
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="978-0-123456-47-2 or 1234-5678" {...field} value={field.value ?? ""} />

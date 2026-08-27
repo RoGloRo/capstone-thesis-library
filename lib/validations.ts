@@ -105,3 +105,30 @@ export const bookSchema = z.object({
     .optional()
     .transform((v) => (v == null || v === "" ? undefined : v)),
 });
+
+// Contact Us / feedback message submitted from the public About page.
+// Used BOTH by the client form (instant feedback) and re-validated on the
+// server inside submitContactMessage — single source of truth, no drift.
+export const contactMessageSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Please enter your name.")
+    .max(100, "Name must be 100 characters or fewer."),
+  email: z
+    .string()
+    .trim()
+    .min(1, "Please enter your email.")
+    .email("Please enter a valid email address.")
+    .max(254, "Email must be 254 characters or fewer."),
+  message: z
+    .string()
+    .trim()
+    .min(1, "Please enter a message.")
+    .max(5000, "Message must be 5000 characters or fewer."),
+});
+
+export type ContactMessageInput = z.infer<typeof contactMessageSchema>;
+
+export const MESSAGE_STATUSES = ["UNREAD", "READ", "RESOLVED"] as const;
+export type MessageStatus = (typeof MESSAGE_STATUSES)[number];

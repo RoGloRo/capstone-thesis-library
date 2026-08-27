@@ -37,7 +37,7 @@ export const DueDateReminderEmail = ({
           <Section style={header}>
             <Row>
               <Column>
-                <Text style={headerText}>📚 Smart Library</Text>
+                <Text style={headerText}>📚 MNHS MAIN Smart Library</Text>
               </Column>
             </Row>
           </Section>
@@ -100,19 +100,19 @@ export const DueDateReminderEmail = ({
             </Section>
 
             <Text style={paragraph}>
-              Thank you for being a valued member of Smart Library! 📚
+              Thank you for being a valued member of MNHS MAIN Smart Library! 📚
             </Text>
 
             <Text style={signature}>
               Best regards,<br />
-              The Smart Library Team
+              The MNHS MAIN Smart Library Team
             </Text>
           </Section>
 
           <Section style={footer}>
             <Text style={footerText}>
-              This is an automated reminder from Smart Library. If you have any questions, 
-              please contact us at contact@lemoroquias.online
+              This is an automated reminder from MNHS MAIN Smart Library. If you have any questions, 
+              please contact us at mnhsmainiris@gmail.com
             </Text>
           </Section>
         </Container>

@@ -3,9 +3,14 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2, Send } from "lucide-react";
+
+import { submitContactMessage } from "@/lib/actions/contact-messages";
+import {
+  contactMessageSchema,
+  type ContactMessageInput,
+} from "@/lib/validations";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,24 +24,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const feedbackSchema = z.object({
-  name: z.string().min(1, "Please enter your name."),
-  email: z
-    .string()
-    .min(1, "Please enter your email.")
-    .email("Please enter a valid email address."),
-  message: z.string().min(1, "Please enter a message."),
-});
-
-type FeedbackFormData = z.infer<typeof feedbackSchema>;
-
-const SIMULATED_DELAY_MS = 1200;
+type FeedbackFormData = ContactMessageInput;
 
 export default function AboutFeedbackForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FeedbackFormData>({
-    resolver: zodResolver(feedbackSchema),
+    resolver: zodResolver(contactMessageSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -47,13 +41,18 @@ export default function AboutFeedbackForm() {
   const onSubmit = async (values: FeedbackFormData) => {
     setIsSubmitting(true);
     try {
-      // TODO: Connect to a real backend later.
-      // This form is intentionally frontend-only for now — it does NOT
-      // send a request, create an API route, touch the database, or
-      // send an email. The handler below only simulates a submission
-      // so the UX (loading state, success toast, reset) is in place
-      // for when the backend is wired up.
-      await new Promise((resolve) => setTimeout(resolve, SIMULATED_DELAY_MS));
+      // Real backend: server action validates again, resolves the session
+      // userId server-side, and persists to contact_messages.
+      const result = await submitContactMessage(values);
+
+      if (!result.success) {
+        const description =
+          "error" in result && result.error ? result.error : undefined;
+        toast.error("Message not sent", {
+          description: description ?? "Please try again in a moment.",
+        });
+        return;
+      }
 
       toast.success("Message sent!", {
         description: `Thank you for reaching out, ${values.name.trim()}. We'll get back to you soon.`,

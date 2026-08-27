@@ -44,6 +44,11 @@ export const adminSideBarLinks = [
     text: "Reports",
   },
   {
+    img: "/icons/admin/info.svg",
+    route: "/admin/messages",
+    text: "Messages",
+  },
+  {
     img: "/icons/admin/user.svg",
     route: "/admin/account-requests",
     text: "Account Requests",
@@ -262,6 +267,29 @@ export const borrowStatuses = [
     label: "Returned",
     bgColor: "bg-[#F0F9FF]",
     textColor: "text-[#026AA2]",
+  },
+];
+
+// Contact Us / feedback message workflow states (contact_messages.status).
+// UNREAD → READ → RESOLVED. Matches the message_status pg enum values.
+export const messageStatuses = [
+  {
+    value: "UNREAD",
+    label: "Unread",
+    bgColor: "bg-[#FFF6E6]",
+    textColor: "text-[#B54708]",
+  },
+  {
+    value: "READ",
+    label: "Read",
+    bgColor: "bg-[#F0F9FF]",
+    textColor: "text-[#026AA2]",
+  },
+  {
+    value: "RESOLVED",
+    label: "Resolved",
+    bgColor: "bg-[#ECFDF3]",
+    textColor: "text-[#027A48]",
   },
 ];
 

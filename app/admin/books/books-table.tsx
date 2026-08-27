@@ -11,6 +11,7 @@ import {
   SortingState,
   ColumnFiltersState,
   getFilteredRowModel,
+  FilterFn,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -23,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, Search } from "lucide-react";
 import {
@@ -42,11 +43,44 @@ interface BooksTableProps {
   data: Book[];
 }
 
+// Convert a Date | Date string / number to a timestamp so createdAt sorting is
+// always chronological regardless of how the DB driver returns the value.
+const toTimestamp = (
+  value: Date | string | number | null | undefined
+): number => {
+  if (value == null) return 0;
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+};
+
+// Availability filter: "available" → availableCopies > 0, "unavailable" →
+// availableCopies <= 0. This is a display/client-side filter only; it never
+// modifies availableCopies or borrowing logic.
+const availabilityFilterFn: FilterFn<Book> = (
+  row,
+  _columnId,
+  filterValue: string
+) => {
+  const available = (row.getValue("availableCopies") as number) > 0;
+  if (filterValue === "available") return available;
+  if (filterValue === "unavailable") return !available;
+  return true; // "all"
+};
+
 export function BooksTable({ data }: BooksTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  // Default sort: Latest → Oldest (createdAt DESC). This MUST match the default
+  // "selectedSort" dropdown value ("latest") so the dropdown and the actual
+  // table sorting stay synchronized on initial render.
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [selectedSort, setSelectedSort] = useState<string>("latest");
+  const [selectedGenre, setSelectedGenre] = useState<string>("all");
+  const [selectedFormat, setSelectedFormat] = useState<string>("all");
+  const [selectedShelf, setSelectedShelf] = useState<string>("all");
+  const [selectedAvailability, setSelectedAvailability] = useState<string>("all");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -56,19 +90,55 @@ export function BooksTable({ data }: BooksTableProps) {
     setIsDeleteDialogOpen(true);
   };
 
-  // Enhanced global filter function
+  // Enhanced global filter function — searches title, author, genre (existing),
+  // plus call number (controlNumber) and ISBN / ISSN (identifier). Case-insensitive.
   const globalFilterFn = (row: any, columnId: string, value: string) => {
     const searchValue = value.toLowerCase();
     const title = row.original.title?.toLowerCase() || '';
     const author = row.original.author?.toLowerCase() || '';
     const genre = row.original.genre?.toLowerCase() || '';
-    
-    return title.includes(searchValue) || 
-           author.includes(searchValue) || 
-           genre.includes(searchValue);
+    const control = row.original.controlNumber?.toLowerCase() || '';
+    const identifier = row.original.identifier?.toLowerCase() || '';
+
+    return title.includes(searchValue) ||
+           author.includes(searchValue) ||
+           genre.includes(searchValue) ||
+           control.includes(searchValue) ||
+           identifier.includes(searchValue);
   };
 
-  // Handle sort dropdown changes
+  // Derive the filter option lists from the loaded books so new genres,
+  // formats, and shelf locations appear automatically.
+  const genreOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(data.map((b) => b.genre).filter((g): g is string => Boolean(g)))
+      ).sort((a, b) => a.localeCompare(b)),
+    [data]
+  );
+
+  const formatOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          data.map((b) => b.bookFormat).filter((f): f is string => Boolean(f))
+        )
+      ).sort((a, b) => a.localeCompare(b)),
+    [data]
+  );
+
+  const shelfOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          data
+            .map((b) => b.shelfLocation)
+            .filter((s): s is string => Boolean(s))
+        )
+      ).sort((a, b) => a.localeCompare(b)),
+    [data]
+  );
+
   const handleSortChange = (value: string) => {
     setSelectedSort(value);
     switch (value) {
@@ -87,6 +157,20 @@ export function BooksTable({ data }: BooksTableProps) {
       default:
         setSorting([]);
     }
+  };
+
+  // Update a column filter via TanStack's existing columnFilters mechanism.
+  // Setting "all" removes the filter; otherwise the filter equals the value.
+  const handleColumnFilter = (
+    id: string,
+    value: string,
+    setter: (v: string) => void
+  ) => {
+    setter(value);
+    setColumnFilters((prev) => [
+      ...prev.filter((f) => f.id !== id),
+      ...(value === "all" ? [] : [{ id, value }]),
+    ]);
   };
 
   const handleConfirmDelete = async () => {
@@ -117,13 +201,6 @@ export function BooksTable({ data }: BooksTableProps) {
 
   const columns: ColumnDef<Book>[] = [
     {
-      accessorKey: "controlNumber",
-      header: "Control Number",
-      cell: ({ row }) => (
-        <div className="font-mono text-sm">{row.getValue("controlNumber") || '—'}</div>
-      ),
-    },
-    {
       accessorKey: "title",
       header: "Title",
       cell: ({ row }) => (
@@ -137,6 +214,39 @@ export function BooksTable({ data }: BooksTableProps) {
     {
       accessorKey: "genre",
       header: "Genre",
+      filterFn: "equalsString",
+    },
+    {
+      accessorKey: "controlNumber",
+      header: "Call Number",
+      cell: ({ row }) => (
+        <div className="font-mono text-sm">{row.getValue("controlNumber") || '—'}</div>
+      ),
+    },
+    {
+      accessorKey: "identifier",
+      header: "ISBN / ISSN",
+      cell: ({ row }) => (
+        <div className="font-mono text-sm">{row.getValue("identifier") || '—'}</div>
+      ),
+    },
+    {
+      accessorKey: "bookFormat",
+      header: "Format",
+      filterFn: "equalsString",
+      cell: ({ row }) => {
+        const value = row.getValue("bookFormat") as string | null;
+        return value ? <span>{value}</span> : <span>—</span>;
+      },
+    },
+    {
+      accessorKey: "shelfLocation",
+      header: "Shelf Location",
+      filterFn: "equalsString",
+      cell: ({ row }) => {
+        const value = row.getValue("shelfLocation") as string | null;
+        return value ? <span>{value}</span> : <span>—</span>;
+      },
     },
     {
       accessorKey: "totalCopies",
@@ -145,15 +255,19 @@ export function BooksTable({ data }: BooksTableProps) {
     {
       accessorKey: "availableCopies",
       header: "Available",
+      filterFn: availabilityFilterFn,
     },
-     {
-    accessorKey: "createdAt",
-    header: "Added On",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"));
-      return date.toLocaleDateString();
+    {
+      accessorKey: "createdAt",
+      header: "Added On",
+      sortingFn: (rowA, rowB) =>
+        toTimestamp(rowA.getValue("createdAt") as Date | string | number | null) -
+        toTimestamp(rowB.getValue("createdAt") as Date | string | number | null),
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("createdAt"));
+        return date.toLocaleDateString();
+      },
     },
-  },
   {
     id: "actions",
     cell: ({ row }) => (
@@ -207,17 +321,85 @@ export function BooksTable({ data }: BooksTableProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between py-4 gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
-          <Input
-            placeholder="Search by title, author, or genre..."
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="pl-10"
-          />
+      <div className="py-4 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+            <Input
+              placeholder="Search by title, author, genre, call number, or ISBN..."
+              value={globalFilter ?? ""}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              className="pl-10"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Select
+            value={selectedGenre}
+            onValueChange={(v) => handleColumnFilter("genre", v, setSelectedGenre)}
+          >
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="All Genres" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Genres</SelectItem>
+              {genreOptions.map((g) => (
+                <SelectItem key={g} value={g}>
+                  {g}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={selectedFormat}
+            onValueChange={(v) => handleColumnFilter("bookFormat", v, setSelectedFormat)}
+          >
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="All Formats" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Formats</SelectItem>
+              {formatOptions.map((f) => (
+                <SelectItem key={f} value={f}>
+                  {f}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={selectedShelf}
+            onValueChange={(v) => handleColumnFilter("shelfLocation", v, setSelectedShelf)}
+          >
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="All Shelves" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Shelves</SelectItem>
+              {shelfOptions.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={selectedAvailability}
+            onValueChange={(v) => handleColumnFilter("availableCopies", v, setSelectedAvailability)}
+          >
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="All Availability" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Availability</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="unavailable">Unavailable</SelectItem>
+            </SelectContent>
+          </Select>
+
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sort by:</span>
           <Select value={selectedSort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-[180px]">

@@ -33,7 +33,7 @@ export const UserActiveEmail = ({
           <Section style={header}>
             <Row>
               <Column>
-                <Text style={headerText}>📚 Smart Library</Text>
+                <Text style={headerText}>📚 MNHS MAIN Smart Library</Text>
               </Column>
             </Row>
           </Section>

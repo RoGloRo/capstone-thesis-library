@@ -14,6 +14,7 @@
     "db:apply:bibliographic-information": "tsx scripts/apply-bibliographic-information-migration.ts",
     "db:apply:library-information": "tsx scripts/apply-library-information-migration.ts",
     "db:apply:user-category-grade-level": "tsx scripts/apply-user-category-migration.ts",
+    "db:apply:contact-messages": "tsx scripts/apply-contact-messages-migration.ts",
     "db:studio": "npx drizzle-kit studio"
   },
   "dependencies": {

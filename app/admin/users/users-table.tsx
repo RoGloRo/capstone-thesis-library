@@ -33,7 +33,7 @@ import { ChevronDown, Loader2, Trash2, Link as LinkIcon, FileImage, Search } fro
 import config from "@/lib/config";
 import Image from "next/image";
 import { toast } from "sonner";
-import { gradeLevelLabels, userCategoryLabels } from "@/constants";
+import { gradeLevelLabels, gradeLevels, userCategories, userCategoryLabels } from "@/constants";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,11 +55,29 @@ interface UsersTableProps {
   data: User[];
 }
 
+// Convert a Date | Date string / number to a timestamp so createdAt sorting is
+// always chronological regardless of how the DB driver returns the value.
+const toTimestamp = (
+  value: Date | string | number | null | undefined
+): number => {
+  if (value == null) return 0;
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+};
+
 export function UsersTable({ data }: UsersTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  // Default sort: Latest → Oldest (createdAt DESC). This MUST match the
+  // default "selectedSort" dropdown value ("latest") so the dropdown and the
+  // actual table sorting stay in sync on initial render.
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "createdAt", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [selectedSort, setSelectedSort] = useState<string>("latest");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedGrade, setSelectedGrade] = useState<string>("all");
+  const [isGradeFilterDisabled, setIsGradeFilterDisabled] = useState(false);
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
@@ -150,6 +168,33 @@ export function UsersTable({ data }: UsersTableProps) {
     }
   };
 
+  // Category filter. Values come from the existing `userCategories` constant
+  // (STUDENT / TEACHER / STAFF — no ADMIN). Teacher/Staff have no Grade Level,
+  // so selecting them resets Grade Level to "All" and disables it.
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value);
+
+    setColumnFilters((prev) => [
+      ...prev.filter((f) => f.id !== "userCategory" && f.id !== "gradeLevel"),
+      ...(value === "all" ? [] : [{ id: "userCategory", value }]),
+    ]);
+
+    if (value === "TEACHER" || value === "STAFF") {
+      setSelectedGrade("all");
+      setIsGradeFilterDisabled(true);
+    } else {
+      setIsGradeFilterDisabled(false);
+    }
+  };
+
+  const handleGradeChange = (value: string) => {
+    setSelectedGrade(value);
+    setColumnFilters((prev) => [
+      ...prev.filter((f) => f.id !== "gradeLevel"),
+      ...(value === "all" ? [] : [{ id: "gradeLevel", value }]),
+    ]);
+  };
+
   const columns: ColumnDef<User>[] = [
     {
       accessorKey: "fullName",
@@ -188,6 +233,7 @@ export function UsersTable({ data }: UsersTableProps) {
     {
       accessorKey: "userCategory",
       header: "Category",
+      filterFn: "equalsString",
       cell: ({ row }) => {
         const value = row.getValue("userCategory") as string | null;
         return value ? (userCategoryLabels[value] ?? value) : "—";
@@ -196,6 +242,7 @@ export function UsersTable({ data }: UsersTableProps) {
     {
       accessorKey: "gradeLevel",
       header: "Grade Level",
+      filterFn: "equalsString",
       cell: ({ row }) => {
         const value = row.getValue("gradeLevel") as string | null;
         return value ? (gradeLevelLabels[value] ?? value) : "—";
@@ -257,6 +304,9 @@ export function UsersTable({ data }: UsersTableProps) {
     {
       accessorKey: "createdAt",
       header: "Joined On",
+      sortingFn: (rowA, rowB) =>
+        toTimestamp(rowA.original.createdAt) -
+        toTimestamp(rowB.original.createdAt),
       cell: ({ row }) => {
         const dateValue = row.getValue("createdAt");
         if (!dateValue) return 'N/A';
@@ -314,19 +364,54 @@ export function UsersTable({ data }: UsersTableProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between py-4 gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
-          <Input
-            placeholder="Search by name, email, or school ID..."
-            value={(table.getState().globalFilter as string) ?? ""}
-            onChange={(event) => {
-              table.setGlobalFilter(event.target.value);
-            }}
-            className="pl-10"
-          />
+      <div className="py-4 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 h-4 w-4" />
+            <Input
+              placeholder="Search by name, email, or school ID..."
+              value={(table.getState().globalFilter as string) ?? ""}
+              onChange={(event) => {
+                table.setGlobalFilter(event.target.value);
+              }}
+              className="pl-10"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {userCategories.map((category) => (
+                <SelectItem key={category.value} value={category.value}>
+                  {category.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={selectedGrade}
+            onValueChange={handleGradeChange}
+            disabled={isGradeFilterDisabled}
+          >
+            <SelectTrigger className="w-[180px]" disabled={isGradeFilterDisabled}>
+              <SelectValue placeholder="All Grade Levels" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Grade Levels</SelectItem>
+              {gradeLevels.map((g) => (
+                <SelectItem key={g.value} value={g.value}>
+                  {g.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Sort by:</span>
           <Select value={selectedSort} onValueChange={handleSortChange}>
             <SelectTrigger className="w-[180px]">

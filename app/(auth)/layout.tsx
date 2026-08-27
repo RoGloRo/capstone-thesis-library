@@ -32,7 +32,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
               <span className="mx-2">|</span>
               <Link href="/about-us" className="text-ink hover:text-green-700 dark:text-slate-300 dark:hover:text-slate-100 hover:underline transition-colors duration-150">About</Link>
               <span className="mx-2">|</span>
-              <Link href="/about-us" className="text-ink hover:text-green-700 dark:text-slate-300 dark:hover:text-slate-100 hover:underline transition-colors duration-150">Contact</Link>
+              <Link href="/about-us#contact-us" className="text-ink hover:text-green-700 dark:text-slate-300 dark:hover:text-slate-100 hover:underline transition-colors duration-150">Contact</Link>
             </div>
           </div>
         </div>

@@ -38,7 +38,7 @@ export const BookReturnConfirmationEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={header}>
-          <Text style={headerText}>SMART LIBRARY</Text>
+          <Text style={headerText}> MNHS MAIN SMART LIBRARY</Text>
           <Text style={subHeaderText}>Book Return Confirmation</Text>
         </Section>
         
@@ -107,7 +107,7 @@ export const BookReturnConfirmationEmail = ({
           
           <Section style={footer}>
             <Text style={footerText}>
-              Thank you for being a valued member of Smart Library! 
+              Thank you for being a valued member of MNHS MAIN Smart Library! 
             </Text>
             <Text style={footerNote}>
               Happy reading and see you soon for your next book adventure!

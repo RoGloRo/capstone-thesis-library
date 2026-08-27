@@ -22,18 +22,18 @@ interface AccountRejectionEmailProps {
 export const AccountRejectionEmail = ({
   userName = "John Doe",
   userEmail = "john@example.com",
-  supportEmail = "contact@lemoroquias.online",
+  supportEmail = "mnhsmainiris@gmail.com",
 }: AccountRejectionEmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Your Smart Library account registration was not approved</Preview>
+      <Preview>Your MNHS MAIN Smart Library account registration was not approved</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={header}>
             <Row>
               <Column>
-                <Text style={headerText}>📚 Smart Library</Text>
+                <Text style={headerText}>📚 MNHS MAIN Smart Library</Text>
               </Column>
             </Row>
           </Section>
@@ -44,7 +44,7 @@ export const AccountRejectionEmail = ({
             <Text style={greeting}>Hi {userName},</Text>
             
             <Text style={paragraph}>
-              Thank you for your interest in joining Smart Library. After reviewing your registration request, 
+              Thank you for your interest in joining our MNHS MAIN Smart Library. After reviewing your registration request, 
               we regret to inform you that we are unable to approve your account at this time.
             </Text>
 
@@ -86,13 +86,13 @@ export const AccountRejectionEmail = ({
             </Section>
 
             <Text style={paragraph}>
-              We appreciate your understanding and interest in Smart Library. We encourage you to 
+              We appreciate your understanding and interest in MNHS MAIN Smart Library. We encourage you to 
               reapply if you believe you meet the requirements.
             </Text>
 
             <Text style={signature}>
               Best regards,<br />
-              The Smart Library Team
+              The MNHS MAIN Smart Library Team
             </Text>
           </Section>
 
