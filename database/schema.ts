@@ -268,3 +268,61 @@ export const announcements = pgTable(
     createdAtIdx: index("announcements_created_at_idx").on(table.createdAt),
   }),
 );
+
+// User Notification Center — the per-user inbox that powers the header bell
+// and the /notifications page. Deliberately SEPARATE from the admin
+// `notifications` activity feed (different audience, wording and — critically —
+// read-state ownership).
+//
+// Design notes:
+// - One row per recipient (fan-out). user_id is NOT NULL with ON DELETE
+//   CASCADE: an inbox row is personal, so it is meaningless without its user
+//   (unlike the admin feed, which preserves history with ON DELETE SET NULL).
+// - `link` is a server-generated INTERNAL route (e.g. /announcements/{uuid},
+//   /books/{uuid}) — never user-supplied and never an external URL.
+// - Dedup: a unique index over (user_id, type, entity_id) guarantees each user
+//   is notified at most ONCE per business event (e.g. a re-published or
+//   restored announcement never re-notifies). Inserts use ON CONFLICT DO
+//   NOTHING so repeated admin actions stay idempotent.
+export const USER_NOTIFICATION_TYPE_ENUM = pgEnum("user_notification_type", [
+  "ANNOUNCEMENT",
+  "NEW_BOOK",
+]);
+
+export const userNotifications = pgTable(
+  "user_notifications",
+  {
+    id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: USER_NOTIFICATION_TYPE_ENUM("type").notNull(),
+    title: varchar("title", { length: 200 }).notNull(),
+    message: text("message").notNull(),
+    link: varchar("link", { length: 500 }),
+    entityType: varchar("entity_type", { length: 50 }),
+    entityId: uuid("entity_id"),
+    isRead: boolean("is_read").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    // Once per user per event — deduplication for idempotent admin actions.
+    dedupIdx: uniqueIndex("user_notifications_dedup_idx").on(
+      table.userId,
+      table.type,
+      table.entityId,
+    ),
+    // Inbox list query (filter by user, newest first).
+    userCreatedIdx: index("user_notifications_user_created_idx").on(
+      table.userId,
+      table.createdAt,
+    ),
+    // Unread badge count query.
+    userUnreadIdx: index("user_notifications_user_unread_idx").on(
+      table.userId,
+      table.isRead,
+    ),
+  }),
+);

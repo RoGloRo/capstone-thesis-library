@@ -4,6 +4,7 @@
 import { books } from "@/database/schema";
 import { db } from "@/database/drizzle";
 import { deleteCachesByPattern } from "@/lib/ai-cache";
+import { notifyApprovedUsers } from "@/lib/notifications";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -75,6 +76,20 @@ export const createBook = async (params: BookParams) => {
     // A new book also changes the similar-books candidate pool → refresh the
     // shared book-match cache. Best-effort; Redis failures never affect action.
     await deleteCachesByPattern("ai:book-match:*");
+
+    // A successfully created book is immediately publicly visible (books have
+    // no draft state) → notify all approved users. Auxiliary: the emitter
+    // never throws, so book creation cannot fail because of it. NO email.
+    // createBook is the only admin creation path (database/seed.ts inserts
+    // directly and intentionally never notifies).
+    await notifyApprovedUsers({
+      type: "NEW_BOOK",
+      title: "New Book Available",
+      message: `"${newBook[0].title}" has been added to the Smart Library collection.`,
+      link: `/books/${newBook[0].id}`,
+      entityType: "BOOK",
+      entityId: newBook[0].id,
+    });
 
     return {
       success: true,

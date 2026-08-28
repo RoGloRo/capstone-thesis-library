@@ -16,6 +16,7 @@
     "db:apply:user-category-grade-level": "tsx scripts/apply-user-category-migration.ts",
     "db:apply:contact-messages": "tsx scripts/apply-contact-messages-migration.ts",
     "db:apply:notifications": "tsx scripts/apply-notifications-migration.ts",
+    "db:apply:user-notifications": "tsx scripts/apply-user-notifications-migration.ts",
     "db:apply:announcements": "tsx scripts/apply-announcements-migration.ts",
     "db:studio": "npx drizzle-kit studio"
   },

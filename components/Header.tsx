@@ -19,7 +19,6 @@ const Header = ({session}: {session: Session | null}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState("");
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
@@ -55,14 +54,6 @@ const Header = ({session}: {session: Session | null}) => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
-  };
-
-  const toggleNotifications = () => {
-    setIsNotificationOpen(!isNotificationOpen);
-  };
-
-  const closeNotifications = () => {
-    setIsNotificationOpen(false);
   };
 
   const toggleMobileSearch = () => {
@@ -344,12 +335,8 @@ const Header = ({session}: {session: Session | null}) => {
         {/* Theme Toggle */}
         <ThemeToggleButton />
 
-        {/* Notification Bell with Dropdown */}
-        <NotificationDropdown
-          isOpen={isNotificationOpen}
-          onToggle={toggleNotifications}
-          onClose={closeNotifications}
-        />
+        {/* Notification Bell with Popover */}
+        <NotificationDropdown />
         
         {/* Logout Button */}
         <button
@@ -380,6 +367,9 @@ const Header = ({session}: {session: Session | null}) => {
 
       {/* Mobile Menu Button - Only visible on mobile */}
       <div className="md:hidden flex items-center gap-4">
+        {/* Mobile Notification Bell (first-class notification access) */}
+        <NotificationDropdown />
+
         {/* Mobile Search Icon */}
         <button 
           onClick={toggleMobileSearch}
@@ -594,16 +584,21 @@ const Header = ({session}: {session: Session | null}) => {
                 <span>My Profile</span>
               </Link>
 
-              {/* Mobile Notifications */}
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-amber-50 transition-all duration-200">
-                <Bell className="w-5 h-5 text-gray-700" />
-                <span className="text-base font-medium text-gray-700 flex-1">Notifications</span>
-                <NotificationDropdown
-                  isOpen={isNotificationOpen}
-                  onToggle={toggleNotifications}
-                  onClose={closeNotifications}
-                />
-              </div>
+              {/* Mobile Notifications — plain link to the full page (the
+                  popover lives in the top bar; no nested dropdown here). */}
+              <Link
+                href="/notifications"
+                onClick={closeMobileMenu}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 hover:bg-amber-50 active:scale-95",
+                  pathname.startsWith("/notifications")
+                    ? "text-amber-600 bg-amber-50 border border-amber-200"
+                    : "text-gray-700 hover:text-amber-600"
+                )}
+              >
+                <Bell className="w-5 h-5" />
+                <span>Notifications</span>
+              </Link>
 
               {/* Logout Button in Navigation */}
               <button

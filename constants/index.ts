@@ -471,3 +471,26 @@ export const notificationEntityRoutes: Record<string, string> = {
   BORROW_RECORD: "/admin/borrow-records",
   BOOK: "/admin/books",
 };
+
+// ─── User Notification Center ──────────────────────────────────────────────
+
+// User-facing notification types (user_notifications.type). Keys are DB enum
+// values; only implemented types are listed — new types are added here when a
+// real trigger exists. Icons are mapped to lucide components in the client
+// components (constants stays data-only).
+export const userNotificationTypeConfig: Record<
+  string,
+  { label: string; accentBg: string; accentText: string }
+> = {
+  ANNOUNCEMENT: {
+    label: "Announcement",
+    accentBg: "bg-amber-100 dark:bg-amber-900/30",
+    accentText: "text-amber-600 dark:text-amber-400",
+  },
+  NEW_BOOK: {
+    label: "New Book",
+    accentBg: "bg-emerald-100 dark:bg-emerald-900/30",
+    accentText: "text-emerald-600 dark:text-emerald-400",
+  },
+};
+

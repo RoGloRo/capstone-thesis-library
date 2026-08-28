@@ -1,277 +1,304 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { Bell, Clock, CheckCircle, AlertCircle, Mail, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
+/**
+ * components/NotificationDropdown.tsx
+ *
+ * Layer 1 of the User Notification Center: the header bell + quick-preview
+ * popover. The popover is a COMPACT preview (newest items, unread indicator,
+ * "Mark all as read") plus a "View all notifications" action that navigates to
+ * /notifications — the full history/management page (Layer 2).
+ *
+ * Data comes from the session-scoped user_notifications inbox (server actions
+ * in lib/actions/notifications.ts) — NOT from email_logs and NOT from the
+ * admin notifications feed.
+ *
+ * Built on the existing Radix popover primitive so the panel can never escape
+ * the viewport (built-in collision avoidance), closes on Escape/outside click,
+ * and manages focus correctly on desktop, tablet and mobile.
+ */
 
-export interface UserNotification {
-  id: string;
-  emailType: string;
-  subject: string;
-  sentAt: Date | null;
-  status: string;
-  metadata: string | null;
-}
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AlertCircle, Bell, BookOpen, Inbox, Megaphone } from "lucide-react";
 
-interface NotificationDropdownProps {
-  isOpen: boolean;
-  onToggle: () => void;
-  onClose: () => void;
-}
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  getUnreadUserNotificationCount,
+  getUserNotifications,
+  markAllUserNotificationsAsRead,
+  markUserNotificationAsRead,
+  type UserNotificationRow,
+} from "@/lib/actions/notifications";
+import { userNotificationTypeConfig } from "@/constants";
+import { cn, formatRelativeTime } from "@/lib/utils";
 
-const NOTIFICATION_TYPE_CONFIG = {
-  DUE_TODAY: {
-    icon: Clock,
-    label: "Due Today",
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
-  },
-  OVERDUE: {
-    icon: AlertCircle,
-    label: "Overdue",
-    color: "text-red-600",
-    bgColor: "bg-red-50",
-  },
-  BORROW_CONFIRMATION: {
-    icon: CheckCircle,
-    label: "Borrow Confirmed",
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-  },
-  RETURN_CONFIRMATION: {
-    icon: CheckCircle,
-    label: "Return Confirmed",
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-  },
-  DUE_REMINDER: {
-    icon: Clock,
-    label: "Due Reminder",
-    color: "text-amber-600",
-    bgColor: "bg-amber-50",
-  },
-  WELCOME: {
-    icon: Mail,
-    label: "Welcome",
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
-  },
-  default: {
-    icon: Mail,
-    label: "Notification",
-    color: "text-gray-600",
-    bgColor: "bg-gray-50",
-  },
-};
+const PREVIEW_LIMIT = 6;
 
-function formatTimeAgo(date: Date | null): string {
-  if (!date) return "Unknown time";
-  
-  const now = new Date();
-  const diffInMilliseconds = now.getTime() - new Date(date).getTime();
-  const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  const diffInDays = Math.floor(diffInHours / 24);
+const TYPE_ICONS = {
+  ANNOUNCEMENT: Megaphone,
+  NEW_BOOK: BookOpen,
+} as const;
 
-  if (diffInMinutes < 1) {
-    return "Just now";
-  } else if (diffInMinutes < 60) {
-    return `${diffInMinutes}m ago`;
-  } else if (diffInHours < 24) {
-    return `${diffInHours}h ago`;
-  } else if (diffInDays < 7) {
-    return `${diffInDays}d ago`;
-  } else {
-    return new Date(date).toLocaleDateString();
-  }
-}
+export default function NotificationDropdown() {
+  const router = useRouter();
 
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
-  isOpen,
-  onToggle,
-  onClose,
-}) => {
-  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [open, setOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [items, setItems] = useState<UserNotificationRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [markingAll, setMarkingAll] = useState(false);
+  const wasOpenRef = useRef(false);
 
-  // Fetch notifications when dropdown opens
+  const refreshUnread = useCallback(async () => {
+    try {
+      setUnreadCount(await getUnreadUserNotificationCount());
+    } catch {
+      // The badge is auxiliary — a failed count must never break the bell.
+    }
+  }, []);
+
+  // Keep the badge honest even while the popover is closed.
   useEffect(() => {
-    if (isOpen && notifications.length === 0) {
-      fetchNotifications();
-    }
-  }, [isOpen]);
+    refreshUnread();
+  }, [refreshUnread]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen, onClose]);
-
-  const fetchNotifications = async () => {
+  const fetchItems = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
     try {
-      const response = await fetch('/api/notifications/user?limit=10');
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch notifications');
+      const result = await getUserNotifications({
+        page: 1,
+        pageSize: PREVIEW_LIMIT,
+      });
+      if (!result.success || !result.data) {
+        throw new Error("Failed to load notifications");
       }
-      
-      if (data.success) {
-        setNotifications(data.notifications);
-      }
+      setItems(result.data);
     } catch (err) {
-      console.error('Error fetching notifications:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load notifications');
+      console.error("Error fetching notifications:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to load notifications",
+      );
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  // (Re)fetch every time the popover opens so the preview is never stale.
+  useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      fetchItems();
+      refreshUnread();
+    }
+    wasOpenRef.current = open;
+  }, [open, fetchItems, refreshUnread]);
+
+  const handleMarkAll = async () => {
+    setMarkingAll(true);
+    try {
+      const result = await markAllUserNotificationsAsRead();
+      if (!result.success) {
+        throw new Error("Failed to mark all as read");
+      }
+      // Optimistic local update — no reload needed.
+      setItems((prev) => prev.map((it) => ({ ...it, isRead: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error("Error marking all as read:", err);
+    } finally {
+      setMarkingAll(false);
+    }
   };
 
-  const getNotificationConfig = (emailType: string) => {
-    return NOTIFICATION_TYPE_CONFIG[emailType as keyof typeof NOTIFICATION_TYPE_CONFIG] 
-           || NOTIFICATION_TYPE_CONFIG.default;
+  const handleItemClick = (item: UserNotificationRow) => {
+    setOpen(false);
+
+    if (!item.isRead) {
+      // Mark first (optimistically), then navigate immediately: the server
+      // action is already dispatched, so it completes even after the route
+      // change, and the badge is correct when the user comes back.
+      markUserNotificationAsRead(item.id)
+        .then(() => refreshUnread())
+        .catch(() => {});
+    }
+
+    // Only ever follow server-generated internal routes.
+    if (item.link && item.link.startsWith("/")) {
+      router.push(item.link);
+      return;
+    }
+    router.push("/notifications");
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Bell Button */}
-      <button
-        onClick={onToggle}
-        className={cn(
-          "relative p-2 sm:p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center",
-          isOpen 
-            ? "text-amber-600 bg-amber-50" 
-            : "text-gray-600 hover:text-amber-500 hover:bg-amber-50"
-        )}
-        aria-label="Notifications"
-        aria-expanded={isOpen}
-      >
-        <Bell className="w-5 h-5" />
-        
-        {/* Notification Count Badge */}
-        {notifications.length > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center font-medium shadow-sm">
-            {notifications.length > 9 ? '9+' : notifications.length}
-          </span>
-        )}
-      </button>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label="Notifications"
+          aria-haspopup="dialog"
+          className={cn(
+            "relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg p-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-opacity-50 touch-manipulation",
+            open
+              ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30"
+              : "text-gray-600 hover:bg-amber-50 hover:text-amber-500 dark:text-gray-300 dark:hover:bg-amber-900/20",
+          )}
+        >
+          <Bell className="h-5 w-5" />
 
-      {/* Dropdown Panel */}
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200/80 dark:border-gray-700 z-50 max-h-[70vh] sm:max-h-96 overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-100 dark:border-gray-800">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
-            <button
-              onClick={onClose}
-              className="p-1 rounded-lg hover:bg-gray-100 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center touch-manipulation"
-              aria-label="Close notifications"
+          {unreadCount > 0 && (
+            <span
+              aria-hidden="true"
+              className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium leading-none text-white shadow-sm sm:h-5 sm:min-w-[1.25rem] sm:text-xs"
             >
-              <X className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
-            </button>
-          </div>
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
 
-          {/* Content */}
-          <div className="max-h-[50vh] sm:max-h-80 overflow-y-auto">
-            {isLoading ? (
-              <div className="p-4 sm:p-6 text-center">
-                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-amber-500 mx-auto"></div>
-                <p className="text-gray-500 mt-2 text-sm">Loading notifications...</p>
-              </div>
-            ) : error ? (
-              <div className="p-4 sm:p-6 text-center">
-                <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500 mx-auto mb-2" />
-                <p className="text-red-600 text-xs sm:text-sm">{error}</p>
-                <button
-                  onClick={fetchNotifications}
-                  className="mt-2 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs sm:text-sm transition-colors touch-manipulation"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="p-6 sm:p-8 text-center">
-                <Bell className="w-8 h-8 sm:w-12 sm:h-12 text-gray-300 mx-auto mb-2 sm:mb-3" />
-                <p className="text-gray-500 font-medium mb-1 text-sm sm:text-base">No notifications</p>
-                <p className="text-gray-400 text-xs sm:text-sm">You're all caught up!</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {notifications.map((notification) => {
-                  const config = getNotificationConfig(notification.emailType);
-                  const IconComponent = config.icon;
+      <PopoverContent
+        align="end"
+        sideOffset={8}
+        className="w-[min(24rem,calc(100vw-2rem))] rounded-2xl border-gray-200/80 bg-white p-0 shadow-2xl dark:border-gray-700 dark:bg-gray-900"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-100 p-3 dark:border-gray-800 sm:p-4">
+          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 sm:text-lg">
+            Notifications
+          </h3>
+          <button
+            type="button"
+            onClick={handleMarkAll}
+            disabled={markingAll || unreadCount === 0}
+            className="rounded-lg px-2 py-1 text-xs font-medium text-amber-600 transition-colors hover:bg-amber-50 hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-amber-400 dark:hover:bg-amber-900/30"
+          >
+            {markingAll ? "Marking…" : "Mark all as read"}
+          </button>
+        </div>
 
-                  return (
-                    <div
-                      key={notification.id}
-                      className="p-3 sm:p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer touch-manipulation"
-                    >
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <div className={cn(
-                          "flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center",
-                          config.bgColor
-                        )}>
-                          <IconComponent className={cn("w-3 h-3 sm:w-4 sm:h-4", config.color)} />
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-                            <span className={cn(
-                              "text-[10px] sm:text-xs font-medium px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap",
-                              config.bgColor,
-                              config.color
-                            )}>
-                              {config.label}
-                            </span>
-                            <span className="text-[10px] sm:text-xs text-gray-500">
-                              {formatTimeAgo(notification.sentAt)}
-                            </span>
-                          </div>
-                          
-                          <p className="text-xs sm:text-sm text-gray-900 dark:text-gray-100 font-medium line-clamp-2 break-words">
-                            {notification.subject}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          {notifications.length > 0 && (
-            <div className="p-2 sm:p-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
+        {/* Content */}
+        <div className="max-h-[24rem] overflow-y-auto">
+          {isLoading ? (
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-2.5 w-16" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : error ? (
+            <div className="p-6 text-center">
+              <AlertCircle className="mx-auto mb-2 h-7 w-7 text-red-500" />
+              <p className="text-xs text-red-600 dark:text-red-400 sm:text-sm">
+                {error}
+              </p>
               <button
-                onClick={() => {
-                  // Optional: Navigate to full notifications page
-                  onClose();
-                }}
-                className="w-full text-center text-xs sm:text-sm text-amber-600 hover:text-amber-700 font-medium py-2 sm:py-1 transition-colors touch-manipulation"
+                type="button"
+                onClick={fetchItems}
+                className="mt-2 rounded-lg bg-red-100 px-3 py-1 text-xs text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300"
               >
-                View All Notifications
+                Retry
               </button>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="p-6 text-center sm:p-8">
+              <Bell className="mx-auto mb-2 h-8 w-8 text-gray-300 dark:text-gray-600 sm:h-10 sm:w-10" />
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 sm:text-base">
+                You&apos;re all caught up!
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 sm:text-sm">
+                No new notifications.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-gray-800">
+              {items.map((item) => {
+                const config = userNotificationTypeConfig[item.type] ?? {
+                  label: "Notification",
+                  accentBg: "bg-gray-100 dark:bg-gray-800",
+                  accentText: "text-gray-600 dark:text-gray-300",
+                };
+                const IconComponent =
+                  TYPE_ICONS[item.type as keyof typeof TYPE_ICONS] ?? Inbox;
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleItemClick(item)}
+                    className={cn(
+                      "flex w-full items-start gap-2 p-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 sm:gap-3 sm:p-4",
+                      !item.isRead && "bg-amber-50/60 dark:bg-amber-900/10",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-6 w-6 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8",
+                        config.accentBg,
+                      )}
+                    >
+                      <IconComponent
+                        className={cn("h-3 w-3 sm:h-4 sm:w-4", config.accentText)}
+                      />
+                    </span>
+
+                    <span className="min-w-0 flex-1">
+                      <span className="mb-0.5 flex items-center gap-1.5">
+                        {!item.isRead && (
+                          <span
+                            aria-hidden="true"
+                            className="h-2 w-2 shrink-0 rounded-full bg-amber-500"
+                          />
+                        )}
+                        <span
+                          className={cn(
+                            "truncate text-xs font-medium sm:text-sm",
+                            item.isRead
+                              ? "text-gray-700 dark:text-gray-300"
+                              : "text-gray-900 dark:text-white",
+                          )}
+                        >
+                          {item.title}
+                        </span>
+                      </span>
+                      <span className="line-clamp-2 block break-words text-xs text-gray-500 dark:text-gray-400">
+                        {item.message}
+                      </span>
+                      <span className="mt-1 block text-[10px] text-gray-400 dark:text-gray-500 sm:text-[11px]">
+                        {formatRelativeTime(item.createdAt)}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
-      )}
-    </div>
-  );
-};
 
-export default NotificationDropdown;
+        {/* Footer — the bridge to the full history page. */}
+        <div className="border-t border-gray-100 bg-gray-50 p-2 dark:border-gray-800 dark:bg-gray-800 sm:p-3">
+          <Link
+            href="/notifications"
+            onClick={() => setOpen(false)}
+            className="block w-full rounded-lg py-2 text-center text-xs font-medium text-amber-600 transition-colors hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:hover:bg-amber-900/30 sm:text-sm"
+          >
+            View all notifications
+          </Link>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}

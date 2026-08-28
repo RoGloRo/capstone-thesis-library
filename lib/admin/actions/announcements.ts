@@ -33,6 +33,7 @@ import { z } from "zod";
 import { db } from "@/database/drizzle";
 import { announcements } from "@/database/schema";
 import { isAdminUser } from "@/lib/auth-guard";
+import { notifyApprovedUsers } from "@/lib/notifications";
 import {
   ANNOUNCEMENT_STATUSES,
   announcementSchema,
@@ -283,6 +284,20 @@ export async function createAnnouncement(
       })
       .returning({ id: announcements.id });
 
+    // A brand-new row published immediately is a FIRST-TIME publication →
+    // notify all approved users (notification only, NO email). Auxiliary:
+    // the emitter never throws, so publishing cannot fail because of it.
+    if (isPublish) {
+      await notifyApprovedUsers({
+        type: "ANNOUNCEMENT",
+        title: "New Announcement",
+        message: `A new announcement has been published: "${parsed.data.title}"`,
+        link: `/announcements/${row.id}`,
+        entityType: "ANNOUNCEMENT",
+        entityId: row.id,
+      });
+    }
+
     revalidateAnnouncementPaths();
     return { success: true, id: row.id };
   } catch (error) {
@@ -348,6 +363,21 @@ export async function updateAnnouncement(
       })
       .where(eq(announcements.id, parsedId.data));
 
+    // Only a FIRST-TIME publication notifies (publishedAt was null before this
+    // write). Editing an already-published announcement, or restoring an
+    // archived one, never re-notifies — the (user_id, type, entity_id) unique
+    // index enforces the same guarantee at the database level. NO email.
+    if (isPublish && existing.publishedAt === null) {
+      await notifyApprovedUsers({
+        type: "ANNOUNCEMENT",
+        title: "New Announcement",
+        message: `A new announcement has been published: "${parsed.data.title}"`,
+        link: `/announcements/${parsedId.data}`,
+        entityType: "ANNOUNCEMENT",
+        entityId: parsedId.data,
+      });
+    }
+
     revalidateAnnouncementPaths();
     return { success: true, id: parsedId.data };
   } catch (error) {
@@ -372,7 +402,10 @@ export async function publishAnnouncement(
     }
 
     const [existing] = await db
-      .select({ publishedAt: announcements.publishedAt })
+      .select({
+        title: announcements.title,
+        publishedAt: announcements.publishedAt,
+      })
       .from(announcements)
       .where(eq(announcements.id, parsedId.data))
       .limit(1);
@@ -391,6 +424,23 @@ export async function publishAnnouncement(
         updatedAt: new Date(),
       })
       .where(eq(announcements.id, parsedId.data));
+
+    // Notify only on the FIRST publication (publishedAt was null before this
+    // write). Re-publishing an already-published announcement is a no-op, and
+    // ARCHIVED → PUBLISHED (restore) intentionally does NOT re-notify: users
+    // were already informed and the announcement resurfaces in /announcements.
+    // The (user_id, type, entity_id) unique index enforces the same guarantee.
+    // NO email.
+    if (existing.publishedAt === null) {
+      await notifyApprovedUsers({
+        type: "ANNOUNCEMENT",
+        title: "New Announcement",
+        message: `A new announcement has been published: "${existing.title}"`,
+        link: `/announcements/${parsedId.data}`,
+        entityType: "ANNOUNCEMENT",
+        entityId: parsedId.data,
+      });
+    }
 
     revalidateAnnouncementPaths();
     return { success: true, id: parsedId.data };
