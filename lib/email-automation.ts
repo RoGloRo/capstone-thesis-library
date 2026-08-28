@@ -10,6 +10,7 @@ import {
   sendDueTodayEmail,
   sendOverdueNoticeEmail,
 } from "@/lib/email-with-logging";
+import { createNotification } from "@/lib/notifications";
 
 /**
  * Email Automation
@@ -112,6 +113,7 @@ export async function runDueDateReminderJob({
   const booksDueTomorrow = await db
     .select({
       borrowRecordId: borrowRecords.id,
+      userId: users.id,
       userEmail: users.email,
       userName: users.fullName,
       bookTitle: books.title,
@@ -141,6 +143,20 @@ export async function runDueDateReminderJob({
         result.sent++;
         continue;
       }
+
+      // Emit an admin notification (best-effort; a failure here is logged and
+      // swallowed so it never stops the automation job or the email itself).
+      await createNotification({
+        userId: record.userId,
+        category: "BOOK",
+        type: "BOOK_DUE_SOON",
+        title: "Book Due Soon",
+        message: `${record.userName || "A library member"} has "${
+          record.bookTitle || "a book"
+        }" due tomorrow.`,
+        entityType: "BORROW_RECORD",
+        entityId: record.borrowRecordId,
+      });
 
       const emailHtml = await render(
         DueDateReminderEmail({
@@ -283,6 +299,7 @@ export async function runOverdueJob({
   const overdueRecords = await db
     .select({
       borrowRecordId: borrowRecords.id,
+      userId: users.id,
       userFullName: users.fullName,
       userEmail: users.email,
       bookTitle: books.title,
@@ -319,6 +336,20 @@ export async function runOverdueJob({
         result.sent++;
         continue;
       }
+
+      // Emit an admin notification (best-effort; a failure here is logged and
+      // swallowed so it never stops the automation job or the email itself).
+      await createNotification({
+        userId: record.userId,
+        category: "BOOK",
+        type: "BOOK_OVERDUE",
+        title: "Book Overdue",
+        message: `${record.userFullName || "A library member"} has "${
+          record.bookTitle || "a book"
+        }" overdue.`,
+        entityType: "BORROW_RECORD",
+        entityId: record.borrowRecordId,
+      });
 
       const penaltyAmount = daysOverdue * PENALTY_PER_DAY;
 

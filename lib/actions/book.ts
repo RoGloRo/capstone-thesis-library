@@ -5,6 +5,7 @@ import { books, borrowRecords, users, savedBooks } from "@/database/schema";
 import { deleteCacheKey, deleteCachesByPattern } from "@/lib/ai-cache";
 import dayjs from "dayjs";
 import { and, eq, inArray } from "drizzle-orm";
+import { createNotification } from "@/lib/notifications";
 
 export const borrowBook = async (params: BorrowBookParams) => {
   const { userId, bookId } = params;
@@ -86,6 +87,20 @@ export const borrowBook = async (params: BorrowBookParams) => {
       .from(books)
       .where(eq(books.id, bookId))
       .limit(1);
+
+    // Emit an admin notification (auxiliary; a failure here is logged and
+    // swallowed so it can never break the borrow itself).
+    if (user && bookDetails) {
+      await createNotification({
+        userId,
+        category: "BOOK",
+        type: "BOOK_BORROWED",
+        title: "Book Borrowed",
+        message: `${user.fullName} borrowed "${bookDetails.title}".`,
+        entityType: "BORROW_RECORD",
+        entityId: record.id,
+      });
+    }
 
     if (user && bookDetails) {
       // Check if we have the necessary environment variables for email
@@ -234,6 +249,20 @@ export const returnBook = async (params: { borrowRecordId: string; bookId: strin
       .from(books)
       .where(eq(books.id, bookId))
       .limit(1);
+
+    // Emit an admin notification (auxiliary; a failure here is logged and
+    // swallowed so it can never break the return itself).
+    if (user && bookDetails) {
+      await createNotification({
+        userId: record.userId,
+        category: "BOOK",
+        type: "BOOK_RETURNED",
+        title: "Book Returned",
+        message: `${user.fullName} returned "${bookDetails.title}".`,
+        entityType: "BORROW_RECORD",
+        entityId: record.id,
+      });
+    }
 
     // Send return confirmation email
     if (user && bookDetails) {

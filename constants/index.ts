@@ -19,6 +19,11 @@ export const adminSideBarLinks = [
     text: "Home",
   },
   {
+    img: "/icons/admin/notification.svg",
+    route: "/admin/notifications",
+    text: "Notifications",
+  },
+  {
     img: "/icons/admin/mail.svg",
     route: "/admin/email-logs",
     text: "Email Logs",
@@ -353,4 +358,87 @@ export const gradeLevelLabels: Record<string, string> = {
   GRADE_10: "Grade 10",
   GRADE_11: "Grade 11",
   GRADE_12: "Grade 12",
+};
+
+// ─── Admin Notification Center ─────────────────────────────────────────────
+
+// Category tabs shown on the page. "ALL" is a UI-only filter, never a DB value.
+export const notificationCategories = [
+  { value: "ALL", label: "All" },
+  { value: "BOOK", label: "Books" },
+  { value: "ACCOUNT", label: "Account Requests" },
+  { value: "MESSAGE", label: "Messages" },
+  { value: "SYSTEM", label: "System" },
+];
+
+// Event-type filter options per category (context-aware). Only event types that
+// are actually implemented are offered — never hard-coded unsupported ones.
+export const notificationTypeOptions: Record<
+  string,
+  { value: string; label: string }[]
+> = {
+  ALL: [
+    { value: "all", label: "All" },
+    { value: "BOOK_BORROWED", label: "Borrowed" },
+    { value: "BOOK_RETURNED", label: "Returned" },
+    { value: "BOOK_DUE_SOON", label: "Due Soon" },
+    { value: "BOOK_OVERDUE", label: "Overdue" },
+    { value: "ACCOUNT_REQUEST", label: "New Request" },
+    { value: "ACCOUNT_APPROVED", label: "Approved" },
+    { value: "ACCOUNT_REJECTED", label: "Rejected" },
+    { value: "NEW_MESSAGE", label: "New Message" },
+  ],
+  BOOK: [
+    { value: "all", label: "All" },
+    { value: "BOOK_BORROWED", label: "Borrowed" },
+    { value: "BOOK_RETURNED", label: "Returned" },
+    { value: "BOOK_DUE_SOON", label: "Due Soon" },
+    { value: "BOOK_OVERDUE", label: "Overdue" },
+  ],
+  ACCOUNT: [
+    { value: "all", label: "All" },
+    { value: "ACCOUNT_REQUEST", label: "New Request" },
+    { value: "ACCOUNT_APPROVED", label: "Approved" },
+    { value: "ACCOUNT_REJECTED", label: "Rejected" },
+  ],
+  MESSAGE: [
+    { value: "all", label: "All" },
+    { value: "NEW_MESSAGE", label: "New Message" },
+  ],
+  SYSTEM: [{ value: "all", label: "All" }],
+};
+
+// Human-readable label + emoji for each event type (for the feed).
+export const notificationTypeDetails: Record<
+  string,
+  { label: string; emoji: string }
+> = {
+  BOOK_BORROWED: { label: "Book Borrowed", emoji: "📚" },
+  BOOK_RETURNED: { label: "Book Returned", emoji: "📚" },
+  BOOK_DUE_SOON: { label: "Book Due Soon", emoji: "⏰" },
+  BOOK_OVERDUE: { label: "Book Overdue", emoji: "⚠️" },
+  ACCOUNT_REQUEST: { label: "New Account Request", emoji: "👤" },
+  ACCOUNT_APPROVED: { label: "Account Approved", emoji: "✅" },
+  ACCOUNT_REJECTED: { label: "Account Rejected", emoji: "❌" },
+  NEW_MESSAGE: { label: "New Message", emoji: "💬" },
+};
+
+// Category badge styling (reuses existing admin Badge color patterns).
+export const notificationCategoryBadge: Record<
+  string,
+  { label: string; bgColor: string; textColor: string }
+> = {
+  BOOK: { label: "Books", bgColor: "bg-[#F9F5FF]", textColor: "text-[#6941C6]" },
+  ACCOUNT: { label: "Account Requests", bgColor: "bg-[#FFF6E6]", textColor: "text-[#B54708]" },
+  MESSAGE: { label: "Messages", bgColor: "bg-[#F0F9FF]", textColor: "text-[#026AA2]" },
+  SYSTEM: { label: "System", bgColor: "bg-[#ECFDF3]", textColor: "text-[#027A48]" },
+};
+
+// Where a notification's entity should navigate the admin. If a page cannot
+// yet open a specific record, we route to the relevant admin page.
+export const notificationEntityRoutes: Record<string, string> = {
+  CONTACT_MESSAGE: "/admin/messages",
+  ACCOUNT_REQUEST: "/admin/account-requests",
+  BORROW_RECORD: "/admin/borrow-records",
+  BOOK: "/admin/books",
 };

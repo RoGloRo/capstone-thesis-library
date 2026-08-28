@@ -24,6 +24,28 @@ export const MESSAGE_STATUS_ENUM = pgEnum("message_status", [
   "RESOLVED",
 ]);
 
+// Admin Notification Center categories. "ALL" is intentionally NOT a database
+// value — it only exists as a UI filter on the page.
+export const NOTIFICATION_CATEGORY_ENUM = pgEnum("notification_category", [
+  "BOOK",
+  "ACCOUNT",
+  "MESSAGE",
+  "SYSTEM",
+]);
+
+// Only event types backed by real existing functionality. The SYSTEM category
+// is reserved/future-ready and currently produces no events.
+export const NOTIFICATION_TYPE_ENUM = pgEnum("notification_type", [
+  "BOOK_BORROWED",
+  "BOOK_RETURNED",
+  "BOOK_DUE_SOON",
+  "BOOK_OVERDUE",
+  "ACCOUNT_REQUEST",
+  "ACCOUNT_APPROVED",
+  "ACCOUNT_REJECTED",
+  "NEW_MESSAGE",
+]);
+
 export const users = pgTable("users", {
   id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
   fullName: varchar("full_name", {length: 255}).notNull(),
@@ -156,3 +178,93 @@ export const contactMessages = pgTable("contact_messages", {
   // The dominant admin query filters by status (and then sorts by createdAt).
   statusIdx: index("contact_messages_status_idx").on(table.status),
 }));
+
+// Admin Notification Center — a centralized, event/activity layer for
+// important library events that require an admin's awareness (NOT an email-log
+// viewer, and NOT an audit log of every user action).
+//
+// Design notes:
+// - userId is NULLABLE and uses ON DELETE SET NULL so a historical notification
+//   is preserved even if the linked account is later deleted.
+// - entityType + entityId are a NULLABLE generic pointer used by the admin UI to
+//   navigate toward the related record. They are NOT FKs (the target record may
+//   not always exist or map 1:1), just discriminator + UUID reference.
+// - Dedup: a unique index over (type, entity_type, entity_id) guarantees a
+//   single notification per business event (e.g. one BOOK_RETURNED per borrow
+//   record). Inserts use ON CONFLICT DO NOTHING so repeated/re-run workflows
+//   never create duplicates. This is intentionally independent of email_logs.
+// - createdAt uses timestamptz, matching the rest of the schema.
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
+    category: NOTIFICATION_CATEGORY_ENUM("category").notNull(),
+    type: NOTIFICATION_TYPE_ENUM("type").notNull(),
+    title: varchar("title", { length: 200 }).notNull(),
+    message: text("message").notNull(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    entityType: varchar("entity_type", { length: 50 }),
+    entityId: uuid("entity_id"),
+    isRead: boolean("is_read").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    // One notification per (type, entity) — deduplication for idempotent flows.
+    dedupIdx: uniqueIndex("notifications_dedup_idx").on(
+      table.type,
+      table.entityType,
+      table.entityId,
+    ),
+    categoryIdx: index("notifications_category_idx").on(table.category),
+    readIdx: index("notifications_is_read_idx").on(table.isRead),
+    createdIdx: index("notifications_created_at_idx").on(table.createdAt),
+  }),
+);
+
+// Announcements — a text-only news/notice feed for the library managed by
+// admins/librarians and read by all users.
+//
+// Design notes:
+// - TEXT ONLY for now (title + content). No media columns, no storage provider,
+//   no audience targeting: every announcement is intended for everyone.
+// - Lifecycle: DRAFT -> PUBLISHED -> ARCHIVED, with ARCHIVED restore-able via
+//   publish. When a DRAFT is published, published_at is stamped. Re-publishing
+//   an archived/published announcement NEVER overwrites the original
+//   published_at so the historical publication date is always preserved.
+// - Only PUBLISHED rows are ever exposed to normal users; drafts and archived
+//   announcements are admin-facing only.
+// - status / published_at / created_at follow the closed-set pgEnum + timestamptz
+//   conventions used by the rest of the schema. created_at defaults to now()
+//   (no ON UPDATE trigger — updated_at is managed by the server actions), and
+//   both timestamps use withTimezone like contact_messages / notifications.
+export const ANNOUNCEMENT_STATUS_ENUM = pgEnum("announcement_status", [
+  "DRAFT",
+  "PUBLISHED",
+  "ARCHIVED",
+]);
+
+export const announcements = pgTable(
+  "announcements",
+  {
+    id: uuid("id").notNull().primaryKey().defaultRandom().unique(),
+    title: varchar("title", { length: 200 }).notNull(),
+    content: text("content").notNull(),
+    status: ANNOUNCEMENT_STATUS_ENUM("status").notNull().default("DRAFT"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    // The dominant admin query filters by status (then sorts by createdAt). The
+    // user-facing feed filters by status and sorts by publishedAt.
+    statusIdx: index("announcements_status_idx").on(table.status),
+    publishedAtIdx: index("announcements_published_at_idx").on(table.publishedAt),
+    createdAtIdx: index("announcements_created_at_idx").on(table.createdAt),
+  }),
+);

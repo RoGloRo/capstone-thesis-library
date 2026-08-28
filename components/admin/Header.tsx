@@ -7,6 +7,7 @@ import { LogOut, ArrowLeft, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { ModeToggle } from "../ui/mode-toggle";
 import LogoutConfirmation from "@/components/ui/logout-confirmation";
+import NotificationBell from "@/components/admin/notifications/NotificationBell";
 
 const Header = ({ session }: { session: Session }) => {
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
@@ -30,6 +31,9 @@ const Header = ({ session }: { session: Session }) => {
       {/* Right side actions */}
       <div className="flex items-center gap-4">
         <ModeToggle />
+
+        {/* Admin Notification Center bell */}
+        <NotificationBell />
         
         {/* AI Assistant Link */}
         <Link 

@@ -15,6 +15,7 @@ import { db } from "@/database/drizzle";
 import { contactMessages } from "@/database/schema";
 import { contactMessageSchema } from "@/lib/validations";
 import rateLimiter from "@/lib/ratelimit";
+import { createNotification } from "@/lib/notifications";
 
 const zUuid = z.string().uuid();
 const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
@@ -68,12 +69,28 @@ export async function submitContactMessage(
 
   // 4) Persist. name/email are stored exactly as submitted regardless of auth.
   try {
-    await db.insert(contactMessages).values({
-      ...(userId !== null ? { userId } : {}),
-      name,
-      email,
-      message,
+    const [saved] = await db
+      .insert(contactMessages)
+      .values({
+        ...(userId !== null ? { userId } : {}),
+        name,
+        email,
+        message,
+      })
+      .returning({ id: contactMessages.id });
+
+    // Emit an admin notification (auxiliary; a failure here is logged and
+    // swallowed so it can never break the message submission itself).
+    await createNotification({
+      userId,
+      category: "MESSAGE",
+      type: "NEW_MESSAGE",
+      title: "New Message",
+      message: `${name} (${email}) sent a message through Contact Us.`,
+      entityType: "CONTACT_MESSAGE",
+      entityId: saved.id,
     });
+
     return { success: true };
   } catch (error) {
     console.error("[submitContactMessage] Failed to save message:", error);

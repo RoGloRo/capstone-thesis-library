@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { sendEmail } from "@/lib/workflow";
 import { render } from "@react-email/render";
 import AccountApprovalEmail from "@/emails/AccountApprovalEmail";
+import { createNotification } from "@/lib/notifications";
 
 export const getAccountRequests = async (): Promise<AccountRequest[]> => {
   try {
@@ -71,6 +72,17 @@ export const approveAccountRequest = async (userId: string) => {
       .update(users)
       .set({ status: "APPROVED" })
       .where(eq(users.id, userId));
+
+    // Emit an admin notification (best-effort; never fails the approval).
+    await createNotification({
+      userId,
+      category: "ACCOUNT",
+      type: "ACCOUNT_APPROVED",
+      title: "Account Approved",
+      message: `${user.fullName}'s account request was approved.`,
+      entityType: "ACCOUNT_REQUEST",
+      entityId: userId,
+    });
     
     // Send approval notification email
     try {
@@ -143,6 +155,17 @@ export const rejectAccountRequest = async (userId: string) => {
       .update(users)
       .set({ status: "REJECTED" })
       .where(eq(users.id, userId));
+
+    // Emit an admin notification (best-effort; never fails the rejection).
+    await createNotification({
+      userId,
+      category: "ACCOUNT",
+      type: "ACCOUNT_REJECTED",
+      title: "Account Rejected",
+      message: `${user.fullName}'s account request was rejected.`,
+      entityType: "ACCOUNT_REQUEST",
+      entityId: userId,
+    });
 
     // Send rejection notification email
     try {

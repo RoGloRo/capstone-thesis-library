@@ -5,6 +5,7 @@ import { db } from "@/database/drizzle";
 import { users } from "@/database/schema";
 import { deleteCacheKey } from "@/lib/ai-cache";
 import { hash } from "bcryptjs";
+import { createNotification } from "@/lib/notifications";
 
 import { eq } from "drizzle-orm";
 import { headers, cookies } from "next/headers";
@@ -101,15 +102,30 @@ export const signUp = async (params: AuthCredentials) => {
     const finalGradeLevel =
       userCategory === "STUDENT" ? gradeLevel ?? null : null;
 
-    // Insert user into database
-    await db.insert(users).values({
-      fullName,
-      email,
-      universityId,
-      password: hashedPassword,
-      universityCard,
-      userCategory,
-      gradeLevel: finalGradeLevel,
+    // Insert user into database (capture the new id for the admin notification).
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        fullName,
+        email,
+        universityId,
+        password: hashedPassword,
+        universityCard,
+        userCategory,
+        gradeLevel: finalGradeLevel,
+      })
+      .returning({ id: users.id });
+
+    // Emit an admin notification (auxiliary; a failure here is logged and
+    // swallowed so it can never break the signup itself).
+    await createNotification({
+      userId: newUser.id,
+      category: "ACCOUNT",
+      type: "ACCOUNT_REQUEST",
+      title: "New Account Request",
+      message: `${fullName} (${email}) submitted a registration request.`,
+      entityType: "ACCOUNT_REQUEST",
+      entityId: newUser.id,
     });
 
     console.log("✅ User created successfully:", email);
