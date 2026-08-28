@@ -132,3 +132,29 @@ export type ContactMessageInput = z.infer<typeof contactMessageSchema>;
 
 export const MESSAGE_STATUSES = ["UNREAD", "READ", "RESOLVED"] as const;
 export type MessageStatus = (typeof MESSAGE_STATUSES)[number];
+
+// Announcements — text-only news/notice posts managed by admins/librarians.
+// Used BOTH by the client form (instant feedback) and re-validated on the
+// server inside the announcement server actions — single source of truth,
+// no drift. Trim + required so whitespace-only values are rejected.
+export const announcementSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "Please enter a title.")
+    .max(200, "Title must be 200 characters or fewer."),
+  content: z
+    .string()
+    .trim()
+    .min(1, "Please enter the announcement content.")
+    .max(5000, "Content must be 5000 characters or fewer."),
+});
+
+export type AnnouncementInput = z.infer<typeof announcementSchema>;
+
+export const ANNOUNCEMENT_STATUSES = [
+  "DRAFT",
+  "PUBLISHED",
+  "ARCHIVED",
+] as const;
+export type AnnouncementStatus = (typeof ANNOUNCEMENT_STATUSES)[number];

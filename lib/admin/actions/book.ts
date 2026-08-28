@@ -39,7 +39,7 @@ export const createBook = async (params: BookParams) => {
         .limit(1);
 
       if (existing.length > 0) {
-        return { success: false, message: "Control number already in use" };
+        return { success: false, message: "Call number already in use" };
       }
     }
 
@@ -121,7 +121,7 @@ export const updateBook = async (id: string, params: BookParams) => {
           .limit(1);
 
         if (existing.length > 0) {
-          return { success: false, message: "Control number already in use" };
+          return { success: false, message: "Call number already in use" };
         }
         controlNumberToSet = params.controlNumber;
       } else {

@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { FormEvent, useState, useEffect, useRef } from "react";
-import { LogOut, Menu, X, Home, Library, Bell, User, MessageSquare, Info } from "lucide-react";
+import { LogOut, Menu, X, Home, Library, Bell, User, MessageSquare, Info, Megaphone } from "lucide-react";
 import NotificationDropdown from "@/components/NotificationDropdown";
 import LogoutConfirmation from "@/components/ui/logout-confirmation";
 import { ThemeToggleButton } from "@/components/ui/theme-toggle-button";
@@ -299,6 +299,19 @@ const Header = ({session}: {session: Session | null}) => {
           )}></div>
         </Link>
 
+        <Link href="/announcements" className={cn(
+          "relative px-4 py-2 text-base font-medium capitalize rounded-lg transition-all duration-300 ease-out group",
+          pathname.startsWith("/announcements") 
+            ? "text-amber-600 bg-amber-50/80 shadow-sm" 
+            : "text-gray-700 hover:text-amber-600 hover:bg-amber-50/60"
+        )}>
+          <span className="relative z-10">Announcements</span>
+          <div className={cn(
+            "absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300 ease-out",
+            pathname.startsWith("/announcements") ? "w-8" : "w-0 group-hover:w-6"
+          )}></div>
+        </Link>
+
         <Link href="/about-us" className={cn(
           "relative px-4 py-2 text-base font-medium capitalize rounded-lg transition-all duration-300 ease-out group",
           pathname.startsWith("/about-us")
@@ -502,6 +515,20 @@ const Header = ({session}: {session: Session | null}) => {
               >
                 <Library className="w-5 h-5" />
                 <span>Library</span>
+              </Link>
+
+              <Link 
+                href="/announcements" 
+                onClick={closeMobileMenu}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 hover:bg-amber-50 active:scale-95",
+                  pathname.startsWith("/announcements") 
+                    ? "text-amber-600 bg-amber-50 border border-amber-200" 
+                    : "text-gray-700 hover:text-amber-600"
+                )}
+              >
+                <Megaphone className="w-5 h-5" />
+                <span>Announcements</span>
               </Link>
 
               <Link 

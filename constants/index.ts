@@ -24,6 +24,11 @@ export const adminSideBarLinks = [
     text: "Notifications",
   },
   {
+    img: "/icons/admin/announcement.svg",
+    route: "/admin/announcements",
+    text: "Announcements",
+  },
+  {
     img: "/icons/admin/mail.svg",
     route: "/admin/email-logs",
     text: "Email Logs",
@@ -295,6 +300,30 @@ export const messageStatuses = [
     label: "Resolved",
     bgColor: "bg-[#ECFDF3]",
     textColor: "text-[#027A48]",
+  },
+];
+
+// Announcement workflow states (announcements.status).
+// DRAFT → PUBLISHED → ARCHIVED, with ARCHIVED restore-able via publish.
+// Matches the announcement_status pg enum values.
+export const announcementStatuses = [
+  {
+    value: "DRAFT",
+    label: "Draft",
+    bgColor: "bg-[#FFF6E6]",
+    textColor: "text-[#B54708]",
+  },
+  {
+    value: "PUBLISHED",
+    label: "Published",
+    bgColor: "bg-[#ECFDF3]",
+    textColor: "text-[#027A48]",
+  },
+  {
+    value: "ARCHIVED",
+    label: "Archived",
+    bgColor: "bg-[#F0F9FF]",
+    textColor: "text-[#026AA2]",
   },
 ];
 
