@@ -1,59 +1,128 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { LayoutList } from "lucide-react";
+import { useChartColors } from "./chartTheme";
+
+export interface GenreItem {
+  genre: string;
+  count: number;
+}
 
 interface TopGenresChartProps {
-  data: Array<{ genre: string; count: number }>;
+  genres: GenreItem[];
+  total: number;
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-
-function polarPath(centerX: number, centerY: number, radius: number, start: number, end: number) {
-  const x1 = centerX + radius * Math.cos(start);
-  const y1 = centerY + radius * Math.sin(start);
-  const x2 = centerX + radius * Math.cos(end);
-  const y2 = centerY + radius * Math.sin(end);
-  const large = end - start > Math.PI ? 1 : 0;
-  return `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2} Z`;
+function truncateGenre(name: string, max: number): string {
+  return name.length > max ? `${name.slice(0, max - 1)}…` : name;
 }
 
-export function TopGenresChart({ data }: TopGenresChartProps) {
-  const total = data.reduce((s, d) => s + d.count, 0) || 1;
-  const size = 220;
-  const cx = size / 2;
-  const cy = size / 2;
-  let angle = -Math.PI / 2;
+export function TopGenresChart({ genres, total }: TopGenresChartProps) {
+  const colors = useChartColors();
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Genres</CardTitle>
+        <CardTitle className="text-gray-900 dark:text-white">Top Genres</CardTitle>
+        <CardDescription>
+          Ranked by number of borrows (all-time)
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        {data.length === 0 ? (
-          <div className="h-[300px] flex items-center justify-center text-muted-foreground">No genre data available</div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-              {data.map((d, i) => {
-                const portion = d.count / total;
-                const next = angle + portion * Math.PI * 2;
-                const dPath = polarPath(cx, cy, 90, angle, next);
-                angle = next;
-                return <path key={d.genre} d={dPath} fill={COLORS[i % COLORS.length]} stroke="#fff" />;
-              })}
-            </svg>
-            <div className="mt-3 w-full">
-              {data.map((d, i) => (
-                <div key={d.genre} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="w-3 h-3" style={{ background: COLORS[i % COLORS.length] }} />
-                    <span>{d.genre}</span>
-                  </div>
-                  <div className="text-muted-foreground">{((d.count / total) * 100).toFixed(0)}%</div>
-                </div>
-              ))}
+        {genres.length === 0 ? (
+          <div className="flex h-[280px] items-center justify-center rounded-lg border border-dashed">
+            <div className="px-4 text-center">
+              <LayoutList className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60" />
+              <p className="text-sm font-medium text-muted-foreground">
+                No borrow activity yet
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground/70">
+                Genre popularity appears once books are borrowed.
+              </p>
             </div>
+          </div>
+        ) : (
+          <div className="h-[280px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={genres}
+                layout="vertical"
+                margin={{ top: 4, right: 44, bottom: 4, left: 0 }}
+              >
+                <CartesianGrid
+                  stroke={colors.grid}
+                  strokeDasharray="3 3"
+                  horizontal
+                  vertical={false}
+                />
+                <XAxis type="number" hide />
+                <YAxis
+                  type="category"
+                  dataKey="genre"
+                  width={104}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={0}
+                  tick={
+                    {
+                      fill: colors.tick,
+                      fontSize: 11,
+                    } as never
+                  }
+                  tickFormatter={(t: string) => truncateGenre(t, 20)}
+                />
+                <Tooltip
+                  cursor={{ fill: "rgba(0,0,0,0.04)" }}
+                  contentStyle={{
+                    backgroundColor: colors.tooltipBg,
+                    border: `1px solid ${colors.tooltipBorder}`,
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  labelStyle={{ fontWeight: 600, color: colors.tick }}
+                  formatter={(value: number) => [
+                    `${value} borrow${value === 1 ? "" : "s"}`,
+                    "Count",
+                  ]}
+                />
+                <Bar
+                  dataKey="count"
+                  fill={colors.primary}
+                  radius={[0, 6, 6, 0]}
+                  maxBarSize={26}
+                >
+                  <LabelList
+                    dataKey="count"
+                    position="right"
+                    style={{ fill: colors.tick, fontSize: 12, fontWeight: 700 }}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {genres.length > 0 && (
+          <div className="mt-3 flex items-center justify-between border-t pt-3 text-xs text-muted-foreground">
+            <span>Total borrows (all genres)</span>
+            <span className="font-semibold">{total.toLocaleString()} borrows</span>
           </div>
         )}
       </CardContent>

@@ -1,53 +1,156 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Area,
+  CartesianGrid,
+  Legend,
+  Line,
+  ComposedChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
+import { useChartColors } from "./chartTheme";
+
+export interface TrendPoint {
+  date: string;
+  borrowed: number;
+  returned: number;
+}
 
 interface BorrowingTrendsChartProps {
-  data: Array<{ date: string; borrowed: number; returned: number }>;
+  data: TrendPoint[];
+  granularity: "daily" | "monthly";
+  hasData: boolean;
 }
 
-function buildPath(points: number[], width: number, height: number) {
-  if (!points.length) return '';
-  const max = Math.max(...points, 1);
-  const step = width / Math.max(points.length - 1, 1);
-  return points
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${i * step} ${height - (p / max) * height}`)
-    .join(' ');
-}
+export function BorrowingTrendsChart({
+  data,
+  granularity,
+  hasData,
+}: BorrowingTrendsChartProps) {
+  const colors = useChartColors();
 
-export function BorrowingTrendsChart({ data }: BorrowingTrendsChartProps) {
-  const width = 700;
-  const height = 300;
-
-  const dates = data.map((d) => d.date);
-  const borrowedPoints = data.map((d) => d.borrowed);
-  const returnedPoints = data.map((d) => d.returned);
+  const description =
+    granularity === "monthly"
+      ? "Borrows vs returns per month (last 12 months)"
+      : "Borrows vs returns per day (last 30 days)";
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Borrowing Trends</CardTitle>
+        <CardTitle className="text-gray-900 dark:text-white">
+          Borrowing Trends
+        </CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        {data.length === 0 ? (
-          <div className="h-[300px] flex items-center justify-center text-muted-foreground">No data</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height}>
-              <defs>
-                <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#8884d8" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="#8884d8" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d={buildPath(borrowedPoints, width, height)} fill="none" stroke="#8884d8" strokeWidth={2} />
-              <path d={buildPath(returnedPoints, width, height)} fill="none" stroke="#82ca9d" strokeWidth={2} />
-            </svg>
-            <div className="mt-2 text-sm text-muted-foreground grid grid-cols-3 gap-2">
-              <div>Points: {data.length}</div>
-              <div>Latest borrowed: {data[data.length - 1]?.borrowed ?? 0}</div>
-              <div>Latest returned: {data[data.length - 1]?.returned ?? 0}</div>
+        {!hasData || data.length === 0 ? (
+          <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed">
+            <div className="px-4 text-center">
+              <TrendingUp className="mx-auto mb-3 h-8 w-8 text-muted-foreground/60" />
+              <p className="text-sm font-medium text-muted-foreground">
+                No borrowing activity yet
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground/70">
+                Borrowing and return trends will appear here as activity happens.
+              </p>
             </div>
+          </div>
+        ) : (
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart
+                data={data}
+                margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+                accessibilityLayer
+              >
+                <CartesianGrid
+                  stroke={colors.grid}
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={18}
+                  tick={
+                    {
+                      fill: colors.tick,
+                      fontSize: 11,
+                    } as never
+                  }
+                />
+                <YAxis
+                  allowDecimals={false}
+                  domain={[0, "auto"]}
+                  tickLine={false}
+                  axisLine={false}
+                  width={30}
+                  tick={
+                    {
+                      fill: colors.tick,
+                      fontSize: 11,
+                    } as never
+                  }
+                />
+                <Tooltip
+                  cursor={{ stroke: colors.tick, strokeDasharray: "4 4" }}
+                  contentStyle={{
+                    backgroundColor: colors.tooltipBg,
+                    border: `1px solid ${colors.tooltipBorder}`,
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                  labelStyle={{ fontWeight: 600, color: colors.tick }}
+                  formatter={(value: number, name: string) => {
+                    const label =
+                      name === "borrowed"
+                        ? "Borrowed"
+                        : name === "returned"
+                          ? "Returned"
+                          : name;
+                    return [`${value}`, label];
+                  }}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: 12, color: colors.tick }}
+                  iconType="plainline"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="borrowed"
+                  name="Borrowed"
+                  stroke={colors.primary}
+                  strokeWidth={2}
+                  fill={colors.primary}
+                  fillOpacity={0.12}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="returned"
+                  name="Returned"
+                  stroke={colors.secondary}
+                  strokeWidth={2}
+                  strokeDasharray="5 4"
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
           </div>
         )}
       </CardContent>
