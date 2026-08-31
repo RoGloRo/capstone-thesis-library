@@ -12,64 +12,66 @@ export const navigationLinks = [
   },
 ];
 
-export const adminSideBarLinks = [
+// ─── Admin Sidebar ──────────────────────────────────────────────────────────
+// Admin navigation grouped into logical sections. Routes, labels and icons are
+// unchanged from the original flat list — grouping only affects how the
+// sidebar renders them.
+
+export type AdminSidebarLink = {
+  img: string;
+  route: string;
+  text: string;
+};
+
+export type AdminSidebarSection = {
+  label: string;
+  links: AdminSidebarLink[];
+};
+
+export const adminSidebarSections: AdminSidebarSection[] = [
   {
-    img: "/icons/admin/home.svg",
-    route: "/admin",
-    text: "Home",
+    label: "Overview",
+    links: [
+      { img: "/icons/admin/home.svg", route: "/admin", text: "Home" },
+    ],
   },
   {
-    img: "/icons/admin/notification.svg",
-    route: "/admin/notifications",
-    text: "Notifications",
+    label: "Library",
+    links: [
+      { img: "/icons/admin/book.svg", route: "/admin/books", text: "All Books" },
+      { img: "/icons/admin/bookmark.svg", route: "/admin/borrow-records", text: "Borrow Records" },
+      { img: "/icons/admin/calendar.svg", route: "/admin/visit-logs", text: "Visit Logs" },
+    ],
   },
   {
-    img: "/icons/admin/announcement.svg",
-    route: "/admin/announcements",
-    text: "Announcements",
+    label: "People",
+    links: [
+      { img: "/icons/admin/users.svg", route: "/admin/users", text: "All Users" },
+      { img: "/icons/admin/user.svg", route: "/admin/account-requests", text: "Account Requests" },
+    ],
   },
   {
-    img: "/icons/admin/mail.svg",
-    route: "/admin/email-logs",
-    text: "Email Logs",
+    label: "Communication",
+    links: [
+      { img: "/icons/admin/notification.svg", route: "/admin/notifications", text: "Notifications" },
+      { img: "/icons/admin/announcement.svg", route: "/admin/announcements", text: "Announcements" },
+      { img: "/icons/admin/info.svg", route: "/admin/messages", text: "Messages" },
+      { img: "/icons/admin/mail.svg", route: "/admin/email-logs", text: "Email Logs" },
+    ],
   },
   {
-    img: "/icons/admin/users.svg",
-    route: "/admin/users",
-    text: "All Users",
+    label: "Insights",
+    links: [
+      { img: "/icons/admin/receipt.svg", route: "/admin/reports", text: "Reports" },
+    ],
   },
-  {
-    img: "/icons/admin/book.svg",
-    route: "/admin/books",
-    text: "All Books",
-  },
-  {
-    img: "/icons/admin/bookmark.svg",
-    route: "/admin/borrow-records",
-    text: "Borrow Records",
-  },
-  {
-    img: "/icons/admin/receipt.svg",
-    route: "/admin/reports",
-    text: "Reports",
-  },
-  {
-    img: "/icons/admin/info.svg",
-    route: "/admin/messages",
-    text: "Messages",
-  },
-  {
-    img: "/icons/admin/user.svg",
-    route: "/admin/account-requests",
-    text: "Account Requests",
-  },
-  {
-    img: "/icons/admin/calendar.svg",
-    route: "/admin/visit-logs",
-    text: "Visit Logs",
-  },
-  
 ];
+
+// Flat view of every admin sidebar link (same routes/labels as before) for any
+// consumer that needs to iterate all items regardless of grouping.
+export const adminSideBarLinks: AdminSidebarLink[] = adminSidebarSections.flatMap(
+  (section) => section.links,
+);
 
 export const FIELD_NAMES = {
   fullName: "Full name",

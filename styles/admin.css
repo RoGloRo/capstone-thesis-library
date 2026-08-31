@@ -4,7 +4,7 @@
 
 @layer components {
   .admin-container {
-    @apply flex w-[calc(100%-264px)] flex-1 flex-col bg-light-300 p-5 xs:p-10;
+    @apply ml-[76px] flex min-w-0 flex-1 flex-col bg-light-300 p-5 xs:p-10 md:ml-[264px];
   }
 
   .back-btn {
@@ -170,29 +170,83 @@
     @apply w-full border-0 shadow-none bg-transparent outline-none focus:outline-none focus:ring-0 focus:border-0 !important;
   }
 
-  /* Sidebar */
+  /* Sidebar — three zones: fixed logo header, scrollable nav, pinned profile.
+     position: fixed (not sticky): Radix overlays (Select/Dialog) scroll-lock by
+     setting body { overflow: hidden }, which turns <body> into a scroll container
+     and makes sticky track body's never-scrolling scrollport instead of the
+     viewport — the sidebar would visibly jump upward whenever a dropdown opens
+     on a scrolled page. A fixed element is immune to that. .admin-container
+     reserves the rail width via margin so layout is unchanged. */
   .admin-sidebar {
-    @apply sticky left-0 top-0 flex h-dvh flex-col justify-between bg-white px-5 pb-5 pt-10;
+    @apply fixed left-0 top-0 flex h-dvh w-[264px] flex-col overflow-hidden bg-white px-4 pb-4 pt-5 max-md:w-[76px] max-md:px-2.5 max-md:pb-3 max-md:pt-4;
   }
 
   .admin-sidebar .logo {
-    @apply flex flex-row items-center gap-2 border-b border-dashed border-primary-admin/20 pb-10 max-md:justify-center;
+    @apply flex shrink-0 flex-row items-center gap-2.5 border-b border-dashed border-primary-admin/20 pb-4 max-md:justify-center max-md:pb-3;
   }
 
   .admin-sidebar .logo h1 {
-    @apply text-2xl font-semibold text-primary-admin max-md:hidden;
+    @apply text-lg font-semibold leading-snug text-primary-admin max-md:hidden;
+  }
+
+  /* Scrollable navigation zone (flex child, so only this area scrolls) */
+  .admin-sidebar .nav-scroll {
+    @apply mt-4 min-h-0 flex-1 overflow-y-auto pb-2 pr-1.5 max-md:mt-3 max-md:pr-0.5;
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+  }
+
+  .dark .admin-sidebar .nav-scroll {
+    scrollbar-color: #374151 transparent;
+  }
+
+  .admin-sidebar .nav-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .admin-sidebar .nav-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .admin-sidebar .nav-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: #e5e7eb;
+  }
+
+  .dark .admin-sidebar .nav-scroll::-webkit-scrollbar-thumb {
+    background: #374151;
+  }
+
+  .admin-sidebar .nav-group + .nav-group {
+    @apply mt-5 max-md:mt-3;
+  }
+
+  .admin-sidebar .nav-group-label {
+    @apply mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 max-md:hidden;
   }
 
   .admin-sidebar .link {
-    @apply flex flex-row items-center w-full gap-2 rounded-lg px-5 py-3.5 max-md:justify-center;
+    @apply relative flex w-full flex-row items-center gap-2.5 rounded-lg px-3 py-2.5 max-md:justify-center;
   }
 
-  .admin-sidebar .link p {
-    @apply text-base font-medium max-md:hidden;
+  .admin-sidebar .link:focus-visible {
+    @apply outline-none ring-2 ring-primary-admin/40;
   }
 
+  /* Emerald accent bar on the active item — pairs with aria-current so the
+     active state is never communicated by color alone */
+  .admin-sidebar .link.active-indicator::before {
+    content: "";
+    @apply absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-emerald-500 dark:bg-emerald-400;
+  }
+
+  .admin-sidebar .link-label {
+    @apply truncate text-sm font-medium max-md:hidden;
+  }
+
+  /* Pinned profile card (footer zone) */
   .admin-sidebar .user {
-    @apply my-8 flex w-full flex-row gap-2 rounded-full border border-light-400 px-6 py-2 shadow-sm max-md:px-2;
+    @apply mt-2 flex w-full shrink-0 flex-row items-center gap-2.5 rounded-xl border p-2 text-left shadow-sm max-md:justify-center max-md:border-0 max-md:p-0;
   }
 
   /* User Card */

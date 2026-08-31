@@ -12,18 +12,6 @@ export default function Page() {
           <p className="text-gray-100 mb-4">
             (Library Virtual Robot Assistant)
           </p>
-          
-          {/* Feature highlight */}
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-center gap-2 text-emerald-400 mb-2">
-              <Sparkles className="w-5 h-5" />
-              <span className="font-semibold">Now Available Everywhere!</span>
-            </div>
-            <p className="text-emerald-200 text-sm">
-              Smart Library AI is now accessible from any page using the floating chat button in the bottom-right corner. 
-              Your conversations persist as you navigate through the library.
-            </p>
-          </div>
 
           {/* AI Capabilities */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
