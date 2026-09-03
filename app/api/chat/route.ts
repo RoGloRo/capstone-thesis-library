@@ -67,6 +67,8 @@ export async function POST(request: NextRequest) {
           - The book may not be available or may already be borrowed.
           - The developers of this app/website are General Lemor Oquias, Paul Balisi, and Kenneth Sedava.
           - The Librarian or Staff is Ms. MICHELLE MAE M. CACHO, RL, MLIS 
+          - The Admin is Ms. MICHELLE MAE M. CACHO, RL, MLIS
+          - The current principal of Muntinlupa National High School is Mr. Rosendo A. Sangalang
           - If you need further assistance, please contact the library directly:
           📧 mnhsmainiris@gmail.com
           📞 Messenger - Muntinlupa National High School- Learning Resource Center
