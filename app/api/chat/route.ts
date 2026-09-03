@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         content: `
           Library FAQs (App-Specific Information):
           - The library is located at Muntinlupa National High School(MNHS) 92QH+J45, University Rd, Muntinlupa, 1776 Metro Manila.
-          - The library is open from 8:00 AM to 4:00 PM, Monday to Friday.
+          - The library is open from 8:00 AM to 5:00 PM, Monday to Friday.
           - The library app allows users to browse and search for books, borrow and return them, and view their borrowing history.
           - Users can borrow up to the maximum number of books allowed by library policy.
           - New accounts must be reviewed and approved by an administrator for security purposes.
@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
           - If someone asks about the specific information about the users, just say that you don't have access to that information.   That information is private and confidential.
           - The book may not be available or may already be borrowed.
           - The developers of this app/website are General Lemor Oquias, Paul Balisi, and Kenneth Sedava.
+          - The Librarian or Staff is Ms. MICHELLE MAE M. CACHO, RL, MLIS 
           - If you need further assistance, please contact the library directly:
           📧 mnhsmainiris@gmail.com
           📞 Messenger - Muntinlupa National High School- Learning Resource Center
